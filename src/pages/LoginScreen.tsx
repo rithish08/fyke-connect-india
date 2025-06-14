@@ -6,21 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from "@/contexts/LocalizationContext";
-import { Phone, MessageSquare } from "lucide-react";
+import { Phone, MessageSquare, User } from "lucide-react";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer'>('jobseeker');
   const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const { login } = useAuth();
+  const { login, updateProfile } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
 
   const handleSendOTP = async () => {
     console.log('Sending OTP to:', phone);
     localStorage.setItem('fyke_phone', phone || '');
+    localStorage.setItem('fyke_name', name || '');
     setOtpSent(true);
   };
 
@@ -37,20 +39,18 @@ const LoginScreen = () => {
     try {
       await login(phone, otp);
       
-      // Get user from localStorage and update role
-      const storedUser = localStorage.getItem('fyke_user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        userData.role = role;
-        userData.profileComplete = role === 'employer' ? true : false;
-        localStorage.setItem('fyke_user', JSON.stringify(userData));
-        
-        // Navigate based on role
-        if (role === 'employer') {
-          navigate('/home');
-        } else {
-          navigate('/profile-setup');
-        }
+      // Update user profile with name and role
+      updateProfile({
+        name: name,
+        role: role,
+        profileComplete: role === 'employer' ? true : false
+      });
+      
+      // Navigate based on role
+      if (role === 'employer') {
+        navigate('/home');
+      } else {
+        navigate('/profile-setup');
       }
     } catch (error) {
       console.error('Login Failed:', error);
@@ -99,14 +99,29 @@ const LoginScreen = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{t('login.title', 'Welcome to Fyke')}</h1>
               <p className="text-gray-500 text-sm">
-                {otpSent ? 'Verify your number' : 'Enter your phone to get started'}
+                {otpSent ? 'Verify your number' : 'Enter your details to get started'}
               </p>
             </div>
           </div>
 
-          {/* Phone Input */}
+          {/* Name and Phone Input */}
           {!otpSent ? (
             <div className="space-y-4">
+              {/* Name Input */}
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <User className="w-5 h-5" />
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Your Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              {/* Phone Input */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   +91
@@ -119,9 +134,10 @@ const LoginScreen = () => {
                   className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+              
               <Button 
                 onClick={handleSendOTP} 
-                disabled={phone.length !== 10}
+                disabled={phone.length !== 10 || !name.trim()}
                 className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
               >
                 Send OTP
