@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -17,8 +16,11 @@ const HomePage = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
+    console.log('HomePage - Component mounted, checking if redirect needed');
+    
     // Only redirect if we should redirect from the current page
     if (shouldRedirectFromCurrentPage()) {
+      console.log('HomePage - Redirect needed, calling navigateToCorrectScreen');
       navigateToCorrectScreen();
     }
   }, [isAuthenticated, user, shouldRedirectFromCurrentPage, navigateToCorrectScreen]);
@@ -28,7 +30,13 @@ const HomePage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (!user) return null;
+  // Show loading if user is not available yet
+  if (!user) {
+    console.log('HomePage - No user data, showing loading or redirecting');
+    return null;
+  }
+
+  console.log('HomePage - Rendering home page for user:', { role: user.role, profileComplete: user.profileComplete });
 
   return (
     <div className="min-h-screen bg-white">

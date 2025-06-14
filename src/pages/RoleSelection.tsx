@@ -1,6 +1,5 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,12 +10,27 @@ import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const { setRole, updateProfile } = useAuth();
+  const { setRole, updateProfile, user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
   const { goTo } = useScreenNavigation();
 
+  useEffect(() => {
+    console.log('RoleSelection - Component mounted, user state:', { isAuthenticated, user: user ? { role: user.role } : null });
+    
+    // If user is already authenticated and has a role, redirect appropriately
+    if (isAuthenticated && user && user.role) {
+      console.log('RoleSelection - User already has role, redirecting based on role');
+      if (user.role === 'employer' || user.profileComplete) {
+        goTo('/home');
+      } else {
+        goTo('/profile-setup');
+      }
+    }
+  }, [isAuthenticated, user, goTo]);
+
   const handleContinue = () => {
     if (selectedRole) {
+      console.log('RoleSelection - Setting role to:', selectedRole);
       setRole(selectedRole);
 
       // Update profile with the selected role
@@ -27,9 +41,11 @@ const RoleSelection = () => {
 
       // Navigate based on role - ensure proper flow
       if (selectedRole === 'employer') {
+        console.log('RoleSelection - Employer selected, going to home');
         // Employers go straight to home since they don't need profile setup
         goTo('/home');
       } else {
+        console.log('RoleSelection - Job seeker selected, going to profile setup');
         // Job seekers need to complete their profile first
         goTo('/profile-setup');
       }

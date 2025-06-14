@@ -1,11 +1,10 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingSlides from '@/components/OnboardingSlides';
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Globe } from "lucide-react";
 import { useLocalization } from '@/contexts/LocalizationContext';
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const languageList = [
   { code: 'en', name: 'English', native: 'English', color: 'bg-blue-500', icon: "🇬🇧" },
@@ -22,26 +21,31 @@ const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { setLanguage, t } = useLocalization();
-  const navigate = useNavigate();
+  const { goTo } = useScreenNavigation();
 
   const handleContinue = () => {
+    console.log('Language selection - setting language to:', selectedLanguage);
     setLanguage(selectedLanguage);
+    
     const hasSeenOnboarding = localStorage.getItem('fyke_onboarding_seen');
     if (!hasSeenOnboarding) {
       setShowOnboarding(true);
     } else {
-      navigate('/role-selection');
+      console.log('Language selection - navigating to role selection');
+      goTo('/role-selection');
     }
   };
 
   const handleOnboardingComplete = () => {
+    console.log('Onboarding complete - navigating to role selection');
     localStorage.setItem('fyke_onboarding_seen', 'true');
-    navigate('/role-selection');
+    goTo('/role-selection');
   };
 
   const handleSkipOnboarding = () => {
+    console.log('Onboarding skipped - navigating to role selection');
     localStorage.setItem('fyke_onboarding_seen', 'true');
-    navigate('/role-selection');
+    goTo('/role-selection');
   };
 
   if (showOnboarding) {
