@@ -1,11 +1,12 @@
 
 import React from "react";
-import { Star, MapPin, Clock, Shield, Zap } from 'lucide-react';
+import { Star, MapPin, Clock, Shield, Check } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface WorkerCardProps {
+  id: string | number;
   name: string;
   category: string;
   skills: string[];
@@ -17,13 +18,15 @@ interface WorkerCardProps {
   hourlyRate?: number;
   isOnline?: boolean;
   profileImage?: string;
-  onClick?: () => void;
+  onClick?: (worker: any) => void;
+  showModal?: (worker: any) => void;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ 
-  name, 
-  category, 
-  skills = [], 
+const WorkerCard: React.FC<WorkerCardProps> = ({
+  id,
+  name,
+  category,
+  skills = [],
   rating,
   completedJobs = 0,
   verificationLevel = 'basic',
@@ -32,126 +35,77 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   hourlyRate = 300,
   isOnline = false,
   profileImage = "/placeholder.svg",
-  onClick
+  onClick,
+  showModal,
+  ...props
 }) => {
-  const handleCardClick = () => {
-    if (onClick) {
-      onClick();
-    }
-  };
-
-  const getVerificationColor = () => {
-    switch (verificationLevel) {
-      case 'premium': return 'bg-purple-500';
-      case 'verified': return 'bg-green-500';
-      default: return 'bg-gray-400';
-    }
+  // Only open modal if passed, else call onClick (fallback for navigation)
+  const handleViewProfile = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (showModal) showModal({ id, name, category, skills, rating, completedJobs, verificationLevel, responseTime, distance, hourlyRate, isOnline, profileImage });
+    else if (onClick) onClick({ id, name, category, skills, rating, completedJobs, verificationLevel, responseTime, distance, hourlyRate, isOnline, profileImage });
   };
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group"
-      onClick={handleCardClick}
+      className="bg-white rounded-2xl px-4 py-3 shadow group border border-gray-100 flex items-center transition hover:shadow-xl hover:scale-[1.01] cursor-pointer min-h-[120px] select-none"
+      onClick={handleViewProfile}
+      tabIndex={0}
+      role="button"
+      aria-label={`View profile of ${name}`}
+      onKeyDown={(e) => { if (e.key === "Enter") handleViewProfile(); }}
     >
-      <div className="flex items-center justify-between">
-        {/* Left Section - Avatar + Info */}
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
-          <div className="relative flex-shrink-0">
-            <Avatar className="w-12 h-12 border-2 border-white shadow-md">
-              <AvatarImage src={profileImage} alt={name} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-sm">
-                {name.split(' ').map(n => n[0]).join('').toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            
-            {/* Online indicator */}
-            {isOnline && (
-              <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
-            )}
-            
-            {/* Verification badge */}
-            {verificationLevel !== 'basic' && (
-              <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 ${getVerificationColor()} rounded-full flex items-center justify-center border-2 border-white`}>
-                <Shield className="w-2.5 h-2.5 text-white" fill="currentColor" />
-              </div>
-            )}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-1">
-              <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                {name}
-              </h3>
-              {isOnline && (
-                <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs px-2 py-0.5">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Online
-                </Badge>
-              )}
-            </div>
-            
-            <p className="text-sm text-gray-600 truncate mb-1">{category}</p>
-            
-            <div className="flex items-center space-x-3 text-xs text-gray-500">
-              <div className="flex items-center space-x-1">
-                <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
-                <span className="font-semibold text-gray-900">{rating}</span>
-                <span>({completedJobs})</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MapPin className="w-3 h-3" />
-                <span>{distance}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Clock className="w-3 h-3" />
-                <span>{responseTime}</span>
-              </div>
-            </div>
-          </div>
+      {/* Avatar & Online status */}
+      <div className="mr-4 relative">
+        <Avatar className="w-14 h-14 border-2 border-white shadow">
+          <AvatarImage src={profileImage} alt={name} />
+          <AvatarFallback className="bg-gray-100 text-gray-400 font-bold text-lg">
+            {name.split(' ').map(n => n[0]).join('').toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        {isOnline && (
+          <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-400 border-2 border-white rounded-full" aria-label="Online"></span>
+        )}
+      </div>
+      {/* Main info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="font-semibold text-gray-900 text-base truncate">{name}</span>
+          {verificationLevel === 'verified' || verificationLevel === 'premium' ? (
+            <Check className="w-4 h-4 text-green-500 ml-0.5" aria-label="Verified" />
+          ) : null}
         </div>
-        
-        {/* Right Section - Rate + Action */}
-        <div className="flex items-center space-x-3 flex-shrink-0">
-          <div className="text-right">
-            <div className="text-xl font-bold text-green-600">₹{hourlyRate}</div>
-            <div className="text-xs text-gray-500">per hour</div>
+        <div className="flex items-center gap-3 mt-1 text-xs">
+          <div className="flex items-center gap-1 text-gray-700 font-medium">
+            <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
+            <span>{typeof rating === "number" ? rating.toFixed(1) : rating}</span>
           </div>
-          
-          <Button
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCardClick();
-            }}
-          >
-            View
-          </Button>
+          <div className="text-gray-400">·</div>
+          <div className="font-medium text-gray-700">{hourlyRate && <span>₹{hourlyRate}/hr</span>}</div>
+          <div className="text-gray-400">·</div>
+          <span className="flex items-center gap-1 text-gray-700"><Clock className="w-3 h-3" /> {responseTime}</span>
+        </div>
+        <div className="mt-1 text-xs text-gray-600 font-normal">{completedJobs} jobs completed</div>
+        {/* Skills tags limited to three */}
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {skills.slice(0, 3).map((skill, i) => (
+            <span key={i} className="bg-gray-100 px-2 py-0.5 rounded-full text-xs font-medium text-gray-800">{skill}</span>
+          ))}
         </div>
       </div>
-      
-      {/* Skills - Compact Row */}
-      {skills.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex flex-wrap gap-1.5">
-            {skills.slice(0, 3).map((skill, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium border border-blue-100"
-              >
-                {skill}
-              </span>
-            ))}
-            {skills.length > 3 && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs">
-                +{skills.length - 3}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Action */}
+      <div className="flex flex-col items-end gap-2 ml-4 shrink-0">
+        <Button
+          size="sm"
+          className="rounded-xl min-w-[70px] border border-gray-200 bg-gray-50 text-gray-900 font-bold shadow-none transition hover:bg-gray-100 hover:text-blue-700"
+          tabIndex={-1}
+          onClick={(e) => { e.stopPropagation(); handleViewProfile(e); }}
+        >
+          View
+        </Button>
+      </div>
     </div>
   );
-};
+}
 
 export default WorkerCard;
