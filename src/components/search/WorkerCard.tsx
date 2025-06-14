@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, MessageCircle, Phone, CheckCircle, MapPin } from "lucide-react";
@@ -96,13 +95,18 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         tabIndex={0}
         role="button"
         aria-label={`Open profile of ${name}`}
-        onClick={handleProfileClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleProfileClick();
+        onClick={e => {
+          if (e) e.stopPropagation();
+          navigate(`/worker/${id}`);
+        }}
+        onKeyDown={e => {
+          if (e.key === "Enter") {
+            navigate(`/worker/${id}`);
+          }
         }}
         style={{ minHeight: "110px" }}
       >
-        {/* Profile image and info */}
+        {/* Profile Section */}
         <div className="flex flex-col justify-start items-center pr-2 pt-1">
           <div className="relative">
             <Avatar className="h-20 w-20 rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -126,7 +130,6 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </div>
         </div>
 
-        {/* Main info section */}
         <div className="flex-1 min-w-0 flex flex-col justify-between gap-0">
           <div>
             {/* Name & main info (inline with profile image) */}
@@ -184,15 +187,15 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </div>
         </div>
 
-        {/* Right side column for actions */}
-        <div className="flex flex-col items-end justify-center pl-4 min-w-[80px]">
-          {/* Helper text (no grammar fix requested) */}
-          <div className="mb-1 w-28 text-[10px] text-left text-gray-400 font-medium leading-tight truncate">
-            to hire click the blue button to hire with rate
+        {/* Actions column */}
+        <div className="flex flex-col items-end justify-center pl-4 min-w-[80px] w-full max-w-[150px]">
+          {/* Helper text above the button, intentionally with poor grammar, no punctuation */}
+          <div className="mb-1 w-full text-[11px] text-left text-gray-400 font-medium leading-tight truncate" style={{lineHeight: 1.1, marginBottom: 2}}>
+            to hire click the bluebutton to hire with rate
           </div>
           <Button
             variant={hireRequested ? "secondary" : "default"}
-            className={`h-7 px-3 w-24 mb-2 rounded-lg font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
+            className={`h-7 w-[40%] min-w-[66px] max-w-[120px] px-2 py-1 mb-1 rounded-lg font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
               ${hireRequested
                 ? "bg-green-100 text-green-700 cursor-default"
                 : "bg-gradient-to-tr from-blue-500 via-sky-400 to-indigo-400 text-white hover:scale-105 hover:bg-blue-600"
@@ -215,18 +218,31 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </Button>
           <Button
             variant="outline"
-            className="mb-2 h-8 w-24 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
-            onClick={handleCall}
+            className="mb-1 h-8 min-w-0 px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 flex items-center justify-center"
+            onClick={e => {
+              e.stopPropagation();
+              toast({ title: "Calling...", description: `Calling ${name}` });
+            }}
             tabIndex={-1}
+            style={{ width: "fit-content" }}
           >
             <Phone className="w-4 h-4 mr-1" />
             Call
           </Button>
           <Button
             variant="outline"
-            className="h-8 w-24 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
-            onClick={handleChat}
+            className="h-8 min-w-0 px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 flex items-center justify-center"
+            onClick={e => {
+              e.stopPropagation();
+              navigate("/messages", {
+                state: {
+                  workerId: id,
+                  workerName: name,
+                },
+              });
+            }}
             tabIndex={-1}
+            style={{ width: "fit-content" }}
           >
             <MessageCircle className="w-4 h-4 mr-1" />
             Chat
@@ -238,4 +254,3 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 };
 
 export default WorkerCard;
-
