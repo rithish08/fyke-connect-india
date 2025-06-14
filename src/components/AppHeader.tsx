@@ -35,7 +35,7 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
       <div className="relative bg-white p-0 shadow-none w-full">
         {/* App Brand with Bell Icon */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
-          <span className="font-black text-2xl text-gray-900 tracking-tight">fyke</span>
+          <span className="font-black text-3xl text-gray-900 tracking-tight">fyke</span>
           <button 
             onClick={() => navigate('/notifications')}
             className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -44,28 +44,20 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
           </button>
         </div>
-        {/* Page Name below app name */}
-        <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
-          <span>{showPage}</span>
+        
+        {/* User Info - Small and Faded */}
+        <div className="px-4 py-2 space-y-0.5">
+          <p className="text-sm text-gray-500 font-medium">
+            {user?.name ?? user?.phone}
+          </p>
+          <p className="text-xs text-gray-400">
+            {getGreeting()}! 👋
+          </p>
         </div>
-        {/* Greeting and Profile - Made smaller and more faded */}
-        <div className="flex items-center justify-between px-6 pt-1 pb-2">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-700">{getGreeting()}! 👋</h1>
-            <p className="text-gray-500 text-xs mt-0.5">
-              {user?.name ?? user?.phone}
-            </p>
-            <p className="text-gray-400 text-xs">
-              {user?.role === 'jobseeker'
-                ? t('home.jobseeker_subtitle', 'Ready to find work?')
-                : t('home.employer_subtitle', 'Ready to hire?')}
-            </p>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
-            <span className="text-sm font-bold text-gray-700 uppercase">
-              {user?.name ? user?.name[0] : user?.phone?.[0] || 'U'}
-            </span>
-          </div>
+
+        {/* Page Name */}
+        <div className="flex items-center min-h-[28px] px-4 pb-1 text-xs text-gray-400 font-medium select-none border-b border-gray-50">
+          <span>{showPage}</span>
         </div>
       </div>
       {/* CompactRoleSwitcher - always show for quick role toggle */}

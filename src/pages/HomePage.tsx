@@ -7,14 +7,12 @@ import BottomNavigation from '@/components/BottomNavigation';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import AppHeader from '@/components/AppHeader';
-import BannerAd from '@/components/BannerAd';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -34,7 +32,6 @@ const HomePage = () => {
       <AppHeader currentTime={currentTime} />
       <div className="flex justify-center pt-0 sm:pt-2">
         <div className="w-full max-w-2xl">
-          {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
           <div className="pt-2">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,9 @@ const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const { login, user } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer'>('jobseeker');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const { login } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
 
@@ -23,23 +26,66 @@ const LoginScreen = () => {
 
   const handleVerifyOTP = async () => {
     try {
-      await login(phone, otp);
-      // Check if user is employer and redirect accordingly
-      const storedUser = localStorage.getItem('fyke_user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        if (userData.role === 'employer') {
-          navigate('/home');
-        } else {
-          navigate('/profile-setup');
-        }
-      } else {
-        navigate('/profile-setup');
-      }
+      // Show role selection before completing login
+      setShowRoleSelection(true);
     } catch (error) {
       console.error('OTP Verification Failed:', error);
     }
   };
+
+  const handleRoleSelection = async (role: 'jobseeker' | 'employer') => {
+    try {
+      await login(phone, otp);
+      
+      // Get user from localStorage and update role
+      const storedUser = localStorage.getItem('fyke_user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        userData.role = role;
+        userData.profileComplete = role === 'employer' ? true : false;
+        localStorage.setItem('fyke_user', JSON.stringify(userData));
+        
+        // Navigate based on role
+        if (role === 'employer') {
+          navigate('/home');
+        } else {
+          navigate('/profile-setup');
+        }
+      }
+    } catch (error) {
+      console.error('Login Failed:', error);
+    }
+  };
+
+  if (showRoleSelection) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+        <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
+          <CardContent className="p-8 space-y-6">
+            <div className="text-center space-y-3">
+              <h1 className="text-2xl font-bold text-gray-900">Choose Your Role</h1>
+              <p className="text-gray-500 text-sm">How would you like to use Fyke?</p>
+            </div>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={() => handleRoleSelection('jobseeker')}
+                className="w-full h-14 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-2xl shadow-lg"
+              >
+                I'm Looking for Work
+              </Button>
+              <Button 
+                onClick={() => handleRoleSelection('employer')}
+                className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+              >
+                I Want to Hire Workers
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
