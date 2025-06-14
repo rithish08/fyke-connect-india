@@ -33,79 +33,50 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   isOnline = false,
   profileImage = "/placeholder.svg",
   verificationLevel = "basic",
-  responseTime = "<30min"
+  responseTime = "<30min",
 }) => {
   const { translateText, translateCategory } = useTranslation();
   const [showHireModal, setShowHireModal] = useState(false);
 
-  // Skills logic (up to 2 shown)
   const displayedSkills = skills.slice(0, 2);
   const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
 
-  const handleCall = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Call logic here
-  };
-  const handleChat = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Chat logic here
-  };
-
-  // Determine verification visual
-  const getVerificationColor = () => {
-    switch (verificationLevel) {
-      case "premium": return "text-purple-600 bg-purple-50 border-purple-200";
-      case "verified": return "text-green-600 bg-green-50 border-green-200";
-      default: return "text-blue-600 bg-blue-50 border-blue-200";
-    }
-  };
-
+  // Responsive / compact design:
   return (
     <>
-      <div className="bg-white border border-gray-100 rounded-2xl flex flex-row items-center px-3 py-3 shadow-sm min-h-[90px] max-w-full md:max-w-2xl gap-4 hover:shadow-lg transition-all duration-150 mb-3 w-full">
-        {/* Avatar and status */}
-        <div className="relative">
-          <Avatar className="h-14 w-14 rounded-xl">
+      <div className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3 shadow hover:shadow-md transition-all duration-150 w-full min-h-[78px] max-w-full">
+        {/* Avatar + online */}
+        <div className="relative shrink-0">
+          <Avatar className="h-12 w-12 rounded-lg">
             <AvatarImage src={profileImage} alt={name} />
-            <AvatarFallback className="bg-gray-200 text-blue-700 font-bold rounded-xl">
+            <AvatarFallback className="bg-gray-200 text-blue-700 font-bold rounded-lg text-xs">
               {name?.split(" ").map((n) => n[0]).join("")?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span
-            className={`absolute bottom-1 left-1 w-3 h-3 rounded-full border-2 border-white ${
-              isOnline ? "bg-green-400" : "bg-gray-300"
-            }`}
-          />
+          <span className={`absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full border-2 border-white ${isOnline ? "bg-green-400" : "bg-gray-300"}`} />
         </div>
-        {/* Info */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-            <span className="font-semibold text-gray-900 text-base leading-tight">
-              {name}
-            </span>
-            <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium w-max">
-              {translateCategory(category)}
-            </span>
+        {/* Main info */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex gap-1 items-center mb-0.5">
+            <span className="font-semibold text-sm text-gray-900 truncate">{name}</span>
+            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[11px] font-medium">{translateCategory(category)}</span>
           </div>
-          {/* Trust/verification display */}
-          <div className="flex flex-wrap gap-1 items-center mt-1 text-xs">
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-gray-500">
             <span className="flex items-center">
               <Star className="w-3 h-3 mr-0.5 text-yellow-400" fill="currentColor" />
               {rating}
             </span>
-            <span className={`px-1.5 py-0.5 rounded-full border text-xs font-medium ${getVerificationColor()} flex items-center ml-2`}>
-              <Shield className="w-3 h-3 mr-0.5" />
+            {completedJobs > 0 && (
+              <span className="ml-1">{completedJobs} {translateText("worker.jobs", "jobs")}</span>
+            )}
+            <span className="flex items-center ml-1">
+              <Shield className="w-3 h-3 mr-0.5 text-blue-400" />
               {verificationLevel === "premium" ? translateText("trust.premium", "Premium") : verificationLevel === "verified" ? translateText("trust.verified", "Verified") : translateText("trust.basic", "Basic")}
             </span>
-            <span className="ml-2 flex items-center text-gray-500">
-              <MapPin className="w-3 h-3 mr-0.5" />{distance}
-            </span>
-            <span className="ml-2 flex items-center text-gray-500">
-              <Clock className="w-3 h-3 mr-0.5" />{responseTime}
-            </span>
+            <span className="flex items-center ml-1"><MapPin className="w-3 h-3 mr-0.5" />{distance}</span>
+            <span className="flex items-center ml-1"><Clock className="w-3 h-3 mr-0.5" />{responseTime}</span>
           </div>
-          {/* Skill tags */}
-          <div className="flex flex-wrap mt-1 gap-1">
+          <div className="flex flex-wrap gap-1 mt-1">
             {displayedSkills.map((skill) => (
               <span
                 key={skill}
@@ -120,32 +91,27 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </div>
         </div>
         {/* Actions */}
-        <div className="flex flex-col justify-between items-end gap-2 h-full min-w-[120px]">
+        <div className="flex flex-col items-end gap-1">
           <Button
-            className="font-semibold text-[15px] px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-400 rounded-xl text-white hover:from-blue-600 hover:to-blue-500 shadow-md w-full mb-2"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-xs font-semibold min-w-[62px] mb-1"
             onClick={() => setShowHireModal(true)}
           >
-            ₹{hourlyRate}
-            <span className="ml-1 font-normal text-xs">
-              /{translateText("job.per_hire", "Hire")}
-            </span>
+            ₹{hourlyRate} <span className="ml-0.5 font-normal text-[10px]">/{translateText("job.per_hire", "Hire")}</span>
           </Button>
-          <div className="flex flex-col w-full gap-2">
+          <div className="flex gap-0.5">
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 rounded-xl px-0 py-2 text-gray-800 border"
-              onClick={handleCall}
+              className="rounded-lg p-1 text-gray-700 border min-w-0"
+              size="icon"
             >
-              <Phone className="w-4 h-4 mr-1" />
-              <span className="text-sm">{translateText("common.call", "Call")}</span>
+              <Phone className="w-3.5 h-3.5" />
             </Button>
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 rounded-xl px-0 py-2 text-gray-800 border"
-              onClick={handleChat}
+              className="rounded-lg p-1 text-gray-700 border min-w-0"
+              size="icon"
             >
-              <MessageCircle className="w-4 h-4 mr-1" />
-              <span className="text-sm">{translateText("common.chat", "Chat")}</span>
+              <MessageCircle className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
@@ -153,10 +119,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
       <HireWorkerModal
         open={showHireModal}
         onClose={() => setShowHireModal(false)}
-        onHire={() => {
-          // TODO: connect hire logic
-          setShowHireModal(false);
-        }}
+        onHire={() => setShowHireModal(false)}
         workerName={name}
       />
     </>

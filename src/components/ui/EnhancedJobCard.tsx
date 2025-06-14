@@ -44,34 +44,34 @@ const EnhancedJobCard: React.FC<JobCardProps> = ({
       title: translateText('job.application_submitted', 'Application Submitted!'),
       description: translateText('job.application_description', `Your application for ${title} has been submitted.`),
     });
-    setTimeout(() => setShowApplied(false), 1500);
+    setTimeout(() => setShowApplied(false), 1000);
   };
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl flex flex-row items-center px-3 py-3 shadow-sm min-h-[90px] max-w-full md:max-w-2xl gap-4 hover:shadow-lg transition-all duration-150 mb-3 w-full">
+    <div className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3 shadow hover:shadow-md transition-all duration-150 w-full min-h-[78px] max-w-full">
       {/* Avatar/status */}
-      <div className="relative">
-        <div className="h-14 w-14 bg-gray-100 rounded-xl flex items-center justify-center">
-          <CheckCircle className={`w-8 h-8 ${urgent ? "text-red-400" : "text-green-400"}`} />
+      <div className="relative shrink-0">
+        <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+          <CheckCircle className={`w-7 h-7 ${urgent ? "text-red-400" : "text-green-400"}`} />
         </div>
-        <span className={`absolute bottom-1 left-1 w-3 h-3 rounded-full border-2 border-white ${
+        <span className={`absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
           urgent ? "bg-red-400" : "bg-green-400"
         }`} />
       </div>
       {/* Info */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-          <span className="font-semibold text-gray-900 text-base leading-tight">
+      <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex gap-1 items-center mb-0.5">
+          <span className="font-semibold text-sm text-gray-900 truncate">
             {title}
           </span>
-          <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium w-max">
+          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[11px] font-medium">
             {translateCategory(category)}
           </span>
         </div>
-        <div className="flex items-center text-xs text-gray-500 gap-3 mt-1">
+        <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
           <span>{company}</span>
-          <span className="flex items-center"><Clock className="w-3 h-3 mr-0.5" />{postedTime}</span>
-          <span className="flex items-center"><MapPin className="w-3 h-3 mr-0.5" />{distance}</span>
+          <span className="flex items-center ml-1"><Clock className="w-3 h-3 mr-0.5" />{postedTime}</span>
+          <span className="flex items-center ml-1"><MapPin className="w-3 h-3 mr-0.5" />{distance}</span>
         </div>
         {/* Skill tags */}
         <div className="flex flex-wrap mt-1 gap-1">
@@ -89,17 +89,15 @@ const EnhancedJobCard: React.FC<JobCardProps> = ({
         </div>
       </div>
       {/* Actions */}
-      <div className="flex flex-col justify-between items-end gap-2 h-full min-w-[120px]">
+      <div className="flex flex-col items-end gap-1">
         <Button
-          className="font-semibold text-[15px] px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-400 rounded-xl text-white hover:from-blue-600 hover:to-blue-500 shadow-md w-full mb-2 disabled:bg-gray-200 disabled:text-gray-500"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-xs font-semibold min-w-[62px] mb-1 disabled:bg-gray-200 disabled:text-gray-500"
           onClick={handleApply}
           disabled={showApplied}
         >
-          <IndianRupee className="w-4 h-4 mr-1 inline" />
+          <IndianRupee className="w-3 h-3 mr-0.5 inline" />
           {salary}
-          <span className="ml-1 font-normal text-xs">
-            /{translateText("common.apply", "Apply")}
-          </span>
+          <span className="ml-0.5 font-normal text-[10px]">/{translateText("common.apply", "Apply")}</span>
         </Button>
       </div>
     </div>
