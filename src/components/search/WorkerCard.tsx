@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, MessageCircle, Phone, CheckCircle, MapPin } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -63,13 +63,9 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
     });
   };
 
-  // Card matches skeleton: bg-white p-4 rounded-2xl border border-gray-100 shadow-sm
-  // Profile photo: circular, h-12 w-12 (48px)
-  // Info, buttons, and rate arranged in row and column
-
   return (
     <div
-      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer group flex items-stretch"
+      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl flex items-stretch h-[122px] min-h-[122px] relative"
       tabIndex={0}
       role="button"
       aria-label={`Open profile of ${name}`}
@@ -78,38 +74,39 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         if (e.key === "Enter") handleProfileClick();
       }}
       style={{
-        minHeight: "90px"
+        boxSizing: 'border-box',
       }}
     >
-      {/* Profile Image */}
-      <div className="flex flex-col items-center justify-center pr-3">
+      {/* Profile Rectangle Image: left-aligned, vertical rectangle */}
+      <div className="flex flex-col items-center justify-center pr-4">
         <div className="relative">
-          <Avatar className="h-12 w-12 rounded-full border border-gray-200">
-            <AvatarImage src={profileImage} alt={name} />
-            <AvatarFallback className="bg-blue-300 text-white font-bold text-lg rounded-full">
+          <div className="w-[60px] h-[90px] rounded-xl overflow-hidden border border-gray-200 relative">
+            <AvatarImage src={profileImage} alt={name}
+              className="object-cover w-full h-full" />
+            <AvatarFallback className="bg-blue-300 text-white font-bold text-lg flex items-center justify-center w-full h-full">
               {name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
-          </Avatar>
-          {isOnline && (
-            <span className="absolute bottom-1 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white z-40" />
-          )}
-          {verificationLevel !== 'basic' && (
-            <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-white flex items-center justify-center z-40">
-              <CheckCircle className="w-3 h-3 text-white" fill="currentColor" />
-            </span>
-          )}
+            {isOnline && (
+              <span className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-green-500 border-2 border-white z-40" />
+            )}
+            {verificationLevel !== 'basic' && (
+              <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-green-400 border-2 border-white flex items-center justify-center z-50">
+                <CheckCircle className="w-3.5 h-3.5 text-white" fill="currentColor" />
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Information and Buttons Column */}
+      {/* Central Info - takes most of horizontal space */}
       <div className="flex-1 flex flex-col justify-between">
         {/* Name, Category, Rating + Distance */}
         <div>
           <div className="flex gap-2 items-center">
-            <span className="font-semibold text-base text-gray-900 truncate max-w-[140px]" style={{ lineHeight: '1.2' }}>
+            <span className="font-semibold text-base text-gray-900 truncate max-w-[160px]" style={{ lineHeight: '1.2' }}>
               {name}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 truncate max-w-[70px]">
+            <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 truncate max-w-[80px]">
               {category}
             </span>
           </div>
@@ -122,7 +119,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </div>
         </div>
         {/* Skills */}
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1 mb-1">
           {skills.slice(0, 2).map((skill, i) =>
             <span key={i} className="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium">
               {skill}
@@ -130,45 +127,42 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           )}
           {skills.length > 2 && <span className="text-xs text-gray-400">+{skills.length - 2} more</span>}
         </div>
-        {/* Call & Chat buttons */}
-        <div className="flex gap-2 mt-1">
+      </div>
+
+      {/* Action/Side Column: Rate & Buttons */}
+      <div className="flex flex-col items-end justify-between pl-3 h-full">
+        {/* Hire Button-like Rate: Long rectangle, 50% card height */}
+        <div
+          className="flex flex-col items-center justify-center bg-gradient-to-tl from-blue-600 to-blue-400 text-white font-bold shadow-lg mt-1"
+          style={{
+            width: "74px",
+            height: "60px",
+            borderRadius: "15px",
+            boxShadow: "0 2px 16px 0 #2563eb33",
+          }}
+        >
+          <span className="font-bold text-base tracking-tight">₹{hourlyRate}</span>
+        </div>
+        {/* Call & Chat Buttons: vertically stacked, to right end, below the rate */}
+        <div className="flex flex-col items-center gap-2 mt-2">
           <Button
             variant="outline"
-            className="flex-1 h-8 px-3 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 min-w-[60px] max-w-[110px] overflow-hidden"
+            className="w-[74px] h-8 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
             onClick={handleCall}
             tabIndex={-1}
-            style={{ minWidth: "60px" }}
           >
             <Phone className="w-4 h-4 mr-1" />
             Call
           </Button>
           <Button
             variant="outline"
-            className="flex-1 h-8 px-3 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 min-w-[60px] max-w-[110px] overflow-hidden"
+            className="w-[74px] h-8 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
             onClick={handleChat}
             tabIndex={-1}
-            style={{ minWidth: "60px" }}
           >
             <MessageCircle className="w-4 h-4 mr-1" />
             Chat
           </Button>
-        </div>
-      </div>
-
-      {/* Rate Button (Square, 50% of Card height) */}
-      <div className="flex flex-col items-end justify-between pl-3">
-        <div
-          className="flex flex-col items-center justify-center bg-gradient-to-tl from-blue-600 to-blue-400 text-white font-bold shadow-lg"
-          style={{
-            width: "48px",
-            height: "48px",
-            borderRadius: "13px", // square w/ rounded corners
-            marginTop: "10px",
-            marginBottom: "auto",
-            boxShadow: "0 2px 16px 0 #2563eb33"
-          }}
-        >
-          <span className="font-bold text-lg tracking-tight">₹{hourlyRate}</span>
         </div>
       </div>
     </div>
