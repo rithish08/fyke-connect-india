@@ -4,6 +4,7 @@ import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSizing';
 import { categories } from '@/data/categories';
 
 interface LocalizedCategorySelectionProps {
@@ -33,27 +34,42 @@ const LocalizedCategorySelection: React.FC<LocalizedCategorySelectionProps> = ({
       )}
       
       <div className="grid grid-cols-2 gap-3">
-        {categories.map((category) => (
-          <ModernCard
-            key={category.name}
-            className="p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
-            onClick={() => onCategorySelect(category.name.toLowerCase(), category.name)}
-          >
-            <div className="text-center space-y-3">
-              <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg text-2xl`}>
-                {category.icon}
+        {categories.map((category) => {
+          const translatedName = translateCategory(category.name);
+          const categoryTextSize = getResponsiveTextSize(translatedName, {
+            baseSize: 14,
+            minSize: 11,
+            maxSize: 15
+          });
+          const subcategoryText = `${category.subcategories.length} ${translateText('category.types', 'types')}`;
+          const subcategoryTextSize = getResponsiveTextSize(subcategoryText, {
+            baseSize: 12,
+            minSize: 9,
+            maxSize: 12
+          });
+
+          return (
+            <ModernCard
+              key={category.name}
+              className="p-3 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+              onClick={() => onCategorySelect(category.name.toLowerCase(), category.name)}
+            >
+              <div className="text-center space-y-2">
+                <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg text-2xl`}>
+                  {category.icon}
+                </div>
+                <div className="space-y-1">
+                  <h3 className={`font-semibold text-gray-900 ${categoryTextSize} ${getFlexibleContainerClass(translatedName, 'mx-auto')}`}>
+                    {translatedName}
+                  </h3>
+                  <p className={`text-gray-500 ${subcategoryTextSize} ${getFlexibleContainerClass(subcategoryText, 'mx-auto')}`}>
+                    {subcategoryText}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 text-sm">
-                  {translateCategory(category.name)}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {category.subcategories.length} {translateText('category.types', 'types')}
-                </p>
-              </div>
-            </div>
-          </ModernCard>
-        ))}
+            </ModernCard>
+          );
+        })}
       </div>
     </div>
   );

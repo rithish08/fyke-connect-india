@@ -2,7 +2,7 @@
 import React from 'react';
 import { Star, MapPin } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getResponsiveTextSize, getResponsiveContainerWidth } from '@/utils/textSizing';
+import { getResponsiveTextSize, getFlexibleContainerClass, getResponsivePadding } from '@/utils/textSizing';
 
 interface WorkerInfoProps {
   name: string;
@@ -24,21 +24,26 @@ const WorkerInfo: React.FC<WorkerInfoProps> = ({
   const displayedSkills = skills.slice(0, 2);
   const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
 
-  // Dynamic sizing
-  const categoryFontSize = getResponsiveTextSize(translatedCategory, {
+  // Dynamic sizing for category
+  const categoryTextSize = getResponsiveTextSize(translatedCategory, {
     baseSize: 11,
     minSize: 9,
     maxSize: 12
   });
   
-  const categoryWidth = getResponsiveContainerWidth(translatedCategory, 70, 100);
+  // Dynamic sizing for name
+  const nameTextSize = getResponsiveTextSize(name, {
+    baseSize: 16,
+    minSize: 14,
+    maxSize: 17
+  });
 
   return (
     <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
       <div>
         {/* Name */}
         <div className="mb-1.5">
-          <span className="font-semibold text-base text-gray-900 truncate block max-w-[140px]" style={{ lineHeight: '1.2' }}>
+          <span className={`font-semibold text-gray-900 ${nameTextSize} ${getFlexibleContainerClass(name, 'block')}`} style={{ lineHeight: '1.2' }}>
             {name}
           </span>
         </div>
@@ -46,14 +51,7 @@ const WorkerInfo: React.FC<WorkerInfoProps> = ({
         {/* Category */}
         <div className="mb-2">
           <span
-            className="inline-block font-medium px-2 py-1 rounded-md bg-blue-100 text-blue-700 truncate"
-            style={{
-              fontSize: categoryFontSize,
-              maxWidth: `${categoryWidth}px`,
-              minHeight: '20px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
+            className={`inline-flex items-center font-medium rounded-md bg-blue-100 text-blue-700 ${categoryTextSize} ${getResponsivePadding(translatedCategory)} ${getFlexibleContainerClass(translatedCategory)}`}
             title={translatedCategory}
           >
             {translatedCategory}
@@ -76,24 +74,16 @@ const WorkerInfo: React.FC<WorkerInfoProps> = ({
         {/* Skills */}
         <div className="flex flex-wrap items-center gap-1">
           {displayedSkills.map((skill, i) => {
-            const skillFontSize = getResponsiveTextSize(skill, {
+            const skillTextSize = getResponsiveTextSize(skill, {
               baseSize: 10,
               minSize: 8,
               maxSize: 11
             });
-            const skillWidth = getResponsiveContainerWidth(skill, 50, 80);
             
             return (
               <span
                 key={i}
-                className="bg-gray-100 px-2 py-0.5 rounded-full text-gray-700 font-medium truncate"
-                style={{
-                  fontSize: skillFontSize,
-                  maxWidth: `${skillWidth}px`,
-                  minHeight: '18px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
+                className={`bg-gray-100 text-gray-700 font-medium rounded-full ${skillTextSize} ${getResponsivePadding(skill)} ${getFlexibleContainerClass(skill, 'inline-flex items-center')}`}
                 title={skill}
               >
                 {skill}
