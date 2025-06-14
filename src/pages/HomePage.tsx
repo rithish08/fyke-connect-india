@@ -6,7 +6,7 @@ import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
-import AppHeader from '@/components/AppHeader';
+import StickyHeader from '@/components/layout/StickyHeader';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -28,11 +28,11 @@ const HomePage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <AppHeader currentTime={currentTime} />
-      <div className="flex justify-center pt-0 sm:pt-2">
+    <div className="min-h-screen bg-white">
+      <StickyHeader currentTime={currentTime} />
+      <div className="flex justify-center">
         <div className="w-full max-w-2xl">
-          <div className="pt-2">
+          <div className="pt-4 pb-20">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>

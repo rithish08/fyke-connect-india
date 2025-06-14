@@ -4,7 +4,7 @@ import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
-import { categories } from './CategorySelection';
+import { categories } from '@/data/categories';
 
 interface SubcategorySelectionProps {
   categoryId: string;
@@ -21,7 +21,7 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
   selectedSubcategories = [],
   multiSelect = false
 }) => {
-  const category = categories.find(cat => cat.id === categoryId);
+  const category = categories.find(cat => cat.name.toLowerCase() === categoryId.toLowerCase());
   
   if (!category) {
     return (
@@ -32,14 +32,12 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
     );
   }
 
-  const IconComponent = category.icon;
-
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-3">
           <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center`}>
-            <IconComponent className="w-4 h-4 text-white" />
+            <span className="text-white text-lg">{category.icon}</span>
           </div>
           <h2 className="text-xl font-bold text-gray-900">{category.name}</h2>
         </div>
