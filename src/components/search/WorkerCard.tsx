@@ -45,29 +45,26 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
       onClick={onClick}
     >
       {/* Header with Avatar and Basic Info */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3 flex-1">
           <div className="relative">
-            <Avatar className="w-14 h-14">
+            <Avatar className="w-12 h-12">
               <AvatarImage src={profileImage} alt={name} />
-              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold text-lg">
+              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
                 {name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
             {isOnline && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
             )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-1">
-              <h3 className="font-bold text-gray-900 text-lg">{name}</h3>
-              <TrustScore 
-                score={rating}
-                verificationLevel={verificationLevel}
-                completedJobs={completedJobs}
-                responseTime={responseTime}
-                className="ml-2"
-              />
+              <h3 className="font-bold text-gray-900 text-base truncate">{name}</h3>
+              <div className="flex items-center text-yellow-500">
+                <Star className="w-4 h-4 mr-1" fill="currentColor" />
+                <span className="text-sm font-semibold">{rating}</span>
+              </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">{category}</p>
             <div className="flex items-center text-xs text-gray-500 space-x-3">
@@ -79,17 +76,24 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
                 <Clock className="w-3 h-3 mr-1" />
                 {responseTime}
               </span>
-              <span className="text-blue-600 font-medium">{completedJobs} jobs</span>
             </div>
           </div>
         </div>
         <div className="text-right">
-          <div className="flex items-center text-yellow-600 font-bold text-lg mb-1">
-            <Star className="w-4 h-4 mr-1" fill="currentColor" />
-            {rating}
-          </div>
           <div className="text-green-600 font-bold text-lg">₹{hourlyRate}/hr</div>
+          <div className="text-xs text-gray-500">{completedJobs} jobs</div>
         </div>
+      </div>
+
+      {/* Trust Score */}
+      <div className="mb-3">
+        <TrustScore 
+          score={rating}
+          verificationLevel={verificationLevel}
+          completedJobs={completedJobs}
+          responseTime={responseTime}
+          className="justify-start"
+        />
       </div>
 
       {/* Skills */}
@@ -114,7 +118,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
       {/* Action Buttons */}
       <div className="flex gap-2">
         <Button 
-          variant="outline" 
+          variant="default" 
           size="sm" 
           className="flex-1"
           onClick={(e) => {
@@ -129,6 +133,8 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           targetName={name}
           targetType="worker"
           size="sm"
+          showCall={true}
+          showChat={true}
           className="flex-1"
         />
       </div>

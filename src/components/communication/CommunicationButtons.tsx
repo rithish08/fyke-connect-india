@@ -53,10 +53,10 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
           variant="outline"
           size={buttonSize}
           onClick={handleChat}
-          className="flex items-center space-x-1 flex-1"
+          className="flex items-center justify-center flex-1"
         >
           <MessageCircle className={iconSize} />
-          {size === 'md' && <span>Chat</span>}
+          {size === 'md' && <span className="ml-1">Chat</span>}
         </Button>
       )}
       {showCall && (
@@ -64,10 +64,10 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
           variant="outline"
           size={buttonSize}
           onClick={handleCall}
-          className="flex items-center space-x-1 flex-1"
+          className="flex items-center justify-center flex-1"
         >
           <Phone className={iconSize} />
-          {size === 'md' && <span>Call</span>}
+          {size === 'md' && <span className="ml-1">Call</span>}
         </Button>
       )}
     </div>

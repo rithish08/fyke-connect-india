@@ -41,15 +41,15 @@ const QuickActionsSection = () => {
 
         <ModernCard 
           className="bg-white border shadow rounded-2xl cursor-pointer hover:shadow-lg transition-transform duration-200"
-          onClick={() => navigate('/messages')}
+          onClick={() => navigate('/search')}
         >
           <div className="text-center space-y-2 p-3">
             <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-lg">💬</span>
+              <span className="text-lg">👥</span>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm">Messages</h4>
-              <p className="text-xs text-gray-400">3 new</p>
+              <h4 className="font-semibold text-gray-900 text-sm">Find Workers</h4>
+              <p className="text-xs text-gray-400">Browse all</p>
             </div>
           </div>
         </ModernCard>
