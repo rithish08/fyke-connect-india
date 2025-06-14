@@ -7,11 +7,13 @@ import EmployerHome from '@/components/EmployerHome';
 import StickyHeader from '@/components/layout/StickyHeader';
 import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
 import { useUserFlow } from '@/hooks/useUserFlow';
+import { useTranslation } from '@/hooks/useTranslation';
 import { useState, useEffect } from 'react';
 
 const HomePage = () => {
   const { user } = useAuth();
   const { t } = useLocalization();
+  const { translateText } = useTranslation();
   const { isFlowComplete } = useUserFlow();
   const [currentTime, setCurrentTime] = useState(new Date());
 

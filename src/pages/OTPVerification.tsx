@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const OTPVerification = () => {
@@ -14,6 +15,7 @@ const OTPVerification = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
+  const { translateText } = useTranslation();
 
   useEffect(() => {
     const phone = localStorage.getItem('fyke_phone');
@@ -32,8 +34,8 @@ const OTPVerification = () => {
   const handleOTPComplete = async (otpCode: string) => {
     if (otpCode.length !== 6) {
       toast({
-        title: "Invalid OTP",
-        description: "Please enter the complete 6-digit code",
+        title: translateText('common.invalidOTP', 'Invalid OTP'),
+        description: translateText('common.enterCompleteCode', 'Please enter the complete 6-digit code'),
         variant: "destructive"
       });
       return;
@@ -49,13 +51,13 @@ const OTPVerification = () => {
       navigate('/role-selection');
       
       toast({
-        title: "Phone Verified!",
-        description: "Now choose your role to continue"
+        title: translateText('common.phoneVerified', 'Phone Verified!'),
+        description: translateText('common.chooseRoleToContinue', 'Now choose your role to continue')
       });
     } catch (error) {
       toast({
-        title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
+        title: translateText('common.verificationFailed', 'Verification Failed'),
+        description: translateText('common.invalidOTPTryAgain', 'Invalid OTP. Please try again.'),
         variant: "destructive"
       });
       setOtp(['', '', '', '', '', '']);
@@ -67,8 +69,8 @@ const OTPVerification = () => {
   const handleResend = () => {
     setResendTimer(60);
     toast({
-      title: "OTP Resent",
-      description: "New verification code sent to your phone"
+      title: translateText('common.otpResent', 'OTP Resent'),
+      description: translateText('common.newCodeSent', 'New verification code sent to your phone')
     });
   };
 
@@ -83,9 +85,11 @@ const OTPVerification = () => {
             <span className="text-2xl font-bold text-gray-800">F</span>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Verify Your Phone</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {translateText('common.verifyPhone', 'Verify Your Phone')}
+            </h1>
             <p className="text-gray-500">
-              Enter the 6-digit code sent to<br />
+              {translateText('common.enterCode', 'Enter the 6-digit code sent to')}<br />
               <span className="font-semibold text-gray-700">+91 {phone}</span>
             </p>
           </div>
@@ -104,7 +108,9 @@ const OTPVerification = () => {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <p className="text-sm text-gray-500">Code will be verified automatically</p>
+                <p className="text-sm text-gray-500">
+                  {translateText('common.codeVerifiedAutomatically', 'Code will be verified automatically')}
+                </p>
               </div>
             </div>
 
@@ -113,7 +119,7 @@ const OTPVerification = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
                   <p className="text-sm text-gray-400">
-                    Resend in {resendTimer}s
+                    {translateText('common.resendIn', 'Resend in')} {resendTimer}s
                   </p>
                 </div>
               ) : (
@@ -121,7 +127,7 @@ const OTPVerification = () => {
                   onClick={handleResend}
                   className="text-sm text-gray-700 hover:text-gray-900 font-medium"
                 >
-                  Resend OTP
+                  {translateText('common.resendOTP', 'Resend OTP')}
                 </button>
               )}
             </div>
@@ -132,10 +138,12 @@ const OTPVerification = () => {
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center space-x-2 text-green-600">
             <span className="text-sm">🛡️</span>
-            <span className="text-sm font-medium">Secure Verification</span>
+            <span className="text-sm font-medium">
+              {translateText('common.secureVerification', 'Secure Verification')}
+            </span>
           </div>
           <p className="text-xs text-gray-400">
-            This helps us keep your account safe and secure
+            {translateText('common.keepAccountSafe', 'This helps us keep your account safe and secure')}
           </p>
         </div>
       </div>

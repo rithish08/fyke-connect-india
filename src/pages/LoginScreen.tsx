@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocalization } from "@/contexts/LocalizationContext";
+import { useTranslation } from '@/hooks/useTranslation';
 import { Phone, MessageSquare, User } from "lucide-react";
 
 const LoginScreen = () => {
@@ -14,7 +14,7 @@ const LoginScreen = () => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const { login, updateProfile, user } = useAuth();
-  const { t } = useLocalization();
+  const { translateText } = useTranslation();
   const navigate = useNavigate();
 
   const handleSendOTP = async () => {
@@ -50,9 +50,14 @@ const LoginScreen = () => {
               <Phone className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t('login.title', 'Welcome to Fyke')}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {translateText('login.title', 'Welcome to Fyke')}
+              </h1>
               <p className="text-gray-500 text-sm">
-                {otpSent ? 'Verify your number' : 'Enter your details to get started'}
+                {otpSent ? 
+                  translateText('login.verifyNumber', 'Verify your number') : 
+                  translateText('login.enterDetails', 'Enter your details to get started')
+                }
               </p>
             </div>
           </div>
@@ -67,7 +72,7 @@ const LoginScreen = () => {
                 </div>
                 <Input
                   type="text"
-                  placeholder="Your Full Name"
+                  placeholder={translateText('login.fullName', 'Your Full Name')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -93,7 +98,7 @@ const LoginScreen = () => {
                 disabled={phone.length !== 10 || !name.trim()}
                 className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
               >
-                Send OTP
+                {translateText('login.sendOTP', 'Send OTP')}
               </Button>
             </div>
           ) : (
@@ -102,12 +107,12 @@ const LoginScreen = () => {
               <div className="text-center">
                 <MessageSquare className="w-12 h-12 text-blue-500 mx-auto mb-2" />
                 <p className="text-sm text-gray-600">
-                  OTP sent to +91 {phone}
+                  {translateText('login.otpSentTo', 'OTP sent to')} +91 {phone}
                 </p>
               </div>
               <Input
                 type="text"
-                placeholder="Enter 6-digit OTP"
+                placeholder={translateText('login.enter6DigitOTP', 'Enter 6-digit OTP')}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="h-14 text-lg text-center tracking-wider border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -119,14 +124,14 @@ const LoginScreen = () => {
                   onClick={() => setOtpSent(false)}
                   className="flex-1 h-12 rounded-xl border-gray-200"
                 >
-                  Change Number
+                  {translateText('login.changeNumber', 'Change Number')}
                 </Button>
                 <Button 
                   onClick={handleVerifyOTP}
                   disabled={otp.length !== 6}
                   className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl"
                 >
-                  Verify
+                  {translateText('login.verify', 'Verify')}
                 </Button>
               </div>
             </div>
@@ -135,7 +140,7 @@ const LoginScreen = () => {
           {/* Footer */}
           <div className="text-center">
             <p className="text-xs text-gray-400 leading-relaxed">
-              By continuing, you agree to our Terms of Service and Privacy Policy
+              {translateText('login.termsAgreement', 'By continuing, you agree to our Terms of Service and Privacy Policy')}
             </p>
           </div>
         </CardContent>

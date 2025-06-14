@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import EnhancedCategoryStep from '@/components/profile/EnhancedCategoryStep';
 import EnhancedSalaryStep from '@/components/profile/EnhancedSalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
+import { useTranslation } from '@/hooks/useTranslation';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
 
 const STEPS = ["category", "salary", "availability"];
-const STEP_TITLES = ["Choose Categories", "Set Salary Rates", "Availability"];
 
 interface SalaryRates {
   daily: string;
@@ -20,8 +20,15 @@ interface SalaryRates {
 
 const ProfileSetup = () => {
   const { user, updateProfile } = useAuth();
+  const { translateText } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+
+  const STEP_TITLES = [
+    translateText('profile.chooseCategories', 'Choose Categories'),
+    translateText('profile.setSalaryRates', 'Set Salary Rates'),
+    translateText('profile.availability', 'Availability')
+  ];
 
   // Enhanced form state
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -85,7 +92,9 @@ const ProfileSetup = () => {
           </button>
           <div className="flex items-center space-x-2">
             <BadgeCheck className="w-6 h-6 text-blue-500" />
-            <span className="text-lg font-bold text-gray-900">Profile Setup</span>
+            <span className="text-lg font-bold text-gray-900">
+              {translateText('profile.profileSetup', 'Profile Setup')}
+            </span>
           </div>
           <div className="w-10 h-10"></div>
         </div>
@@ -94,7 +103,7 @@ const ProfileSetup = () => {
         <div className="bg-white rounded-2xl p-4 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-gray-600">
-              Step {step + 1} of {STEPS.length}
+              {translateText('common.step', 'Step')} {step + 1} {translateText('common.of', 'of')} {STEPS.length}
             </span>
             <span className="text-sm text-gray-500">
               {Math.round(((step + 1) / STEPS.length) * 100)}%
@@ -142,7 +151,7 @@ const ProfileSetup = () => {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 px-4">
-          Complete your profile to get verified and access better job opportunities
+          {translateText('profile.completeVerified', 'Complete your profile to get verified and access better job opportunities')}
         </div>
       </div>
     </div>

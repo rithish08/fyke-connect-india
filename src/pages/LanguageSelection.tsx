@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import OnboardingSlides from '@/components/OnboardingSlides';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const languageList = [
   { code: 'en', name: 'English', native: 'English', color: 'bg-blue-500', icon: "🇬🇧" },
@@ -21,6 +22,7 @@ const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { setLanguage, t } = useLocalization();
+  const { translateText } = useTranslation();
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
@@ -73,8 +75,12 @@ const LanguageSelection = () => {
         {/* Brand + Welcome */}
         <div className="flex flex-col items-center gap-4">
           <span className="flex rounded-full bg-gray-900 text-white w-14 h-14 justify-center items-center text-2xl font-bold shadow border-2 border-gray-100">fyke</span>
-          <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
-          <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
+          <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">
+            {translateText('common.chooseLanguage', 'Choose Your Language')}
+          </span>
+          <span className="mb-1 text-base text-gray-500">
+            {translateText('common.selectPreferredLanguage', 'Select your preferred language')}
+          </span>
         </div>
         
         {/* Language grid */}
@@ -95,7 +101,9 @@ const LanguageSelection = () => {
               <span className="text-xl font-bold text-gray-900">{lang.native}</span>
               <span className="text-xs text-gray-400 mt-1">{lang.name}</span>
               {selectedLanguage === lang.code && (
-                <span className="mt-2 text-xs text-green-600 font-medium">✔ Selected</span>
+                <span className="mt-2 text-xs text-green-600 font-medium">
+                  ✔ {translateText('common.selected', 'Selected')}
+                </span>
               )}
             </button>
           ))}
@@ -105,7 +113,7 @@ const LanguageSelection = () => {
           onClick={handleContinue}
           className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-2xl shadow-lg mt-2 text-lg"
         >
-          {t('common.continue', 'Continue')}
+          {translateText('common.continue', 'Continue')}
         </Button>
       </div>
     </div>
