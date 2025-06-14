@@ -1,18 +1,24 @@
 
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Clock, CheckCircle, ArrowLeft, MessageCircle, Phone, Shield } from 'lucide-react';
+import { Star, MapPin, Clock, ArrowLeft, MessageCircle, Phone, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BottomNavigation from '@/components/BottomNavigation';
+import { useToast } from '@/hooks/use-toast';
 
 const WorkerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
   const [showContact, setShowContact] = useState(false);
 
-  // Mock worker data - in real app this would come from API
-  const worker = {
+  // Get worker data from navigation state or use default
+  const workerFromState = location.state?.worker;
+  
+  // Default worker data - in real app this would come from API based on id
+  const defaultWorker = {
     id: id || '1',
     name: 'Sanjay Kumar',
     phone: '+91 98765 43210',
@@ -33,15 +39,36 @@ const WorkerProfile = () => {
     vehicle: 'Heavy Vehicle License',
     languages: ['Hindi', 'English', 'Marathi'],
     responseTime: '18 min',
-    isOnline: true
+    isOnline: true,
+    verificationLevel: 'verified' as const
   };
+
+  const worker = workerFromState || defaultWorker;
 
   const handleContact = () => {
     setShowContact(true);
   };
 
   const handleHire = () => {
-    alert(`Sending hire request to ${worker.name}`);
+    toast({
+      title: "Hire Request Sent!",
+      description: `Your hire request has been sent to ${worker.name}. They will respond soon.`,
+    });
+  };
+
+  const handleMessage = () => {
+    navigate('/messages', { state: { workerId: worker.id, workerName: worker.name } });
+  };
+
+  const handleCall = () => {
+    if (worker.phone) {
+      window.open(`tel:${worker.phone}`, '_self');
+    } else {
+      toast({
+        title: "Contact Information",
+        description: "Phone number not available. Please use the message feature.",
+      });
+    }
   };
 
   return (
@@ -72,7 +99,7 @@ const WorkerProfile = () => {
                   {worker.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              {worker.verified && (
+              {worker.verificationLevel && worker.verificationLevel !== 'basic' && (
                 <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-3 border-white">
                   <Shield className="w-4 h-4 text-white" fill="currentColor" />
                 </div>
@@ -88,7 +115,7 @@ const WorkerProfile = () => {
             <div className="flex items-center justify-center space-x-1 mb-4">
               <Star className="w-5 h-5 text-yellow-400" fill="currentColor" />
               <span className="font-bold text-lg text-gray-900">{worker.rating}</span>
-              <span className="text-gray-500">({worker.reviewCount} reviews)</span>
+              <span className="text-gray-500">({worker.reviewCount || worker.completedJobs} reviews)</span>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -179,7 +206,7 @@ const WorkerProfile = () => {
             <Button 
               variant="outline" 
               className="h-12 rounded-2xl border-2 border-gray-200 font-medium hover:border-gray-300"
-              onClick={handleContact}
+              onClick={handleMessage}
             >
               <MessageCircle className="w-5 h-5 mr-2" />
               Chat
@@ -187,7 +214,7 @@ const WorkerProfile = () => {
             <Button 
               variant="outline" 
               className="h-12 rounded-2xl border-2 border-gray-200 font-medium hover:border-gray-300"
-              onClick={handleContact}
+              onClick={handleCall}
             >
               <Phone className="w-5 h-5 mr-2" />
               Call

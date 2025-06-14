@@ -1,13 +1,16 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Clock, CheckCircle, ArrowLeft, MessageCircle, Phone, Shield } from 'lucide-react';
+import { Star, MapPin, Clock, ArrowLeft, MessageCircle, Phone, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkerDetailModalProps {
   isOpen: boolean;
@@ -34,9 +37,33 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
   worker,
   onHire
 }) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleViewFullProfile = () => {
+    onClose();
+    navigate(`/worker/${worker.id}`, {
+      state: { worker }
+    });
+  };
+
+  const handleHire = () => {
+    onHire(worker.id);
+    toast({
+      title: "Hire Request Sent!",
+      description: `Your hire request has been sent to ${worker.name}.`,
+    });
+    onClose();
+  };
+
+  const handleMessage = () => {
+    onClose();
+    navigate('/messages', { state: { workerId: worker.id, workerName: worker.name } });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0 rounded-3xl bg-white">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 rounded-3xl bg-white">
         {/* Header with Back Button */}
         <DialogHeader className="relative p-6 pb-4">
           <Button 
@@ -77,20 +104,24 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
               <span className="font-bold text-lg text-gray-900">{worker.rating}</span>
               <span className="text-gray-500">({worker.completedJobs} reviews)</span>
             </div>
+
+            <Badge variant="secondary" className="bg-green-100 text-green-700">
+              Available now
+            </Badge>
           </div>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-2xl">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">₹{worker.hourlyRate}</div>
+              <div className="text-xl font-bold text-gray-900">₹{worker.hourlyRate}</div>
               <div className="text-sm text-gray-500">per hour</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{worker.completedJobs}</div>
+              <div className="text-xl font-bold text-green-600">{worker.completedJobs}</div>
               <div className="text-sm text-gray-500">jobs done</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{worker.responseTime}</div>
+              <div className="text-xl font-bold text-blue-600">{worker.responseTime}</div>
               <div className="text-sm text-gray-500">response</div>
             </div>
           </div>
@@ -99,7 +130,7 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 mb-3">Skills & Expertise</h3>
             <div className="flex flex-wrap gap-2">
-              {worker.skills.map((skill, idx) => (
+              {worker.skills.slice(0, 4).map((skill, idx) => (
                 <span
                   key={idx}
                   className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
@@ -107,6 +138,11 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
                   {skill}
                 </span>
               ))}
+              {worker.skills.length > 4 && (
+                <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm">
+                  +{worker.skills.length - 4} more
+                </span>
+              )}
             </div>
           </div>
 
@@ -120,8 +156,8 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <span className="text-green-600 font-medium">Available now</span>
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-600 font-medium text-sm">{worker.responseTime}</span>
             </div>
           </div>
 
@@ -131,6 +167,7 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
               <Button 
                 variant="outline" 
                 className="h-12 rounded-2xl border-2 border-gray-200 font-medium hover:border-gray-300"
+                onClick={handleMessage}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Chat
@@ -138,14 +175,14 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
               <Button 
                 variant="outline" 
                 className="h-12 rounded-2xl border-2 border-gray-200 font-medium hover:border-gray-300"
+                onClick={handleViewFullProfile}
               >
-                <Phone className="w-5 h-5 mr-2" />
-                Call
+                View Profile
               </Button>
             </div>
             
             <Button 
-              onClick={() => onHire(worker.id)}
+              onClick={handleHire}
               className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               Hire Now

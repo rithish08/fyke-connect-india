@@ -1,25 +1,30 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, MapPin, Clock, Star, Building2, Users } from 'lucide-react';
 
 const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Get job data from navigation state or use default
+  const jobFromState = location.state?.job;
+
   // Mock job data - in real app, this would be fetched based on id
-  const job = {
+  const defaultJob = {
     id: 1,
     title: 'Construction Worker',
     company: 'BuildPro Construction',
     location: 'Mumbai, Maharashtra',
     distance: '2.3 km',
-    salary: '₹500-700/day',
+    salary: '500-700/day',
     type: 'Full Time',
     urgent: true,
     applications: 12,
@@ -54,6 +59,8 @@ const JobDetails = () => {
     }
   };
 
+  const job = jobFromState || defaultJob;
+
   const handleApply = () => {
     toast({
       title: "Application Submitted!",
@@ -69,21 +76,21 @@ const JobDetails = () => {
   };
 
   const handleContact = () => {
-    navigate('/messages');
+    navigate('/messages', { state: { employerId: job.employer?.name } });
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
-        <div className="flex items-center space-x-3">
+      <div className="sticky top-0 z-10 bg-white shadow-sm">
+        <div className="flex items-center px-4 py-3 border-b border-gray-100">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate(-1)}
-            className="p-2"
+            className="p-2 mr-3 rounded-full hover:bg-gray-100"
           >
-            ←
+            <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-lg font-semibold text-gray-900">Job Details</h1>
         </div>
@@ -91,39 +98,60 @@ const JobDetails = () => {
 
       <div className="p-4 space-y-6">
         {/* Job Header Card */}
-        <Card className="p-6 shadow border border-gray-100 bg-white">
+        <Card className="p-6 shadow-sm border border-gray-100 bg-white rounded-3xl">
           <div className="space-y-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <h2 className="text-xl font-bold text-gray-900">{job.title}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{job.title}</h2>
                   {job.urgent && (
-                    <Badge variant="destructive">Urgent</Badge>
+                    <Badge variant="destructive" className="bg-red-500">Urgent</Badge>
                   )}
                 </div>
-                <h3 className="text-lg text-gray-700 mb-1">{job.company}</h3>
+                
+                <div className="flex items-center space-x-2 mb-2">
+                  <Building2 className="w-4 h-4 text-gray-400" />
+                  <h3 className="text-lg text-gray-700 font-medium">{job.company}</h3>
+                </div>
+                
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>📍 {job.location}</span>
-                  <span>🚶 {job.distance}</span>
+                  <span className="flex items-center space-x-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{job.location}</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <span>🚶</span>
+                    <span>{job.distance}</span>
+                  </span>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-green-600">{job.salary}</div>
+                <div className="text-2xl font-bold text-green-600">₹{job.salary}</div>
                 <div className="text-sm text-gray-600">{job.type}</div>
               </div>
             </div>
 
             <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>🕐 Posted {job.postedTime}</span>
-              <span>👥 {job.applications} applications</span>
+              <span className="flex items-center space-x-1">
+                <Clock className="w-4 h-4" />
+                <span>Posted {job.postedTime}</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <Users className="w-4 h-4" />
+                <span>{job.applications} applications</span>
+              </span>
             </div>
           </div>
         </Card>
-        <Card className="p-6 shadow border border-gray-100 bg-white">
+
+        {/* Job Description */}
+        <Card className="p-6 shadow-sm border border-gray-100 bg-white rounded-3xl">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Job Description</h3>
           <p className="text-gray-700 leading-relaxed">{job.description}</p>
         </Card>
-        <Card className="p-6 shadow border border-gray-100 bg-white">
+
+        {/* Requirements */}
+        <Card className="p-6 shadow-sm border border-gray-100 bg-white rounded-3xl">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
           <ul className="space-y-2">
             {job.requirements.map((req, index) => (
@@ -134,7 +162,9 @@ const JobDetails = () => {
             ))}
           </ul>
         </Card>
-        <Card className="p-6 shadow border border-gray-100 bg-white">
+
+        {/* Benefits */}
+        <Card className="p-6 shadow-sm border border-gray-100 bg-white rounded-3xl">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h3>
           <ul className="space-y-2">
             {job.benefits.map((benefit, index) => (
@@ -145,7 +175,9 @@ const JobDetails = () => {
             ))}
           </ul>
         </Card>
-        <Card className="p-6 shadow border border-gray-100 bg-white">
+
+        {/* Work Schedule */}
+        <Card className="p-6 shadow-sm border border-gray-100 bg-white rounded-3xl">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Work Schedule</h3>
           <div className="space-y-2 text-gray-700">
             <div className="flex justify-between">
@@ -162,7 +194,9 @@ const JobDetails = () => {
             </div>
           </div>
         </Card>
-        <Card className="p-6 shadow border border-gray-100 bg-white">
+
+        {/* About Employer */}
+        <Card className="p-6 shadow-sm border border-gray-100 bg-white rounded-3xl">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">About Employer</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -175,7 +209,7 @@ const JobDetails = () => {
                 )}
               </div>
               <div className="flex items-center space-x-1">
-                <span className="text-yellow-500">⭐</span>
+                <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
                 <span className="font-medium">{job.employer.rating}</span>
                 <span className="text-sm text-gray-500">({job.employer.totalReviews})</span>
               </div>
@@ -203,7 +237,7 @@ const JobDetails = () => {
           <Button
             variant="outline"
             onClick={handleSave}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 h-12 rounded-2xl"
           >
             <span>💾</span>
             <span>Save</span>
@@ -212,7 +246,7 @@ const JobDetails = () => {
           <Button
             variant="outline"
             onClick={handleContact}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 h-12 rounded-2xl"
           >
             <span>💬</span>
             <span>Message</span>
@@ -220,7 +254,7 @@ const JobDetails = () => {
           
           <Button
             onClick={handleApply}
-            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-2xl"
+            className="flex-1 h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-2xl"
           >
             {user?.role === 'employer' ? 'Contact Worker' : 'Apply Now'}
           </Button>
