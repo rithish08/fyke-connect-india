@@ -9,13 +9,14 @@ import SalaryStep from '@/components/profile/SalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
 import StickyActionButton from '@/components/ui/StickyActionButton';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const STEPS = ["category", "salary", "availability"];
 const STEP_TITLES = ["Choose Category", "Set Salary", "Availability"];
 
 const ProfileSetup = () => {
   const { user, updateProfile } = useAuth();
-  const navigate = useNavigate();
+  const { goTo } = useScreenNavigation();
   const [step, setStep] = useState(0);
 
   // Form state
@@ -26,19 +27,19 @@ const ProfileSetup = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/');
+      goTo('/');
       return;
     }
     // Redirect employers to home since they don't need profile setup
     if (user?.role === 'employer') {
-      navigate('/home');
+      goTo('/home');
       return;
     }
     if (user?.profileComplete) {
-      navigate('/home');
+      goTo('/home');
       return;
     }
-  }, [user, navigate]);
+  }, [user, goTo]);
 
   const handleFinish = () => {
     // Get subcategories from localStorage
@@ -59,14 +60,14 @@ const ProfileSetup = () => {
     
     // Clean up localStorage
     localStorage.removeItem('fyke_selected_subcategories');
-    navigate('/home');
+    goTo('/home');
   };
 
   const handleBack = () => {
     if (step > 0) {
       setStep(step - 1);
     } else {
-      navigate('/role-selection');
+      goTo('/role-selection');
     }
   };
 

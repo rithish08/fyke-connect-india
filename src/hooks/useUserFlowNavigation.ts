@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
@@ -7,7 +8,11 @@ export const useUserFlowNavigation = () => {
 
   const navigateToCorrectScreen = () => {
     if (!isAuthenticated || !user) {
-      goTo('/');
+      // Only redirect to language selection if we're not already there
+      // This prevents infinite loops during the onboarding process
+      if (window.location.pathname !== '/') {
+        goTo('/');
+      }
       return;
     }
 
@@ -37,9 +42,26 @@ export const useUserFlowNavigation = () => {
     return true;
   };
 
+  const shouldRedirectFromCurrentPage = () => {
+    const currentPath = window.location.pathname;
+    
+    // Don't redirect if we're on onboarding pages
+    if (['/role-selection', '/profile-setup'].includes(currentPath)) {
+      return false;
+    }
+    
+    // Don't redirect if we're on language selection and not authenticated
+    if (currentPath === '/' && !isAuthenticated) {
+      return false;
+    }
+    
+    return true;
+  };
+
   return {
     navigateToCorrectScreen,
     canAccessScreen,
+    shouldRedirectFromCurrentPage,
     currentUserState: {
       isAuthenticated,
       hasRole: !!user?.role,

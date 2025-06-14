@@ -8,26 +8,20 @@ import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import StickyHeader from '@/components/layout/StickyHeader';
 import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
-import { useScreenNavigation } from '@/hooks/useScreenNavigation';
+import { useUserFlowNavigation } from '@/hooks/useUserFlowNavigation';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
-  const { goTo } = useScreenNavigation();
+  const { navigateToCorrectScreen, shouldRedirectFromCurrentPage } = useUserFlowNavigation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      goTo('/');
-      return;
+    // Only redirect if we should redirect from the current page
+    if (shouldRedirectFromCurrentPage()) {
+      navigateToCorrectScreen();
     }
-
-    // Check if user needs to complete profile setup
-    if (user && user.role === 'jobseeker' && !user.profileComplete) {
-      goTo('/profile-setup');
-      return;
-    }
-  }, [isAuthenticated, user, goTo]);
+  }, [isAuthenticated, user, shouldRedirectFromCurrentPage, navigateToCorrectScreen]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
