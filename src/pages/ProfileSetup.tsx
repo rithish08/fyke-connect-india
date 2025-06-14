@@ -21,8 +21,8 @@ const ProfileSetup = () => {
   const [category, setCategory] = useState('');
   const [vehicle, setVehicle] = useState(''); // For drivers
   const [skills, setSkills] = useState<string[]>([]);
-  const [salary, setSalary] = useState({ amount: '', period: 'daily' });
-  const [availability, setAvailability] = useState('available');
+  const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
+  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   if (!user) {
     navigate('/login');
