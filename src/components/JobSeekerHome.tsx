@@ -155,21 +155,34 @@ const JobSeekerHome = () => {
   ];
 
   useEffect(() => {
-    // Simulate fetching jobs from an API
     setTimeout(() => {
       setJobs(allJobs);
     }, 500);
   }, []);
 
+  // Filter jobs only by user's selected categories
+  const activeCategories = (user?.categories || []);
+  const jobsToShow = jobs.filter(job => activeCategories.length === 0 || activeCategories.includes(job.category));
+
+  // Shimmer loader
+  if (jobs.length === 0) {
+    return (
+      <div className="space-y-4 mt-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-gray-100 rounded-2xl h-36 animate-pulse w-full max-w-2xl mx-auto" />
+        ))}
+      </div>
+    );
+  }
+
   const handleJobClick = (id: number) => {
     navigate(`/job/${id}`);
   };
 
-  const activeCategories = user?.categories?.length ? user.categories : [];
-  const jobsToShow = allJobs.filter(job => activeCategories.length === 0 || activeCategories.includes(job.category));
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-2xl mx-auto">
+      {/* Simple banner ad placeholder */}
+      <div className="rounded-xl bg-yellow-100 p-3 text-center text-xs font-semibold text-yellow-700 my-2">Ad: Get 5% off your first hire. <button className="ml-2 underline text-yellow-800">Learn more</button></div>
       {jobsToShow.map((job) => (
         <ModernCard
           key={job.id}
@@ -237,6 +250,9 @@ const JobSeekerHome = () => {
           </div>
         </ModernCard>
       ))}
+      {jobsToShow.length === 0 && (
+        <div className="text-center text-gray-400 py-12">No jobs available in your selected categories.</div>
+      )}
     </div>
   );
 };

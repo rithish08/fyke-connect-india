@@ -84,14 +84,15 @@ const JobSearch = () => {
     'Construction', 'Delivery', 'Cleaning', 'Security', 'Warehouse', 'Manufacturing'
   ];
 
-  const data = user?.role === 'jobseeker' ? jobSeekerJobs : availableWorkers;
   const isJobSeeker = user?.role === 'jobseeker';
 
-  // FILTER jobs/workers according to selected categories
+  // FILTER jobs by user's selected categories for Job Seekers
   let filteredJobs = jobSeekerJobs;
   if (isJobSeeker && user?.categories?.length) {
     filteredJobs = jobSeekerJobs.filter(job => user.categories!.includes(job.category));
   }
+
+  // FILTER workers by user's selected categories for Employers
   let filteredWorkers = availableWorkers;
   if (!isJobSeeker && user?.categories?.length) {
     filteredWorkers = availableWorkers.filter(worker => user.categories!.includes(worker.category));
@@ -106,7 +107,9 @@ const JobSearch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-20 max-w-2xl mx-auto">
+      {/* Simple ad banner */}
+      <div className="rounded-xl bg-yellow-100 p-3 text-center text-xs font-semibold text-yellow-700 my-2">Ad: Find jobs or workers faster with fyke PRO!</div>
       {/* Header */}
       <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <h1 className="text-xl font-bold text-gray-900 mb-4">
@@ -171,82 +174,84 @@ const JobSearch = () => {
 
       {/* Results count */}
       <div className="bg-white p-4 border-b border-gray-100">
-        <span className="text-sm text-gray-400">{data.length} results found</span>
+        <span className="text-sm text-gray-400">{isJobSeeker ? filteredJobs.length : filteredWorkers.length} results found</span>
       </div>
 
       {/* Listings */}
       <div className="p-4 space-y-4">
         {isJobSeeker ? (
-          // Job listings for job seekers
-          filteredJobs.map((job) => (
-            <ModernCard 
-              key={job.id} 
-              className="cursor-pointer hover:scale-[1.01] transition-all duration-200 relative overflow-hidden bg-white shadow border border-gray-100 rounded-2xl"
-              onClick={() => handleItemClick(job.id)}
-            >
-              {job.urgent && (
-                <div className="absolute top-0 right-0 w-16 h-16">
-                  <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                </div>
-              )}
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold text-gray-900 text-lg">{job.title}</h3>
-                      {job.urgent && (
-                        <Badge variant="destructive" className="text-xs rounded-full">
-                          Urgent
-                        </Badge>
-                      )}
+          filteredJobs.length === 0 ? (
+            <div className="text-center text-gray-400 py-16">No jobs available in your selected categories.</div>
+          ) : (
+            filteredJobs.map((job) => (
+              <ModernCard 
+                key={job.id} 
+                className="cursor-pointer hover:scale-[1.01] transition-all duration-200 relative overflow-hidden bg-white shadow border border-gray-100 rounded-2xl"
+                onClick={() => handleItemClick(job.id)}
+              >
+                {job.urgent && (
+                  <div className="absolute top-0 right-0 w-16 h-16">
+                    <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h3 className="font-semibold text-gray-900 text-lg">{job.title}</h3>
+                        {job.urgent && (
+                          <Badge variant="destructive" className="text-xs rounded-full">
+                            Urgent
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 font-medium">{job.company}</p>
                     </div>
-                    <p className="text-sm text-gray-500 font-medium">{job.company}</p>
+                    <div className="text-right">
+                      <div className="font-bold text-green-700 text-lg">{job.salary}</div>
+                      <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">{job.type}</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-green-700 text-lg">{job.salary}</div>
-                    <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">{job.type}</div>
-                  </div>
-                </div>
 
-                <div className="flex items-center space-x-4 text-sm text-gray-400">
-                  <span className="flex items-center space-x-1">
-                    <span>📍</span>
-                    <span>{job.location}</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <span>🚶</span>
-                    <span>{job.distance}</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <span>🕐</span>
-                    <span>{job.postedTime}</span>
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-700 leading-relaxed">{job.description}</p>
-
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <div className="flex items-center space-x-4 text-xs text-gray-400">
-                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{job.applications} applications</span>
+                  <div className="flex items-center space-x-4 text-sm text-gray-400">
                     <span className="flex items-center space-x-1">
-                      <span>⚡</span>
-                      <span>Quick apply</span>
+                      <span>📍</span>
+                      <span>{job.location}</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <span>🚶</span>
+                      <span>{job.distance}</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <span>🕐</span>
+                      <span>{job.postedTime}</span>
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" className="text-xs rounded-xl border-gray-200">
-                      💾 Save
-                    </Button>
-                    <Button size="sm" className="text-xs bg-gray-900 hover:bg-gray-800 text-white rounded-xl">
-                      Apply Now
-                    </Button>
+
+                  <p className="text-sm text-gray-700 leading-relaxed">{job.description}</p>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex items-center space-x-4 text-xs text-gray-400">
+                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{job.applications} applications</span>
+                      <span className="flex items-center space-x-1">
+                        <span>⚡</span>
+                        <span>Quick apply</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" className="text-xs rounded-xl border-gray-200">
+                        💾 Save
+                      </Button>
+                      <Button size="sm" className="text-xs bg-gray-900 hover:bg-gray-800 text-white rounded-xl">
+                        Apply Now
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ModernCard>
-          ))
+              </ModernCard>
+            ))
+          )
         ) : (
-          // Worker listings for employers
           filteredWorkers.map((worker) => (
             <ModernCard 
               key={worker.id} 

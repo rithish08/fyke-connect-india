@@ -8,20 +8,21 @@ const CompactRoleSwitcher = () => {
 
   if (!user) return null;
 
-  const switchLabel = user.role === "jobseeker" ? "→ Employer" : "→ Jobseeker";
+  const switchLabel = user.role === "jobseeker" ? "Employer" : "Jobseeker";
 
   return (
-    <div className="flex items-center justify-center mb-2">
+    <div className="flex items-center justify-center mb-1">
       <Button
         onClick={switchRole}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-1 h-7 px-2 text-xs border-gray-200 hover:bg-gray-50 rounded-full"
+        variant="ghost"
+        size="icon"
+        className="rounded-full p-1 border border-gray-200 bg-white shadow-none hover:bg-gray-100 w-8 h-8"
         title="Switch Role"
       >
-        <ArrowRightLeft className="w-3 h-3" />
-        {switchLabel}
+        <ArrowRightLeft className="w-4 h-4 text-gray-600" />
+        <span className="sr-only">Switch to {switchLabel}</span>
       </Button>
+      <span className="ml-2 text-xs font-medium text-gray-500">{switchLabel} mode</span>
     </div>
   );
 };

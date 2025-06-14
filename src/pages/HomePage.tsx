@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,16 +30,17 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white pb-20">
       <HomeHeader currentTime={currentTime} />
-      
       <div className="flex justify-center pt-0 sm:pt-2">
         <div className="w-full max-w-2xl">
-          <CompactRoleSwitcher />
+          {/* Remove second role switcher here */}
+          {/* CompactRoleSwitcher now in header */}
+          {/* Banner ad above feed */}
+          <div className="rounded-xl bg-yellow-100 p-3 text-center text-xs font-semibold text-yellow-700 my-2">Ad: Secure more jobs with fyke PRO!</div>
           <div className="pt-2">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>
       </div>
-      
       <BottomNavigation />
     </div>
   );

@@ -1,7 +1,8 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AnimatedWrapper from './AnimatedWrapper';
-import ModernRoleSwitcher from "@/components/ModernRoleSwitcher";
+import CompactRoleSwitcher from "@/components/CompactRoleSwitcher";
 import { useLocation } from "react-router-dom";
 import { useLocalization } from "@/contexts/LocalizationContext";
 
@@ -69,10 +70,11 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
           </div>
         </div>
       </div>
-      {/* Role Switcher as banner below header */}
-      <ModernRoleSwitcher />
+      {/* Use Compact switcher for smaller footprint */}
+      <CompactRoleSwitcher />
     </>
   );
 };
 
 export default HomeHeader;
+
