@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +10,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Check, Star } from 'lucide-react';
+import ProfileProgress from '@/components/ProfileProgress'
+import BannerAd from '@/components/BannerAd';
 
-// Minimalist white card theme for profile page
 const Profile = () => {
   const { user, updateProfile, logout } = useAuth();
   const { toast } = useToast();
@@ -24,6 +24,7 @@ const Profile = () => {
     experience: '2 years',
     skills: ['Construction', 'Manual Labor', 'Team Work']
   });
+  const [showBanner, setShowBanner] = useState(true);
 
   const handleSave = () => {
     updateProfile({ name: profileData.name });
@@ -52,7 +53,8 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-white pb-24">
-      {/* Profile Header Card */}
+      {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
+      <ProfileProgress />
       <div className="flex flex-col items-center pt-8 pb-4">
         <ModernCard
           variant="default"
@@ -309,4 +311,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

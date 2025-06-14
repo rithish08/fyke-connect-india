@@ -1,112 +1,54 @@
 
+import React from "react";
 import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import AnimatedWrapper from './AnimatedWrapper';
+import ShimmerLoader from './ui/ShimmerLoader';
 
-interface ProfileStep {
-  id: string;
-  title: string;
-  description: string;
-  benefit: string;
-  completed: boolean;
-  icon: string;
-}
+const steps = [
+  { id: 'name', title: "Add Your Name", benefit: "60% more trusted", icon: "👤" },
+  { id: 'photo', title: "Upload Photo", benefit: "70% more likely hired", icon: "📸" },
+  { id: 'skills', title: "List Skills", benefit: "3x jobs", icon: "🛠️" },
+  { id: 'location', title: "Set Location", benefit: "See jobs nearby", icon: "📍" }
+];
 
 const ProfileProgress = () => {
   const { user } = useAuth();
 
-  const profileSteps: ProfileStep[] = [
-    {
-      id: 'name',
-      title: 'Add Your Name',
-      description: 'Help employers know who you are',
-      benefit: 'Increases trust by 60%',
-      completed: !!user?.name,
-      icon: '👤'
-    },
-    {
-      id: 'photo',
-      title: 'Upload Photo',
-      description: 'Show your friendly face',
-      benefit: 'Increases hire chances by 70%',
-      completed: false,
-      icon: '📸'
-    },
-    {
-      id: 'skills',
-      title: 'List Your Skills',
-      description: 'Show what you can do',
-      benefit: 'Get 3x more job matches',
-      completed: false,
-      icon: '🛠️'
-    },
-    {
-      id: 'location',
-      title: 'Set Location',
-      description: 'Find nearby opportunities',
-      benefit: 'See jobs within 5km',
-      completed: false,
-      icon: '📍'
-    }
-  ];
+  if (!user) return <ShimmerLoader height={96} className="my-6 mx-auto max-w-xl" />;
 
-  const completedSteps = profileSteps.filter(step => step.completed).length;
-  const progressPercentage = (completedSteps / profileSteps.length) * 100;
-
-  if (progressPercentage === 100) return null;
+  const completion = steps.reduce((acc, step) =>
+    user[step.id] ? acc + 1 : acc, 0
+  );
+  const pct = Math.round((completion / steps.length) * 100);
+  if (pct === 100) return null;
 
   return (
-    <AnimatedWrapper variant="slide" direction="up" delay={150}>
-      <ModernCard variant="glass" className="bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-2xl flex items-center justify-center">
-                <span className="text-xl">🚀</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Complete Your Profile</h3>
-                <p className="text-sm text-gray-600">{completedSteps} of {profileSteps.length} completed</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className="bg-gradient-to-r from-orange-500 to-yellow-500 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-
-          {/* Next Steps */}
-          <div className="space-y-3">
-            {profileSteps
-              .filter(step => !step.completed)
-              .slice(0, 2)
-              .map((step) => (
-                <ModernCard key={step.id} variant="default" className="p-4 border border-orange-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center">
-                        <span className="text-sm">{step.icon}</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-900">{step.title}</p>
-                        <p className="text-xs text-green-600">{step.benefit}</p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline" className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50 rounded-xl">
-                      Add
-                    </Button>
-                  </div>
-                </ModernCard>
-              ))}
-          </div>
+    <ModernCard className="bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 px-3 py-2 sm:p-5 shadow flex flex-col gap-2 mt-3">
+      <div className="flex items-center space-x-3 mb-2">
+        <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-extrabold">{steps[completion]?.icon ?? "🚀"}</span>
+        <div>
+          <div className="text-xs sm:text-sm font-bold text-gray-900">Complete your profile</div>
+          <div className="text-xs text-gray-600">{completion} of {steps.length} steps done</div>
         </div>
-      </ModernCard>
-    </AnimatedWrapper>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div className="bg-gradient-to-r from-orange-500 to-yellow-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+      {steps
+        .filter(step => !user[step.id])
+        .slice(0, 2)
+        .map(step => (
+          <div key={step.id} className="flex items-center gap-2 mt-2">
+            <span className="text-lg">{step.icon}</span>
+            <span className="font-medium text-xs text-gray-700">{step.title}</span>
+            <span className="ml-auto text-xs text-green-600">{step.benefit}</span>
+            <Button size="sm" variant="outline" className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50 rounded-xl px-2 py-1">
+              Complete
+            </Button>
+          </div>
+        ))}
+    </ModernCard>
   );
 };
 

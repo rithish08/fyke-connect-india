@@ -7,12 +7,15 @@ import HomeHeader from '@/components/HomeHeader';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import CompactRoleSwitcher from '@/components/CompactRoleSwitcher';
+import BannerAd from '@/components/BannerAd';
+import ProfileProgress from '@/components/ProfileProgress';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -32,10 +35,8 @@ const HomePage = () => {
       <HomeHeader currentTime={currentTime} />
       <div className="flex justify-center pt-0 sm:pt-2">
         <div className="w-full max-w-2xl">
-          {/* Remove second role switcher here */}
-          {/* CompactRoleSwitcher now in header */}
-          {/* Banner ad above feed */}
-          <div className="rounded-xl bg-yellow-100 p-3 text-center text-xs font-semibold text-yellow-700 my-2">Ad: Secure more jobs with fyke PRO!</div>
+          {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
+          <ProfileProgress />
           <div className="pt-2">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
