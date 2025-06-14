@@ -1,5 +1,5 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,27 +10,12 @@ import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const { setRole, updateProfile, user, isAuthenticated } = useAuth();
+  const { setRole, updateProfile } = useAuth();
   const { t } = useLocalization();
   const { goTo } = useScreenNavigation();
 
-  useEffect(() => {
-    console.log('RoleSelection - Component mounted, user state:', { isAuthenticated, user: user ? { role: user.role } : null });
-    
-    // If user is already authenticated and has a role, redirect appropriately
-    if (isAuthenticated && user && user.role) {
-      console.log('RoleSelection - User already has role, redirecting based on role');
-      if (user.role === 'employer' || user.profileComplete) {
-        goTo('/home');
-      } else {
-        goTo('/profile-setup');
-      }
-    }
-  }, [isAuthenticated, user, goTo]);
-
   const handleContinue = () => {
     if (selectedRole) {
-      console.log('RoleSelection - Setting role to:', selectedRole);
       setRole(selectedRole);
 
       // Update profile with the selected role
@@ -39,14 +24,10 @@ const RoleSelection = () => {
         profileComplete: selectedRole === 'employer' ? true : false
       });
 
-      // Navigate based on role - ensure proper flow
+      // Navigate based on role
       if (selectedRole === 'employer') {
-        console.log('RoleSelection - Employer selected, going to home');
-        // Employers go straight to home since they don't need profile setup
         goTo('/home');
       } else {
-        console.log('RoleSelection - Job seeker selected, going to profile setup');
-        // Job seekers need to complete their profile first
         goTo('/profile-setup');
       }
     }
@@ -76,7 +57,7 @@ const RoleSelection = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -129,19 +110,18 @@ const RoleSelection = () => {
           ))}
         </div>
 
+        {/* Continue Button */}
+        <StickyActionButton
+          onClick={handleContinue}
+          disabled={!selectedRole}
+        >
+          {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
+        </StickyActionButton>
+
         <p className="text-center text-xs text-gray-400">
           {t('role.switch_hint', 'You can switch roles anytime in the app')}
         </p>
       </div>
-
-      {/* Fixed Continue Button */}
-      <StickyActionButton
-        onClick={handleContinue}
-        disabled={!selectedRole}
-        className="w-full max-w-sm mx-auto"
-      >
-        {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
-      </StickyActionButton>
     </div>
   );
 };

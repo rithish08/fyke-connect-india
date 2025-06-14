@@ -2,10 +2,9 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useJobSeekerJobs } from '@/hooks/useJobSeekerJobs';
 import JobSeekerHomeHeader from '@/components/jobseeker/JobSeekerHomeHeader';
-import EnhancedJobSeekerJobCard from '@/components/jobseeker/EnhancedJobSeekerJobCard';
+import JobSeekerJobCard from '@/components/jobseeker/JobSeekerJobCard';
 import JobSeekerEmptyState from '@/components/jobseeker/JobSeekerEmptyState';
 import JobSeekerLoadingState from '@/components/jobseeker/JobSeekerLoadingState';
-import LoginGuard from '@/components/auth/LoginGuard';
 
 const JobSeekerHome = () => {
   const { user } = useAuth();
@@ -30,20 +29,15 @@ const JobSeekerHome = () => {
   }
 
   return (
-    <LoginGuard 
-      fallbackTitle="Login to Find Jobs"
-      fallbackDescription="Please log in to view and apply for available jobs."
-    >
-      <div className="space-y-4 px-4">
-        <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
-        
-        {jobs && jobs.length === 0 && <JobSeekerEmptyState />}
-        
-        {jobs && jobs.map(job => (
-          <EnhancedJobSeekerJobCard key={job.id} job={job} />
-        ))}
-      </div>
-    </LoginGuard>
+    <div className="space-y-4 px-4">
+      <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
+      
+      {jobs && jobs.length === 0 && <JobSeekerEmptyState />}
+      
+      {jobs && jobs.map(job => (
+        <JobSeekerJobCard key={job.id} job={job} />
+      ))}
+    </div>
   );
 };
 

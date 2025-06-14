@@ -1,5 +1,5 @@
-
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -7,36 +7,26 @@ import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import StickyHeader from '@/components/layout/StickyHeader';
 import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
-import { useUserFlowNavigation } from '@/hooks/useUserFlowNavigation';
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
-  const { navigateToCorrectScreen, shouldRedirectFromCurrentPage } = useUserFlowNavigation();
+  const { goTo } = useScreenNavigation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    console.log('HomePage - Component mounted, checking if redirect needed');
-    
-    // Only redirect if we should redirect from the current page
-    if (shouldRedirectFromCurrentPage()) {
-      console.log('HomePage - Redirect needed, calling navigateToCorrectScreen');
-      navigateToCorrectScreen();
+    if (!isAuthenticated) {
+      goTo('/');
     }
-  }, [isAuthenticated, user, shouldRedirectFromCurrentPage, navigateToCorrectScreen]);
+  }, [isAuthenticated, goTo]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Show loading if user is not available yet
-  if (!user) {
-    console.log('HomePage - No user data, showing loading or redirecting');
-    return null;
-  }
-
-  console.log('HomePage - Rendering home page for user:', { role: user.role, profileComplete: user.profileComplete });
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-white">
