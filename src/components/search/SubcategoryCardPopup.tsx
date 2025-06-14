@@ -43,11 +43,19 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
     );
   };
 
+  // Estimate card width based on subcategory text lengths for flexibility
+  const longestSub = Math.max(...category.subcategories.map(str => str.length));
+  const cardMinWidth = Math.min(360 + longestSub * 8, 480);
+
   return (
     <Dialog open={open} onOpenChange={openVal => !openVal && onClose()}>
       <DialogContent
-        className="max-w-sm w-full rounded-3xl p-0 overflow-visible bg-white shadow-2xl flex flex-col"
-        style={{ minHeight: 320, maxHeight: "90vh" }}
+        className="max-w-full w-auto rounded-3xl p-0 overflow-visible bg-white shadow-2xl flex flex-col"
+        style={{
+          minWidth: cardMinWidth,
+          minHeight: 320,
+          maxHeight: "90vh",
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-1">
@@ -76,9 +84,17 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
         <div className="px-5 pb-1 text-sm text-gray-500">
           {translateText('category.select_up_to_three', 'Select up to 3 specializations')}
         </div>
-        {/* Subcategory Pills */}
-        <div className="grid grid-cols-2 gap-3 px-5 py-4 overflow-y-auto"
-             style={{ maxHeight: 250 }}>
+        {/* Subcategory Flexible "Pills" */}
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: category.subcategories.length > 4 ? '1fr 1fr' : '1fr',
+            gap: "0.75rem",
+            padding: "1.2rem 1.2rem 1rem 1.2rem",
+            overflowY: "auto",
+            maxHeight: 230,
+          }}
+        >
           {category.subcategories.map((subcategory) => {
             const isSelected = tempSelectedSubcategories.includes(subcategory);
             const isDisabled = !isSelected && tempSelectedSubcategories.length >= 3;
@@ -88,25 +104,30 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
                 type="button"
                 disabled={isDisabled}
                 className={`
-                  group w-full transition
-                  rounded-xl border
+                  transition
+                  rounded-full border
                   flex items-center gap-2
-                  justify-between
-                  ${getResponsivePadding(subcategory)}
-                  ${getFlexibleContainerClass(subcategory, 'mx-auto')} 
+                  justify-between px-4 py-2
+                  ${getFlexibleContainerClass(subcategory, 'mx-auto')}
                   ${isSelected
                     ? 'bg-blue-50 border-blue-500 text-blue-700 font-semibold shadow'
                     : isDisabled
-                      ? 'bg-gray-100 border-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
-                      : 'bg-gray-50 border-gray-200 hover:bg-blue-100'}
+                        ? 'bg-gray-100 border-gray-200 text-gray-400 opacity-60 cursor-not-allowed'
+                        : 'bg-gray-50 border-gray-200 hover:bg-blue-100'
+                  }
                 `}
+                style={{
+                  minWidth: 110,
+                  maxWidth: 220,
+                  minHeight: 38,
+                  fontSize: 'clamp(13px, 2.5vw, 17px)'
+                }}
                 onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
-                style={{minHeight: 42}}
               >
                 <span className={`${getResponsiveTextSize(
                   subcategory,
-                  { baseSize: 14, minSize: 12, maxSize: 16 }
-                )} flex-1`}>
+                  { baseSize: 15, minSize: 13, maxSize: 17 }
+                )} flex-1 break-words text-center`}>
                   {subcategory}
                 </span>
                 {isSelected && <CheckCircle className="w-5 h-5 text-blue-600" />}
@@ -133,4 +154,3 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
 };
 
 export default SubcategoryCardPopup;
-

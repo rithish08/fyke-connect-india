@@ -70,11 +70,10 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
           );
         })}
       </div>
-      {/* Subcategory Selection Popup (Card/Modal) */}
+      {/* Subcategory Selection Card Popup */}
       <SubcategoryCardPopup
         open={!!popupCategoryId}
         onClose={closePopup}
-        popupCategoryId={popupCategoryId}
         tempSelectedSubcategories={tempSelectedSubcategories}
         setTempSelectedSubcategories={setTempSelectedSubcategories}
         onConfirm={handleConfirm}
