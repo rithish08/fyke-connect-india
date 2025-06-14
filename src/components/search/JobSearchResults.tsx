@@ -21,6 +21,7 @@ const JobSearchResults = ({ results, userRole, onWorkerClick }: JobSearchResults
           userRole === 'employer' ? (
             <WorkerCard
               key={res.id}
+              id={res.id}
               name={res.name}
               category={res.category}
               skills={res.skills}
@@ -36,6 +37,7 @@ const JobSearchResults = ({ results, userRole, onWorkerClick }: JobSearchResults
           ) : (
             <JobCard
               key={res.id}
+              id={res.id}
               title={res.title}
               category={res.category}
               skills={res.skills || []}

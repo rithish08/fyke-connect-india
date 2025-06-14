@@ -1,9 +1,10 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, MapPin, Zap, Building2 } from "lucide-react";
+import { Clock, MapPin, Zap, Building2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 interface JobCardProps {
   id?: string | number;
@@ -31,6 +32,7 @@ const JobCard: React.FC<JobCardProps> = ({
   description = "Looking for skilled worker for immediate start"
 }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleCardClick = () => {
     navigate(`/job/${id ?? title.replace(/\s+/g, '-').toLowerCase()}`, {
@@ -51,54 +53,82 @@ const JobCard: React.FC<JobCardProps> = ({
     });
   };
 
+  const handleApply = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast({
+      title: "Application Submitted!",
+      description: `Your application for ${title} has been submitted.`,
+    });
+  };
+
   return (
     <div
-      className="bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow flex items-center transition hover:shadow-xl hover:scale-[1.01] cursor-pointer min-h-[100px] select-none"
+      className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-gray-200 transition-all duration-200 cursor-pointer"
       onClick={handleCardClick}
       tabIndex={0}
       aria-label={`View job: ${title}`}
       onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
     >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900 text-base truncate">{title}</h3>
-          {urgent && (
-            <Badge variant="destructive" className="bg-red-500 text-white font-bold text-xs flex items-center gap-1 px-1.5 py-0.5">
-              <Zap className="w-3 h-3" />
-              URGENT
-            </Badge>
+      <div className="flex items-center justify-between">
+        {/* Main Content */}
+        <div className="flex-1 min-w-0 pr-4">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-gray-900 text-base truncate">{title}</h3>
+            {urgent && (
+              <Badge className="bg-red-500 text-white text-xs px-2 py-0.5 flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                URGENT
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2 mb-2">
+            <Building2 className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-600 truncate">{company}</span>
+          </div>
+          
+          <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
+            <div className="flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              <span>{distance}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span>{postedTime}</span>
+            </div>
+          </div>
+
+          {skills.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {skills.slice(0, 2).map((skill, i) => (
+                <span key={i} className="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+                  {skill}
+                </span>
+              ))}
+              {skills.length > 2 && (
+                <span className="text-xs text-gray-500 py-1">+{skills.length - 2} more</span>
+              )}
+            </div>
           )}
         </div>
-        <div className="flex gap-1.5 items-center mt-0.5 text-xs text-gray-700 font-medium">
-          <Building2 className="w-4 h-4 text-gray-300" />
-          <span className="truncate">{company}</span>
-        </div>
-        <div className="flex gap-3 items-center mt-1 text-xs text-gray-500">
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3" /> {distance}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {postedTime}
-          </span>
-        </div>
-        {skills.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {skills.slice(0, 3).map((skill, i) => (
-              <span key={i} className="bg-gray-100 px-2 py-0.5 rounded-full text-xs font-medium text-gray-800">{skill}</span>
-            ))}
+
+        {/* Salary & Apply Button */}
+        <div className="flex flex-col items-end gap-3 flex-shrink-0">
+          <div className="text-right">
+            <div className="text-lg font-bold text-green-600">₹{salary}</div>
+            <div className="text-xs text-gray-500">salary</div>
           </div>
-        )}
-      </div>
-      <div className="ml-5 flex flex-col justify-between items-end shrink-0 h-full">
-        <div className="font-bold text-green-600 text-lg mb-1">₹{salary}</div>
-        <Button
-          size="sm"
-          className="rounded-xl border border-gray-200 bg-gray-50 text-gray-900 font-bold shadow-none transition hover:bg-blue-50 hover:text-blue-700"
-          tabIndex={-1}
-          // On click, navigate (handled by card click) - could trigger apply here if needed
-        >
-          Apply
-        </Button>
+          
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full flex items-center gap-2"
+            onClick={handleApply}
+            tabIndex={-1}
+          >
+            <Send className="w-4 h-4" />
+            Apply
+          </Button>
+        </div>
       </div>
     </div>
   );
