@@ -75,118 +75,120 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300 cursor-pointer"
+      className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 cursor-pointer"
       onClick={handleCardClick}
       tabIndex={0}
       role="button"
       aria-label={`View profile of ${name}`}
       onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
     >
-      <div className="flex gap-4">
-        {/* Profile Photo - More rectangular/portrait */}
-        <div className="relative flex-shrink-0">
-          <Avatar className="w-16 h-20 rounded-xl border-2 border-gray-100">
-            <AvatarImage src={profileImage} alt={name} className="object-cover" />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg rounded-xl">
-              {name.split(' ').map(n => n[0]).join('').toUpperCase()}
+      {/* Header Section */}
+      <div className="flex items-start justify-between mb-6">
+        {/* Profile Photo */}
+        <div className="relative">
+          <Avatar className="w-20 h-24 rounded-2xl border-2 border-gray-100">
+            <AvatarImage src={profileImage} alt={name} className="object-cover rounded-2xl" />
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-xl rounded-2xl">
+              {name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
             </AvatarFallback>
           </Avatar>
           
           {/* Online Status */}
           {isOnline && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 border-3 border-white rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
           )}
           
           {/* Verification Badge */}
           {verificationLevel !== 'basic' && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-              <Shield className="w-2.5 h-2.5 text-white" fill="currentColor" />
+            <div className="absolute -top-2 -right-2 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-3 border-white">
+              <Shield className="w-4 h-4 text-white" fill="currentColor" />
             </div>
           )}
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Header with name and rate */}
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-bold text-gray-900 text-lg truncate">{name}</h3>
-                {isOnline && (
-                  <Badge className="bg-green-100 text-green-700 text-xs px-2 py-0.5 font-medium">
-                    Online
-                  </Badge>
-                )}
-              </div>
-              <p className="text-gray-600 text-sm font-medium">{category}</p>
-            </div>
-            <div className="text-right ml-3">
-              <div className="text-lg font-bold text-green-600">₹{hourlyRate}</div>
-              <div className="text-xs text-gray-500">per hour</div>
-            </div>
-          </div>
-          
-          {/* Rating & Stats */}
-          <div className="flex items-center gap-4 text-sm mb-3">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
-              <span className="font-semibold text-gray-900">{rating}</span>
-              <span className="text-gray-500">({completedJobs})</span>
-            </div>
-            <div className="flex items-center gap-1 text-gray-600">
-              <MapPin className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs">{distance}</span>
-            </div>
-            <div className="flex items-center gap-1 text-gray-600">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs">{responseTime}</span>
-            </div>
-          </div>
+        {/* Right Side Info */}
+        <div className="flex items-center gap-2">
+          {isOnline && (
+            <Badge className="bg-green-100 text-green-700 text-sm px-3 py-1 font-semibold border border-green-200">
+              online
+            </Badge>
+          )}
+        </div>
+      </div>
 
-          {/* Skills */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {skills.slice(0, 3).map((skill, i) => (
-              <span key={i} className="bg-blue-50 border border-blue-200 px-2 py-1 rounded-full text-xs font-medium text-blue-700">
-                {skill}
-              </span>
-            ))}
-            {skills.length > 3 && (
-              <span className="text-xs text-gray-500 py-1">+{skills.length - 3} more</span>
-            )}
+      {/* Name and Category with Rating */}
+      <div className="mb-4">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">{name || 'Unknown Worker'}</h3>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-lg text-gray-600 font-medium">{category}</span>
+          <div className="flex items-center gap-1">
+            <Star className="w-5 h-5 text-yellow-400" fill="currentColor" />
+            <span className="font-bold text-lg text-gray-900">{rating}</span>
+            <span className="text-gray-500">({completedJobs || 0})</span>
           </div>
-          
-          {/* Action Buttons - Hire button on the left */}
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-semibold rounded-lg"
-              onClick={handleHire}
-              tabIndex={-1}
-            >
-              <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-              Hire
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 text-xs font-medium rounded-lg"
-              onClick={handleCall}
-              tabIndex={-1}
-            >
-              <Phone className="w-3.5 h-3.5 mr-1.5" />
-              Call
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 text-xs font-medium rounded-lg"
-              onClick={handleChat}
-              tabIndex={-1}
-            >
-              <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-              Chat
-            </Button>
+        </div>
+        
+        {/* Distance Info */}
+        <div className="flex items-center gap-4 text-gray-600">
+          <div className="flex items-center gap-1">
+            <MapPin className="w-4 h-4" />
+            <span className="text-sm font-medium">{distance}</span>
           </div>
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-bold text-gray-900">₹ {hourlyRate}</span>
+            <span className="text-sm text-gray-500">/hr</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Skills */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
+          {skills.slice(0, 3).map((skill, i) => (
+            <span key={i} className="bg-gray-100 px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-200">
+              {skill}
+            </span>
+          ))}
+          {skills.length > 3 && (
+            <span className="text-sm text-gray-500 py-2 font-medium">+{skills.length - 3} more</span>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        {/* Hire Button - Combined with Rate */}
+        <Button
+          className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-lg font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+          onClick={handleHire}
+          tabIndex={-1}
+        >
+          <UserPlus className="w-6 h-6" />
+          Hire
+        </Button>
+        
+        {/* Call and Chat Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl font-semibold text-gray-700 flex items-center justify-center gap-2"
+            onClick={handleCall}
+            tabIndex={-1}
+          >
+            <Phone className="w-5 h-5" />
+            Call
+          </Button>
+          <Button
+            variant="outline"
+            className="h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl font-semibold text-gray-700 flex items-center justify-center gap-2"
+            onClick={handleChat}
+            tabIndex={-1}
+          >
+            <MessageCircle className="w-5 h-5" />
+            Chat
+          </Button>
         </div>
       </div>
     </div>
