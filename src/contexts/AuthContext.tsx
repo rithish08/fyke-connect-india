@@ -21,6 +21,11 @@ interface User {
   categories?: string[];
   primaryCategory?: string;
   subcategories?: string[];
+  salaryRates?: {
+    daily?: number;
+    weekly?: number;
+    monthly?: number;
+  };
 }
 
 interface AuthContextType {
@@ -89,7 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         availability: 'available',
         skills: ['Construction', 'Manual Labor'],
         salaryExpectation: { min: 300, max: 600 },
-        location: 'Mumbai, Maharashtra'
+        location: 'Mumbai, Maharashtra',
+        salaryRates: {
+          daily: 0,
+          weekly: 0,
+          monthly: 0
+        }
       };
       
       setUser(mockUser);
@@ -103,12 +113,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    console.log('Logging out user...');
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Clear all stored data
     localStorage.removeItem('fyke_user');
     localStorage.removeItem('fyke_phone');
     localStorage.removeItem('fyke_name');
-    console.log('User logged out');
+    localStorage.removeItem('fyke_selected_subcategories');
+    localStorage.removeItem('fyke_onboarding_seen');
+    
+    // Force page reload to ensure clean state
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 100);
+    
+    console.log('User logged out successfully');
   };
 
   const setRole = (role: 'jobseeker' | 'employer') => {
