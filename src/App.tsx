@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import Profile from "./pages/Profile";
 import Messaging from "./pages/Messaging";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import ProfileSetup from "./pages/ProfileSetup";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +34,7 @@ const App = () => (
               <Route path="/role-selection" element={<RoleSelection />} />
               <Route path="/login" element={<LoginScreen />} />
               <Route path="/otp-verification" element={<OTPVerification />} />
+              <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/search" element={<JobSearch />} />
               <Route path="/job/:id" element={<JobDetails />} />
