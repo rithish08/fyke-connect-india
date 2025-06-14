@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ShimmerLoader from '@/components/ui/ShimmerLoader';
@@ -11,6 +10,14 @@ import BottomNavigation from '@/components/BottomNavigation';
 import { MapPin, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/modern-card';
+
+interface FilterState {
+  distance: number;
+  minRating: number;
+  priceRange: [number, number];
+  availability: 'all' | 'online' | 'verified';
+  responseTime: 'all' | 'fast' | 'medium';
+}
 
 const workersDb = [
   { 
@@ -65,12 +72,12 @@ const JobSearch = () => {
   const [results, setResults] = useState<null | any[]>(null);
   const [location, setLocation] = useState<any>(null);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     distance: 10,
     minRating: 0,
-    priceRange: [0, 1000] as [number, number],
-    availability: 'all' as const,
-    responseTime: 'all' as const
+    priceRange: [0, 1000],
+    availability: 'all',
+    responseTime: 'all'
   });
   const [urgentOnly, setUrgentOnly] = useState(false);
 
