@@ -1,14 +1,39 @@
 
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import CategorySelection from '@/components/search/CategorySelection';
 import BottomNavigation from '@/components/BottomNavigation';
+import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
+import { Button } from '@/components/ui/button';
 
 interface JobSearchCategoryViewProps {
-  onCategorySelect: (categoryId: string, categoryName: string) => void;
+  onSelectionComplete: (selectedCategories: { [catId: string]: string[] }) => void;
 }
 
-const JobSearchCategoryView = ({ onCategorySelect }: JobSearchCategoryViewProps) => {
+const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewProps) => {
   const { user } = useAuth();
+  const [selectedCategories, setSelectedCategories] = useState<{ [catId: string]: string[] }>({});
+
+  const handleCategorySelect = (_categoryId: string) => {
+    // Handled in EnhancedCategoryModal - opens sheet
+  };
+
+  const handleSubcategorySelect = (categoryId: string, subcategories: string[]) => {
+    setSelectedCategories(prev => ({
+      ...prev,
+      [categoryId]: subcategories
+    }));
+  };
+
+  const handleClear = (categoryId: string) => {
+    setSelectedCategories(prev => {
+      const copy = { ...prev };
+      delete copy[categoryId];
+      return copy;
+    });
+  };
+
+  // Enable "Search" if at least one category with subcategory is selected
+  const hasSelected = Object.values(selectedCategories).some((arr) => arr.length > 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -20,10 +45,21 @@ const JobSearchCategoryView = ({ onCategorySelect }: JobSearchCategoryViewProps)
         </div>
       </div>
       <div className="max-w-2xl mx-auto px-4 pt-6">
-        <CategorySelection 
-          onCategorySelect={onCategorySelect}
-          title="Select Worker Category"
+        <EnhancedCategoryModal
+          selectedCategories={selectedCategories}
+          onCategorySelect={handleCategorySelect}
+          onSubcategorySelect={handleSubcategorySelect}
+          onClear={handleClear}
         />
+        <div className="mt-6">
+          <Button
+            className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            disabled={!hasSelected}
+            onClick={() => onSelectionComplete(selectedCategories)}
+          >
+            {user?.role === 'employer' ? 'Search Workers' : 'Search Jobs'}
+          </Button>
+        </div>
       </div>
       <BottomNavigation />
     </div>

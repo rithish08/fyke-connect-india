@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, ChevronDown, X } from 'lucide-react';
@@ -9,206 +9,178 @@ import { categories } from '@/data/categories';
 import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSizing';
 
 interface EnhancedCategoryModalProps {
-  selectedCategory: {id: string, name: string} | null;
-  selectedSubcategories: string[];
-  onCategorySelect: (categoryId: string, categoryName: string) => void;
-  onSubcategorySelect: (subcategories: string[]) => void;
-  children?: React.ReactNode;
+  selectedCategories: { [catId: string]: string[] }; // map of categoryId to subcategories
+  onCategorySelect: (categoryId: string) => void; // open popup for this category
+  onSubcategorySelect: (categoryId: string, subcategories: string[]) => void;
+  onClear: (categoryId: string) => void;
 }
 
 const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
-  selectedCategory,
-  selectedSubcategories,
+  selectedCategories,
   onCategorySelect,
   onSubcategorySelect,
-  children
+  onClear,
 }) => {
   const { translateCategory, translateText } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const [tempSelectedSubcategories, setTempSelectedSubcategories] = useState<string[]>(selectedSubcategories);
+  const [popupCategoryId, setPopupCategoryId] = useState<string | null>(null);
+  const [tempSelectedSubcategories, setTempSelectedSubcategories] = useState<string[]>([]);
 
-  const selectedCategoryData = selectedCategory ? 
-    categories.find(cat => cat.name.toLowerCase() === selectedCategory.id.toLowerCase()) : null;
-
-  const handleCategoryClick = (category: any) => {
-    onCategorySelect(category.name.toLowerCase(), category.name);
-    setTempSelectedSubcategories([]);
+  const openSubcategoryPopup = (categoryId: string) => {
+    const already = selectedCategories[categoryId] || [];
+    setPopupCategoryId(categoryId);
+    setTempSelectedSubcategories([...already]);
   };
 
-  const handleCategoryWithPopup = (category: any) => {
-    onCategorySelect(category.name.toLowerCase(), category.name);
+  const closePopup = () => {
+    setPopupCategoryId(null);
     setTempSelectedSubcategories([]);
-    setIsOpen(true);
   };
 
   const handleSubcategoryToggle = (subcategory: string) => {
-    setTempSelectedSubcategories(prev => 
-      prev.includes(subcategory) 
-        ? prev.filter(s => s !== subcategory)
+    setTempSelectedSubcategories((prev) =>
+      prev.includes(subcategory)
+        ? prev.filter((s) => s !== subcategory)
         : prev.length < 3 ? [...prev, subcategory] : prev
     );
   };
 
   const handleConfirm = () => {
-    onSubcategorySelect(tempSelectedSubcategories);
-    setIsOpen(false);
-  };
-
-  const handleClear = () => {
-    onCategorySelect('', '');
-    onSubcategorySelect([]);
-    setTempSelectedSubcategories([]);
-  };
-
-  const getCardHeight = () => {
-    const baseHeight = 'min-h-[120px]';
-    if (selectedSubcategories.length > 6) return 'min-h-[180px]';
-    if (selectedSubcategories.length > 3) return 'min-h-[150px]';
-    return baseHeight;
+    if (popupCategoryId) {
+      onSubcategorySelect(popupCategoryId, tempSelectedSubcategories);
+    }
+    closePopup();
   };
 
   return (
     <div className="space-y-4">
-      {/* Selected Category Display */}
-      {selectedCategory && selectedCategoryData && (
-        <div className={`bg-white rounded-2xl p-4 border border-gray-200 shadow-sm ${getCardHeight()}`}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3 flex-1">
-              <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${selectedCategoryData.color} flex items-center justify-center shadow-md`}>
-                <span className="text-white text-xl">{selectedCategoryData.icon}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className={`font-semibold text-gray-900 ${getResponsiveTextSize(translateCategory(selectedCategory.name), { baseSize: 16, minSize: 14, maxSize: 18 })}`}>
-                  {translateCategory(selectedCategory.name)}
-                </h3>
-                {selectedSubcategories.length > 0 && (
-                  <p className="text-sm text-blue-600">
-                    {selectedSubcategories.length} {translateText('category.selected', 'selected')}
+      <div className="grid grid-cols-2 gap-3">
+        {categories.map((category) => {
+          const translatedName = translateCategory(category.name);
+          const catId = category.name.toLowerCase();
+          const selectedSubs = selectedCategories[catId] || [];
+          const hasSelections = selectedSubs.length > 0;
+          const categoryTextSize = getResponsiveTextSize(translatedName, {
+            baseSize: 14,
+            minSize: 11,
+            maxSize: 15
+          });
+          return (
+            <div
+              key={catId}
+              className={`relative bg-white rounded-2xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 ${hasSelections ? 'ring-2 ring-blue-400' : ''}`}
+              style={{
+                minHeight: hasSelections ? 140 + selectedSubs.length * 22 : 120,
+                transition: 'min-height 0.15s',
+              }}
+              onClick={() => openSubcategoryPopup(catId)}
+            >
+              <div className="text-center space-y-3">
+                <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg text-2xl`}>
+                  {category.icon}
+                </div>
+                <div>
+                  <h3 className={`font-semibold text-gray-900 ${categoryTextSize} ${getFlexibleContainerClass(translatedName, 'mx-auto')}`}>
+                    {translatedName}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {category.subcategories.length} {translateText('category.types', 'types')}
                   </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center space-x-1">
-                    <span>{selectedSubcategories.length > 0 ? translateText('category.edit', 'Edit') : translateText('category.select', 'Select')}</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
-                  <SheetHeader className="text-left pb-4">
-                    <SheetTitle className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${selectedCategoryData.color} flex items-center justify-center`}>
-                        <span className="text-white text-lg">{selectedCategoryData.icon}</span>
-                      </div>
-                      <span>{translateCategory(selectedCategoryData.name)} {translateText('category.specializations', 'Specializations')}</span>
-                    </SheetTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {translateText('category.select_up_to_three', 'Select up to 3 specializations')}
-                    </p>
-                  </SheetHeader>
-                  
-                  <div className="space-y-3 py-4 max-h-[50vh] overflow-y-auto">
-                    {selectedCategoryData.subcategories.map((subcategory) => {
-                      const isSelected = tempSelectedSubcategories.includes(subcategory);
-                      const isDisabled = !isSelected && tempSelectedSubcategories.length >= 3;
-                      return (
-                        <div
-                          key={subcategory}
-                          className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
-                            isSelected 
-                              ? 'bg-blue-50 border-blue-500 shadow-md' 
-                              : isDisabled
-                              ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
-                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
-                          }`}
-                          onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className={`font-medium text-gray-900 ${getResponsiveTextSize(subcategory, { baseSize: 14, minSize: 12, maxSize: 16 })}`}>
-                              {subcategory}
-                            </span>
-                            {isSelected && (
-                              <CheckCircle className="w-5 h-5 text-blue-600" />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t bg-white">
-                    <p className="text-sm text-gray-600">
-                      {tempSelectedSubcategories.length}/3 {translateText('category.selected', 'selected')}
-                    </p>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setIsOpen(false)}>
-                        {translateText('common.cancel', 'Cancel')}
-                      </Button>
-                      <Button onClick={handleConfirm} className="bg-blue-600 hover:bg-blue-700">
-                        {translateText('common.confirm', 'Confirm')}
-                      </Button>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-              
-              <Button variant="ghost" size="sm" onClick={handleClear}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-          
-          {selectedSubcategories.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {selectedSubcategories.map(sub => (
-                <Badge key={sub} variant="secondary" className="bg-blue-100 text-blue-800 rounded-full text-xs px-2 py-1">
-                  {sub}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Category Grid - Only show if no category selected */}
-      {!selectedCategory && (
-        <div className="grid grid-cols-2 gap-3">
-          {categories.map((category) => {
-            const translatedName = translateCategory(category.name);
-            const categoryTextSize = getResponsiveTextSize(translatedName, {
-              baseSize: 14,
-              minSize: 11,
-              maxSize: 15
-            });
-            
-            return (
-              <div
-                key={category.name}
-                className="bg-white rounded-2xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
-                onClick={() => handleCategoryWithPopup(category)}
-              >
-                <div className="text-center space-y-3">
-                  <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg text-2xl`}>
-                    {category.icon}
-                  </div>
-                  <div>
-                    <h3 className={`font-semibold text-gray-900 ${categoryTextSize} ${getFlexibleContainerClass(translatedName, 'mx-auto')}`}>
-                      {translatedName}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {category.subcategories.length} {translateText('category.types', 'types')}
-                    </p>
-                  </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+              {hasSelections && (
+                <div className="mt-2 flex flex-wrap justify-center gap-2">
+                  {selectedSubs.map((sub) => (
+                    <Badge key={sub} variant="secondary" className="bg-blue-100 text-blue-800 rounded-full text-xs px-2 py-1">
+                      {sub}
+                    </Badge>
+                  ))}
+                  <button
+                    title="Clear selection"
+                    onClick={e => { e.stopPropagation(); onClear(catId); }}
+                    className="ml-1 text-gray-400 hover:text-gray-600"
+                    aria-label="Clear selection"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-      {children}
+      {/* Subcategory Selection Sheet */}
+      <Sheet open={!!popupCategoryId} onOpenChange={open => !open && closePopup()}>
+        <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
+          {popupCategoryId && (() => {
+            const category = categories.find(
+              (cat) => cat.name.toLowerCase() === popupCategoryId
+            );
+            if (!category) return null;
+            return (
+              <>
+                <SheetHeader className="text-left pb-4">
+                  <SheetTitle className="flex items-center space-x-3">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center`}>
+                      <span className="text-white text-lg">{category.icon}</span>
+                    </div>
+                    <span>
+                      {translateCategory(category.name)}{' '}
+                      {translateText('category.specializations', 'Specializations')}
+                    </span>
+                  </SheetTitle>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {translateText('category.select_up_to_three', 'Select up to 3 specializations')}
+                  </p>
+                </SheetHeader>
+                <div className="space-y-3 py-4 max-h-[50vh] overflow-y-auto">
+                  {category.subcategories.map((subcategory) => {
+                    const isSelected = tempSelectedSubcategories.includes(subcategory);
+                    const isDisabled =
+                      !isSelected && tempSelectedSubcategories.length >= 3;
+                    return (
+                      <div
+                        key={subcategory}
+                        className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
+                          isSelected
+                            ? 'bg-blue-50 border-blue-500 shadow-md'
+                            : isDisabled
+                            ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                        }`}
+                        onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`font-medium text-gray-900 ${getResponsiveTextSize(
+                            subcategory,
+                            { baseSize: 14, minSize: 12, maxSize: 16 }
+                          )}`}>
+                            {subcategory}
+                          </span>
+                          {isSelected && <CheckCircle className="w-5 h-5 text-blue-600" />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t bg-white">
+                  <p className="text-sm text-gray-600">
+                    {tempSelectedSubcategories.length}/3 {translateText('category.selected', 'selected')}
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={closePopup}>
+                      {translateText('common.cancel', 'Cancel')}
+                    </Button>
+                    <Button onClick={handleConfirm} className="bg-blue-600 hover:bg-blue-700">
+                      {translateText('common.confirm', 'Confirm')}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

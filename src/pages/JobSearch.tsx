@@ -1,9 +1,8 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { useJobSearchState } from '@/hooks/useJobSearchState';
 import JobSearchCategoryView from '@/components/search/JobSearchCategoryView';
-import JobSearchSubcategoryView from '@/components/search/JobSearchSubcategoryView';
 import JobSearchResultsView from '@/components/search/JobSearchResultsView';
+import { useState } from 'react';
 
 const JobSearch = () => {
   const { user } = useAuth();
@@ -23,76 +22,39 @@ const JobSearch = () => {
     filters,
     setFilters,
     urgentOnly,
-    setUrgentOnly
+    setUrgentOnly,
+    loadResults
   } = useJobSearchState();
 
-  const handleCategorySelect = (categoryId: string, categoryName: string) => {
-    if (user?.role === 'jobseeker' && user?.primaryCategory && user.primaryCategory !== categoryName) {
-      return;
-    }
-    
-    setSelectedCategory({ id: categoryId, name: categoryName });
-    setCurrentView('subcategory');
+  const [selectedCategories, setSelectedCategories] = useState<{ [catId: string]: string[] }>({});
+  const [showResults, setShowResults] = useState(false);
+
+  const handleSelectionComplete = (selected: { [catId: string]: string[] }) => {
+    setSelectedCategories(selected);
+    setShowResults(true);
+    // Could trigger search, for now just switch view
   };
 
-  const handleSubcategorySelect = (subcategory: string) => {
-    if (selectedSubcategories.includes(subcategory)) {
-      setSelectedSubcategories(prev => prev.filter(s => s !== subcategory));
-    } else {
-      setSelectedSubcategories(prev => [...prev, subcategory]);
-    }
-  };
-
-  const handleSearchWithSubcategories = () => {
-    setCurrentView('results');
-  };
-
-  const handleBackToCategory = () => {
-    if (user?.role === 'jobseeker') {
-      return;
-    }
-    setCurrentView('category');
-    setSelectedCategory(null);
-    setSelectedSubcategories([]);
-  };
-
-  const handleBackToSubcategory = () => {
-    setCurrentView('subcategory');
-    setResults(null);
-  };
-
-  // For job seekers, skip category selection if they have a primary category
-  if (currentView === 'category' && user?.role === 'employer') {
+  if (!showResults) {
     return (
-      <JobSearchCategoryView onCategorySelect={handleCategorySelect} />
+      <JobSearchCategoryView onSelectionComplete={handleSelectionComplete} />
     );
   }
 
-  if (currentView === 'subcategory' && selectedCategory) {
-    return (
-      <JobSearchSubcategoryView
-        selectedCategory={selectedCategory}
-        selectedSubcategories={selectedSubcategories}
-        onSubcategorySelect={handleSubcategorySelect}
-        onBack={handleBackToCategory}
-        onSearchWithSubcategories={handleSearchWithSubcategories}
-      />
-    );
-  }
-
+  // For demo, treat selectedCategories as results filter; adapt as needed.
   return (
     <JobSearchResultsView
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
       location={location}
       setLocation={setLocation}
-      selectedCategory={selectedCategory}
+      selectedCategory={null}
       results={results}
       filters={filters}
       setFilters={setFilters}
       urgentOnly={urgentOnly}
       setUrgentOnly={setUrgentOnly}
-      onBackToSubcategory={handleBackToSubcategory}
+      onBackToSubcategory={() => setShowResults(false)}
     />
   );
 };
