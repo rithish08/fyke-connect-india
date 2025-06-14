@@ -1,5 +1,5 @@
-
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { Home, Search, ClipboardList, Mail, User as UserIcon, Users } from "lucide-react";
@@ -24,7 +24,7 @@ const JOBSEEKER_NAV = [
 
 const BottomNavigation = () => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { goTo } = useScreenNavigation();
   const { user } = useAuth();
   const { t } = useLocalization();
 
@@ -38,7 +38,7 @@ const BottomNavigation = () => {
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => goTo(item.path)}
               className={`flex flex-col items-center flex-1 px-1 py-2 rounded-lg transition-all duration-200 group
                  ${isActive
                   ? 'bg-gray-900 text-white shadow-md scale-105'

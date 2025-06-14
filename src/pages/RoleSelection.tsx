@@ -6,28 +6,29 @@ import { useAuth } from '@/contexts/AuthContext';
 import { User2, Users2, ArrowRight } from "lucide-react";
 import { useLocalization } from "@/contexts/LocalizationContext";
 import StickyActionButton from '@/components/ui/StickyActionButton';
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
   const { setRole, updateProfile } = useAuth();
   const { t } = useLocalization();
-  const navigate = useNavigate();
+  const { goTo } = useScreenNavigation();
 
   const handleContinue = () => {
     if (selectedRole) {
       setRole(selectedRole);
-      
+
       // Update profile with the selected role
-      updateProfile({ 
+      updateProfile({
         role: selectedRole,
         profileComplete: selectedRole === 'employer' ? true : false
       });
-      
+
       // Navigate based on role
       if (selectedRole === 'employer') {
-        navigate('/home');
+        goTo('/home');
       } else {
-        navigate('/profile-setup');
+        goTo('/profile-setup');
       }
     }
   };

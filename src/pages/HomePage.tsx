@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,18 +7,19 @@ import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import StickyHeader from '@/components/layout/StickyHeader';
 import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
-  const navigate = useNavigate();
+  const { goTo } = useScreenNavigation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/');
+      goTo('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, goTo]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
