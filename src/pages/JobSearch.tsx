@@ -1,6 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ShimmerLoader from '@/components/ui/ShimmerLoader';
+import JobCard from '@/components/search/JobCard';
+import WorkerCard from '@/components/search/WorkerCard';
 
 const workersDb = [
   { id: 1, name: "Raj", category: "Construction", skills: ["Manual Labor"], rating: 4.8 },
@@ -9,9 +12,9 @@ const workersDb = [
 ];
 
 const jobsDb = [
-  { id: 1, title: "Construction Worker Needed", category: "Construction", salary: "400/day" },
-  { id: 2, title: "Driver for Tempo", category: "Driver", salary: "500/day" },
-  { id: 3, title: "Gardener Wanted", category: "Gardening", salary: "300/day" },
+  { id: 1, title: "Construction Worker Needed", category: "Construction", skills: ["Manual Labor"], salary: "400" },
+  { id: 2, title: "Driver for Tempo", category: "Driver", skills: ["Driving", "Tempo"], salary: "500" },
+  { id: 3, title: "Gardener Wanted", category: "Gardening", skills: ["Gardening"], salary: "300" },
 ];
 
 const JobSearch = () => {
@@ -20,34 +23,60 @@ const JobSearch = () => {
 
   useEffect(() => {
     setTimeout(() => {
+      // Category filtering
+      const filterFn = (item: any) =>
+        user?.categories?.length
+          ? user.categories.includes(item.category)
+          : true;
+
       if (user?.role === 'employer') {
-        setResults(workersDb.filter(w => user.categories?.length ? user.categories.includes(w.category) : true));
+        setResults(workersDb.filter(filterFn));
       } else {
-        setResults(jobsDb.filter(j => user.categories?.length ? user.categories.includes(j.category) : true));
+        setResults(jobsDb.filter(filterFn));
       }
     }, 1000);
   }, [user]);
 
-  if (!results) return <ShimmerLoader height={50} className="my-5" />;
+  if (!results)
+    return (
+      <div className="max-w-2xl mx-auto px-2 pt-4">
+        <ShimmerLoader height={50} className="my-5" />
+        <ShimmerLoader height={50} className="my-3" />
+        <ShimmerLoader height={50} className="my-3" />
+      </div>
+    );
 
   return (
-    <div className="max-w-2xl mx-auto px-2 pt-3">
-      {results.length === 0 && <div className="text-gray-500 text-center">No results found in your categories.</div>}
-      {results.map(res =>
-        user?.role === 'employer' ? (
-          <div key={res.id} className="mb-4 bg-white border border-gray-100 rounded-xl shadow p-4 flex items-center">
-            <div className="font-bold text-gray-900 text-base">{res.name}</div>
-            <div className="text-xs ml-2 text-gray-500">{res.category}</div>
-            <div className="ml-auto text-yellow-600 font-bold text-xs">{res.rating}★</div>
-          </div>
-        ) : (
-          <div key={res.id} className="mb-4 bg-white border border-gray-100 rounded-xl shadow p-4">
-            <div className="font-bold">{res.title}</div>
-            <div className="text-xs text-gray-500">{res.category} • {res.salary}</div>
-          </div>
-        )
+    <main className="max-w-2xl mx-auto px-2 pt-5" aria-live="polite">
+      {results.length === 0 && (
+        <div className="text-gray-400 text-center my-8 text-base animate-fade-in">
+          No results found in your selected categories.<br />
+          <span className="text-xs text-gray-300">(Try choosing more categories in your profile.)</span>
+        </div>
       )}
-    </div>
+      <div role="list">
+        {results.map(res =>
+          user?.role === 'employer' ? (
+            <WorkerCard
+              key={res.id}
+              name={res.name}
+              category={res.category}
+              skills={res.skills || []}
+              rating={res.rating}
+            />
+          ) : (
+            <JobCard
+              key={res.id}
+              title={res.title}
+              category={res.category}
+              skills={res.skills || []}
+              salary={res.salary}
+            />
+          )
+        )}
+      </div>
+    </main>
   );
 };
+
 export default JobSearch;
