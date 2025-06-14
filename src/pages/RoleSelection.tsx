@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,6 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { User2, Users2, ArrowRight } from "lucide-react";
 import { useLocalization } from "@/contexts/LocalizationContext";
-import StickyActionButton from "@/components/ui/StickyActionButton";
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
@@ -56,7 +56,7 @@ const RoleSelection = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -110,27 +110,22 @@ const RoleSelection = () => {
         </div>
 
         {/* Continue Button */}
+        <Button
+          onClick={handleContinue}
+          disabled={!selectedRole}
+          className={`w-full h-14 font-semibold text-lg rounded-2xl shadow-lg transition-all ${
+            selectedRole
+              ? 'bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
+        </Button>
 
         <p className="text-center text-xs text-gray-400">
           {t('role.switch_hint', 'You can switch roles anytime in the app')}
         </p>
       </div>
-      {/* Place Sticky Button at page bottom */}
-      <StickyActionButton
-        show={true}
-        disabled={!selectedRole}
-        onClick={handleContinue}
-        className={
-          selectedRole
-            ? "bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white"
-            : "bg-gray-100 text-gray-400 cursor-not-allowed"
-        }
-      >
-        {selectedRole
-          ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}`
-          : 'Select your role'
-        }
-      </StickyActionButton>
     </div>
   );
 };

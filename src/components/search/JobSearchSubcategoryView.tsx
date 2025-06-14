@@ -1,9 +1,9 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import BottomNavigation from '@/components/BottomNavigation';
 import { ArrowLeft } from 'lucide-react';
 import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
-import StickyActionButton from '@/components/ui/StickyActionButton';
 
 interface JobSearchSubcategoryViewProps {
   selectedCategory: {id: string, name: string};
@@ -35,7 +35,7 @@ const JobSearchSubcategoryView = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24"> {/* Extra bottom padding for sticky */}
+    <div className="min-h-screen bg-gray-50 pb-20">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center space-x-3">
@@ -62,7 +62,17 @@ const JobSearchSubcategoryView = ({
           }}
         />
 
-        {/* REMOVE inline Button for main action, keep secondary (outline) for 'View All ...' if jobseeker */}
+        {selectedSubcategories.length > 0 && (
+          <div className="mt-6">
+            <Button 
+              className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+              onClick={onSearchWithSubcategories}
+            >
+              Search {user?.role === 'employer' ? 'Workers' : 'Jobs'} ({selectedSubcategories.length} selected)
+            </Button>
+          </div>
+        )}
+        
         {user?.role === 'jobseeker' && (
           <div className="mt-4">
             <Button 
@@ -76,14 +86,6 @@ const JobSearchSubcategoryView = ({
         )}
       </div>
       <BottomNavigation />
-
-      {/* Sticky Action Button */}
-      <StickyActionButton
-        show={selectedSubcategories.length > 0}
-        onClick={onSearchWithSubcategories}
-      >
-        Search {user?.role === 'employer' ? 'Workers' : 'Jobs'} ({selectedSubcategories.length} selected)
-      </StickyActionButton>
     </div>
   );
 };
