@@ -8,7 +8,6 @@ import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import AppHeader from '@/components/AppHeader';
 import BannerAd from '@/components/BannerAd';
-import ProfileProgress from '@/components/ProfileProgress';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -36,7 +35,6 @@ const HomePage = () => {
       <div className="flex justify-center pt-0 sm:pt-2">
         <div className="w-full max-w-2xl">
           {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
-          <ProfileProgress />
           <div className="pt-2">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>

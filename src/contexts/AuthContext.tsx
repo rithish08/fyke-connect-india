@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -63,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone,
       role: 'jobseeker',
       verified: Math.random() > 0.3,
-      profileComplete: false, // mark as not complete initially
+      profileComplete: false, // Will be set to true for employers
       categories: [],
       primaryCategory: undefined,
       subcategories: [],
@@ -85,7 +84,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setRole = (role: 'jobseeker' | 'employer') => {
     if (user) {
-      const updatedUser = { ...user, role };
+      const updatedUser = { 
+        ...user, 
+        role,
+        profileComplete: role === 'employer' ? true : user.profileComplete
+      };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
     }

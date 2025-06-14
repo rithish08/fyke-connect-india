@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +25,10 @@ const ProfileSetup = () => {
   useEffect(() => {
     if (!user) {
       navigate('/login');
+    }
+    // Redirect employers to home since they don't need profile setup
+    if (user?.role === 'employer') {
+      navigate('/home');
     }
     if (user?.profileComplete) {
       navigate('/home');

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
 
@@ -25,7 +24,18 @@ const LoginScreen = () => {
   const handleVerifyOTP = async () => {
     try {
       await login(phone, otp);
-      navigate('/profile-setup');
+      // Check if user is employer and redirect accordingly
+      const storedUser = localStorage.getItem('fyke_user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        if (userData.role === 'employer') {
+          navigate('/home');
+        } else {
+          navigate('/profile-setup');
+        }
+      } else {
+        navigate('/profile-setup');
+      }
     } catch (error) {
       console.error('OTP Verification Failed:', error);
     }
