@@ -1,7 +1,6 @@
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { MapPin, Star, Send, IndianRupee, Clock } from "lucide-react";
+import React, { useState } from "react";
+import { MapPin, Clock, IndianRupee, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -31,80 +30,77 @@ const EnhancedJobCard: React.FC<JobCardProps> = ({
   company = "Local Business",
   description = "Looking for skilled worker for immediate start"
 }) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { translateCategory, translateText } = useTranslation();
-
-  const handleCardClick = () => {
-    navigate(`/job/${id ?? title.replace(/\s+/g, '-').toLowerCase()}`, {
-      state: {
-        job: {
-          id, title, category, skills, salary, urgent, distance, postedTime, company, description
-        }
-      }
-    });
-  };
-
-  const handleApply = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast({
-      title: translateText('job.application_submitted', 'Application Submitted!'),
-      description: translateText('job.application_description', `Your application for ${title} has been submitted.`),
-    });
-  };
+  const [showApplied, setShowApplied] = useState(false);
 
   const displayedSkills = skills.slice(0, 2);
   const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
 
-  return (
-    <div
-      className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md w-full transition-all duration-200 cursor-pointer"
-      onClick={handleCardClick}
-    >
-      <div className="flex items-center justify-between">
-        {/* Left section */}
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
-          {/* Status indicator */}
-          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${urgent ? 'bg-red-400' : 'bg-green-400'}`} />
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 text-sm truncate mb-1">{title}</h3>
-            <p className="text-blue-600 text-xs font-medium mb-1">{translateCategory(category)}</p>
-            
-            {/* Company and time */}
-            <div className="flex items-center space-x-2 text-xs text-gray-500 mb-1">
-              <span className="truncate">{company}</span>
-              <span>•</span>
-              <div className="flex items-center">
-                <Clock className="w-3 h-3 mr-1" />
-                <span>{postedTime}</span>
-              </div>
-            </div>
-            
-            {/* Distance */}
-            <div className="flex items-center text-xs text-gray-500">
-              <MapPin className="w-3 h-3 mr-1" />
-              <span>{distance}</span>
-            </div>
-          </div>
-        </div>
+  const handleApply = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowApplied(true);
+    toast({
+      title: translateText('job.application_submitted', 'Application Submitted!'),
+      description: translateText('job.application_description', `Your application for ${title} has been submitted.`),
+    });
+    setTimeout(() => setShowApplied(false), 1500);
+  };
 
-        {/* Right section */}
-        <div className="flex flex-col items-end space-y-2 flex-shrink-0">
-          <div className="flex items-center text-blue-600 font-bold text-sm">
-            <IndianRupee className="w-4 h-4 mr-1" />
-            {salary}
-          </div>
-          
-          <Button
-            onClick={handleApply}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-medium"
-            size="sm"
-          >
-            {translateText('common.apply', 'Apply')}
-          </Button>
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl flex flex-row items-center px-3 py-3 shadow-sm min-h-[90px] max-w-full md:max-w-2xl gap-4 hover:shadow-lg transition-all duration-150 mb-3 w-full">
+      {/* Avatar/status */}
+      <div className="relative">
+        <div className="h-14 w-14 bg-gray-100 rounded-xl flex items-center justify-center">
+          <CheckCircle className={`w-8 h-8 ${urgent ? "text-red-400" : "text-green-400"}`} />
         </div>
+        <span className={`absolute bottom-1 left-1 w-3 h-3 rounded-full border-2 border-white ${
+          urgent ? "bg-red-400" : "bg-green-400"
+        }`} />
+      </div>
+      {/* Info */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+          <span className="font-semibold text-gray-900 text-base leading-tight">
+            {title}
+          </span>
+          <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium w-max">
+            {translateCategory(category)}
+          </span>
+        </div>
+        <div className="flex items-center text-xs text-gray-500 gap-3 mt-1">
+          <span>{company}</span>
+          <span className="flex items-center"><Clock className="w-3 h-3 mr-0.5" />{postedTime}</span>
+          <span className="flex items-center"><MapPin className="w-3 h-3 mr-0.5" />{distance}</span>
+        </div>
+        {/* Skill tags */}
+        <div className="flex flex-wrap mt-1 gap-1">
+          {displayedSkills.map((skill) => (
+            <span
+              key={skill}
+              className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-medium text-xs"
+            >
+              {skill}
+            </span>
+          ))}
+          {moreSkills > 0 && (
+            <span className="text-gray-500 text-xs font-medium">+{moreSkills} {translateText('common.more', 'more')}</span>
+          )}
+        </div>
+      </div>
+      {/* Actions */}
+      <div className="flex flex-col justify-between items-end gap-2 h-full min-w-[120px]">
+        <Button
+          className="font-semibold text-[15px] px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-400 rounded-xl text-white hover:from-blue-600 hover:to-blue-500 shadow-md w-full mb-2 disabled:bg-gray-200 disabled:text-gray-500"
+          onClick={handleApply}
+          disabled={showApplied}
+        >
+          <IndianRupee className="w-4 h-4 mr-1 inline" />
+          {salary}
+          <span className="ml-1 font-normal text-xs">
+            /{translateText("common.apply", "Apply")}
+          </span>
+        </Button>
       </div>
     </div>
   );
