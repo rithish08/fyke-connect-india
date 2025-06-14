@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface LocalizationContextType {
@@ -77,6 +76,19 @@ const translations = {
     'home.greetingMorning': 'Good Morning',
     'home.greetingAfternoon': 'Good Afternoon',
     'home.greetingEvening': 'Good Evening',
+
+    // Job Search
+    'search.placeholder_workers': 'Search workers...',
+    'search.placeholder_jobs': 'Search jobs...',
+    'search.current_location': 'Current Location',
+    'search.select_category': 'Select Category',
+    
+    // Job Card
+    'job.application_submitted': 'Application Submitted!',
+    'job.application_description': 'Your application has been submitted.',
+    'common.salary': 'salary',
+    'common.more': 'more',
+    'category.types': 'types',
   },
   
   hi: {
@@ -147,6 +159,19 @@ const translations = {
     'home.greetingMorning': 'सुप्रभात',
     'home.greetingAfternoon': 'शुभ अपराह्न',
     'home.greetingEvening': 'शुभ संध्या',
+
+    // Job Search
+    'search.placeholder_workers': 'Workers search करें...',
+    'search.placeholder_jobs': 'Jobs search करें...',
+    'search.current_location': 'Current Location',
+    'search.select_category': 'Category चुनें',
+    
+    // Job Card
+    'job.application_submitted': 'Application Submit हो गया!',
+    'job.application_description': 'आपका application submit हो गया है।',
+    'common.salary': 'salary',
+    'common.more': 'और',
+    'category.types': 'प्रकार',
   },
   
   ta: {
@@ -217,76 +242,19 @@ const translations = {
     'home.greetingMorning': 'காலை வணக்கம்',
     'home.greetingAfternoon': 'மதியம் வணக்கம்',
     'home.greetingEvening': 'மாலை வணக்கம்',
-  },
 
-  bn: {
-    // Navigation
-    'nav.home': 'হোম',
-    'nav.search': 'জব খোঁজুন',
-    'nav.my_jobs': 'আমার জব',
-    'nav.messages': 'বার্তা',
-    'nav.profile': 'প্রোফাইল',
-    'nav.find_workers': 'কর্মী খোঁজুন',
-    'nav.my_posts': 'আমার পোস্ট',
-    
-    // Common
-    'common.continue': 'অব্যাহত রাখুন',
-    'common.cancel': 'বাতিল',
-    'common.save': 'সংরক্ষণ',
-    'common.apply': 'আবেদন করুন',
-    'common.call': 'কল করুন',
-    'common.message': 'বার্তা পাঠান',
-    'common.urgent': 'জরুরি',
-    'common.per_day': '/দিন',
-    'common.loading': 'লোড হচ্ছে...',
-    
-    // Language Selection
-    'lang.title': 'আপনার ভাষা নির্বাচন করুন',
-    'lang.subtitle': 'চালিয়ে যেতে আপনার পছন্দের ভাষা নির্বাচন করুন',
-    
-    // Role Selection
-    'role.title': 'আপনার পথ বেছে নিন',
-    'role.subtitle': 'আপনি কীভাবে Fyke ব্যবহার করতে চান',
-    'role.jobseeker': 'চাকরি প্রার্থী',
-    'role.employer': 'নিয়োগকর্তা',
-    'role.jobseeker_desc': 'কাজের সুযোগ খুঁজুন এবং আপনার ক্যারিয়ার গড়ুন',
-    'role.employer_desc': 'দক্ষ কর্মী নিয়োগ দিন এবং প্রকল্প পরিচালনা করুন',
-    
-    // Authentication
-    'auth.welcome': 'Fyke-এ স্বাগতম',
-    'auth.subtitle': 'ভারতের প্রধান ব্লু-কলার জব মার্কেটপ্লেস',
-    'auth.phone_placeholder': '১০-সংখ্যার নম্বর লিখুন',
-    'auth.otp_sent': 'আপনার ফোনে পাঠানো যাচাইকরণ কোড লিখুন',
-    
-    // Home
-    'home.welcome': 'স্বাগতম',
-    'home.jobseeker_subtitle': 'আপনার পরবর্তী সুযোগ খুঁজে পেতে প্রস্তুত?',
-    'home.employer_subtitle': 'অসাধারণ প্রতিভা নিয়োগ দিতে প্রস্তুত?',
-    'home.emergency_jobs': 'জরুরি কাজ',
-    'home.recommended': 'আপনার জন্য সুপারিশকৃত',
-    
     // Job Search
-    'search.title': 'কাজ খোঁজুন',
-    'search.placeholder': 'কাজের জন্য অনুসন্ধান করুন...',
-    'search.location': 'অবস্থান',
-    'search.category': 'বিভাগ',
-    'search.sort_by': 'সাজান',
-    'search.results': 'ফলাফল',
+    'search.placeholder_workers': 'Workers ஐ தேடுங்கள்...',
+    'search.placeholder_jobs': 'Jobs ஐ தேடுங்கள்...',
+    'search.current_location': 'Current Location',
+    'search.select_category': 'Category தேர்ந்தெடுக்கவும்',
     
-    // Profile
-    'profile.title': 'প্রোফাইল',
-    'profile.edit': 'সম্পাদনা',
-    'profile.complete_profile': 'আপনার প্রোফাইল সম্পূর্ণ করুন',
-    'profile.personal_info': 'ব্যক্তিগত তথ্য',
-    'profile.skills': 'দক্ষতা',
-    'profile.verification': 'যাচাইকরণ',
-    'profile.settings': 'সেটিংস',
-    'common.switchMode': 'মোড পরিবর্তন',
-    'common.select_role': 'চালিয়ে যেতে আপনার ভূমিকা নির্বাচন করুন',
-    'role.switch_hint': 'আপনি পরে যেকোনো সময় ভূমিকা পরিবর্তন করতে পারেন',
-    'home.greetingMorning': 'সুপ্রভাত',
-    'home.greetingAfternoon': 'শুভ অপরাহ্ন',
-    'home.greetingEvening': 'শুভ সন্ধ্যা',
+    // Job Card
+    'job.application_submitted': 'Application Submit ஆகிவிட்டது!',
+    'job.application_description': 'உங்கள் application submit ஆகிவிட்டது।',
+    'common.salary': 'salary',
+    'common.more': 'மேலும்',
+    'category.types': 'வகைகள்',
   },
 
   te: {
@@ -357,6 +325,102 @@ const translations = {
     'home.greetingMorning': 'శుభోదయం',
     'home.greetingAfternoon': 'శుభ మధ్యాహ్నం',
     'home.greetingEvening': 'శుభ సాయంత్రం',
+
+    // Job Search
+    'search.placeholder_workers': 'Workers ను వెతకండి...',
+    'search.placeholder_jobs': 'Jobs ను వెతకండి...',
+    'search.current_location': 'Current Location',
+    'search.select_category': 'Category ఎంచుకోండి',
+    
+    // Job Card
+    'job.application_submitted': 'Application Submit అయ్యింది!',
+    'job.application_description': 'మీ application submit అయ్యింది।',
+    'common.salary': 'salary',
+    'common.more': 'మరిన్ని',
+    'category.types': 'రకాలు',
+  },
+
+  bn: {
+    // Navigation
+    'nav.home': 'হোম',
+    'nav.search': 'জব খোঁজুন',
+    'nav.my_jobs': 'আমার জব',
+    'nav.messages': 'বার্তা',
+    'nav.profile': 'প্রোফাইল',
+    'nav.find_workers': 'কর্মী খোঁজুন',
+    'nav.my_posts': 'আমার পোস্ট',
+    
+    // Common
+    'common.continue': 'অব্যাহত রাখুন',
+    'common.cancel': 'বাতিল',
+    'common.save': 'সংরক্ষণ',
+    'common.apply': 'আবেদন করুন',
+    'common.call': 'কল করুন',
+    'common.message': 'বার্তা পাঠান',
+    'common.urgent': 'জরুরি',
+    'common.per_day': '/দিন',
+    'common.loading': 'লোড হচ্ছে...',
+    
+    // Language Selection
+    'lang.title': 'আপনার ভাষা নির্বাচন করুন',
+    'lang.subtitle': 'চালিয়ে যেতে আপনার পছন্দের ভাষা নির্বাচন করুন',
+    
+    // Role Selection
+    'role.title': 'আপনার পথ বেছে নিন',
+    'role.subtitle': 'আপনি কীভাবে Fyke ব্যবহার করতে চান',
+    'role.jobseeker': 'চাকরি প্রার্থী',
+    'role.employer': 'নিয়োগকর্তা',
+    'role.jobseeker_desc': 'কাজের সুযোগ খুঁজুন এবং আপনার ক্যারিয়ার গড়ুন',
+    'role.employer_desc': 'দক্ষ কর্মী নিয়োগ দিন এবং প্রকল্প পরিচালনা করুন',
+    
+    // Authentication
+    'auth.welcome': 'Fyke-এ স্বাগতম',
+    'auth.subtitle': 'ভারতের প্রধান ব্লু-কলার জব মার্কেটপ্লেস',
+    'auth.phone_placeholder': '১০-সংখ্যার নম্বর লিখুন',
+    'auth.otp_sent': 'আপনার ফোনে পাঠানো যাচাইকরণ কোড লিখুন',
+    
+    // Home
+    'home.welcome': 'স্বাগতম',
+    'home.jobseeker_subtitle': 'আপনার পরবর্তী সুযোগ খুঁজে পেতে প্রস্তুত?',
+    'home.employer_subtitle': 'অসাধারণ প্রতিভা নিয়োগ দিতে প্রস্তুত?',
+    'home.emergency_jobs': 'জরুরি কাজ',
+    'home.recommended': 'আপনার জন্য সুপারিশকৃত',
+    
+    // Job Search
+    'search.title': 'কাজ খোঁজুন',
+    'search.placeholder': 'কাজের জন্য অনুসন্ধান করুন...',
+    'search.location': 'অবস্থান',
+    'search.category': 'বিভাগ',
+    'search.sort_by': 'সাজান',
+    'search.results': 'ফলাফল',
+    
+    // Profile
+    'profile.title': 'প্রোফাইল',
+    'profile.edit': 'সম্পাদনা',
+    'profile.complete_profile': 'আপনার প্রোফাইল সম্পূর্ণ করুন',
+    'profile.personal_info': 'ব্যক্তিগত তথ্য',
+    'profile.skills': 'দক্ষতা',
+    'profile.verification': 'যাচাইকরণ',
+    'profile.settings': 'সেটিংস',
+    'common.switchMode': 'মোড পরিবর্তন',
+    'common.select_role': 'চালিয়ে যেতে আপনার ভূমিকা নির্বাচন করুন',
+    'role.switch_hint': 'আপনি পরে যেকোনো সময় ভূমিকা পরিবর্তন করতে পারেন',
+    'home.greetingMorning': 'সুপ্রভাত',
+    'home.greetingAfternoon': 'শুভ অপরাহ্ন',
+    'home.greetingEvening': 'শুভ সন্ধ্যা',
+
+    // Job Search
+    'search.placeholder_workers': 'Workers খুঁজুন...',
+    'search.placeholder_jobs': 'Jobs খুঁজুন...',
+    'search.current_location': 'Current Location',
+    'search.select_category': 'Category নির্বাচন করুন',
+    
+    // Job Card
+    'job.application_submitted': 'Application Submit হয়েছে!',
+    'job.application_description': 'আপনার application submit হয়েছে।',
+    'common.salary': 'salary',
+    'common.more': 'আরও',
+    'category.types': 'ধরন',
   },
 
   mr: {
@@ -427,6 +491,19 @@ const translations = {
     'home.greetingMorning': 'सुप्रभात',
     'home.greetingAfternoon': 'शुभ दुपार',
     'home.greetingEvening': 'शुभ संध्याकाळ',
+
+    // Job Search
+    'search.placeholder_workers': 'Workers शोधा...',
+    'search.placeholder_jobs': 'Jobs शोधा...',
+    'search.current_location': 'Current Location',
+    'search.select_category': 'Category निवडा',
+    
+    // Job Card
+    'job.application_submitted': 'Application Submit झाली!',
+    'job.application_description': 'तुमची application submit झाली आहे।',
+    'common.salary': 'salary',
+    'common.more': 'अधिक',
+    'category.types': 'प्रकार',
   }
 };
 
