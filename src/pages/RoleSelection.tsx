@@ -132,6 +132,7 @@ const RoleSelection = () => {
         }
       </StickyActionButton>
     </div>
-);
+  );
+};
 
 export default RoleSelection;
