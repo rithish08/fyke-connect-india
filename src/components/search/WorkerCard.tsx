@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, MessageCircle, Phone, CheckCircle, MapPin } from "lucide-react";
+import { Star, MessageCircle, Phone, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -72,8 +72,8 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
     setShowHireModal(true);
   };
 
-  const displayedSkills = skills.slice(0, 2);
-  const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
+  const displayedSkills = skills.slice(0, 3);
+  const moreSkills = skills.length > 3 ? skills.length - 3 : 0;
 
   const workerData = {
     id,
@@ -89,103 +89,90 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   return (
     <>
       <div
-        className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md w-full max-w-2xl transition-all duration-200 cursor-pointer"
-        tabIndex={0}
-        role="button"
-        aria-label={`View profile of ${name}`}
+        className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md w-full transition-all duration-200 cursor-pointer"
         onClick={handleProfileClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleProfileClick();
-        }}
       >
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar className="h-12 w-12 rounded-full">
-                  <AvatarImage src={profileImage} alt={name} />
-                  <AvatarFallback className="bg-blue-500 text-white font-bold">
-                    {name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {isOnline && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
-                )}
-                {verificationLevel !== "basic" && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-                    <CheckCircle className="w-3 h-3 text-white" fill="currentColor" />
-                  </span>
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg">{name}</h3>
-                <p className="text-sm text-gray-600 mb-1">{category}</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
+        <div className="flex items-start justify-between">
+          {/* Left section */}
+          <div className="flex items-start space-x-3 flex-1 min-w-0">
+            {/* Status indicator */}
+            <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${isOnline ? 'bg-green-400' : 'bg-gray-300'}`} />
+            
+            {/* Avatar and content */}
+            <div className="flex space-x-3 flex-1 min-w-0">
+              <Avatar className="h-12 w-12 rounded-full flex-shrink-0">
+                <AvatarImage src={profileImage} alt={name} />
+                <AvatarFallback className="bg-blue-500 text-white font-bold">
+                  {name.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 text-base truncate mb-1">{name}</h3>
+                <p className="text-blue-600 text-sm font-medium mb-2">{category}</p>
+                
+                {/* Rating and skills */}
+                <div className="flex items-center space-x-2 mb-2">
                   <div className="flex items-center">
                     <Star className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" />
-                    <span>{rating}</span>
+                    <span className="text-sm font-medium text-gray-900">{rating}</span>
                   </div>
-                  <div className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {distance}
-                  </div>
+                </div>
+                
+                {/* Skills */}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {displayedSkills.map((skill, i) => (
+                    <span key={i} className="text-gray-600 text-sm">
+                      {skill}
+                    </span>
+                  ))}
+                  {moreSkills > 0 && (
+                    <span className="text-gray-400 text-sm">
+                      +{moreSkills} more
+                    </span>
+                  )}
+                </div>
+                
+                {/* Distance */}
+                <div className="flex items-center text-gray-500 text-sm">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span>{distance}</span>
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-lg font-bold text-green-600 mb-2">₹{hourlyRate}/hr</div>
+          </div>
+
+          {/* Right section */}
+          <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-4">
+            <div className="text-blue-600 font-bold text-lg">₹{hourlyRate}/Hire</div>
+            
+            <div className="flex flex-col space-y-1 w-full">
               <Button
                 onClick={handleHireClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                tabIndex={-1}
-              >
-                Hire Now
-              </Button>
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div className="flex flex-wrap gap-2">
-            {displayedSkills.map((skill, i) => (
-              <span
-                key={i}
-                className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-700"
-              >
-                {skill}
-              </span>
-            ))}
-            {moreSkills > 0 && (
-              <span className="text-xs text-gray-400">
-                +{moreSkills} more
-              </span>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex justify-between items-center pt-2 border-t">
-            <span className="text-xs text-gray-500">{completedJobs} jobs completed</span>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium w-full sm:w-auto"
                 size="sm"
-                onClick={handleCall}
-                tabIndex={-1}
               >
-                <Phone className="w-4 h-4" />
+                Hire
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleChat}
-                tabIndex={-1}
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
+              
+              <div className="flex space-x-1 justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCall}
+                  className="p-2 rounded-lg border border-gray-200"
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleChat}
+                  className="p-2 rounded-lg border border-gray-200"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
