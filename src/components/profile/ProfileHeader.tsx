@@ -11,10 +11,7 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, phone, role, verified }) => (
-  <ModernCard
-    variant="default"
-    className="w-full max-w-xl mx-auto flex flex-col items-center p-8 pt-10 border border-gray-100 bg-white shadow-md rounded-2xl"
-  >
+  <ModernCard className="w-full max-w-xl mx-auto flex flex-col items-center p-8 pt-10 border border-gray-100 bg-white shadow-md rounded-2xl">
     <div className="relative mb-2">
       <div className="w-28 h-28 bg-white border border-gray-200 shadow rounded-full flex items-center justify-center overflow-hidden ring-2 ring-white">
         <span className="text-5xl font-bold text-[#264669] uppercase select-none">

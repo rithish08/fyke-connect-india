@@ -53,11 +53,16 @@ export const useLocalization = () => {
     return categoryData[category.toLowerCase() as keyof typeof categoryData] || category;
   };
 
+  const formatCurrency = (amount: number): string => {
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
   return {
     currentLanguage,
     changeLanguage,
     getLocalizedText,
     translateCategory,
+    formatCurrency,
     availableLanguages: ['en', 'hi', 'ta', 'te', 'bn', 'mr', 'kn', 'ml'] as SupportedLanguage[]
   };
 };
