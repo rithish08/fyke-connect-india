@@ -27,8 +27,8 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleChat = () => {
-    // Navigate to specific chat with proper parameters
+  const handleChat = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const params = new URLSearchParams({
       chatWith: targetId,
       name: targetName,
@@ -38,8 +38,8 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
     navigate(`/messages?${params.toString()}`);
   };
 
-  const handleCall = () => {
-    // For now, just show alert - can be enhanced with actual calling functionality
+  const handleCall = (e: React.MouseEvent) => {
+    e.stopPropagation();
     alert(`Calling ${targetName}...`);
   };
 
@@ -53,7 +53,7 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
           variant="outline"
           size={buttonSize}
           onClick={handleChat}
-          className="flex items-center space-x-1"
+          className="flex items-center space-x-1 flex-1"
         >
           <MessageCircle className={iconSize} />
           {size === 'md' && <span>Chat</span>}
@@ -64,7 +64,7 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
           variant="outline"
           size={buttonSize}
           onClick={handleCall}
-          className="flex items-center space-x-1"
+          className="flex items-center space-x-1 flex-1"
         >
           <Phone className={iconSize} />
           {size === 'md' && <span>Call</span>}

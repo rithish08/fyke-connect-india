@@ -48,11 +48,11 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
           <span>{showPage}</span>
         </div>
-        {/* Greeting and Profile */}
-        <div className="flex items-center justify-between px-6 pt-2 pb-3">
+        {/* Greeting and Profile - Made smaller and more faded */}
+        <div className="flex items-center justify-between px-6 pt-1 pb-2">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{getGreeting()}! 👋</h1>
-            <p className="text-gray-600 text-sm mt-0.5">
+            <h1 className="text-lg font-semibold text-gray-700">{getGreeting()}! 👋</h1>
+            <p className="text-gray-500 text-xs mt-0.5">
               {user?.name ?? user?.phone}
             </p>
             <p className="text-gray-400 text-xs">
@@ -61,8 +61,8 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
                 : t('home.employer_subtitle', 'Ready to hire?')}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
-            <span className="text-lg font-bold text-gray-700 uppercase">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
+            <span className="text-sm font-bold text-gray-700 uppercase">
               {user?.name ? user?.name[0] : user?.phone?.[0] || 'U'}
             </span>
           </div>

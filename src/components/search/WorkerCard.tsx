@@ -5,6 +5,7 @@ import SkillBadge from "@/components/verification/SkillBadge";
 import CommunicationButtons from "@/components/communication/CommunicationButtons";
 import { Star, MapPin, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 interface WorkerCardProps {
   name: string;
@@ -44,12 +45,12 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
       onClick={onClick}
     >
       {/* Header with Avatar and Basic Info */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3 flex-1">
           <div className="relative">
-            <Avatar className="w-12 h-12">
+            <Avatar className="w-14 h-14">
               <AvatarImage src={profileImage} alt={name} />
-              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
+              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold text-lg">
                 {name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -59,67 +60,76 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </div>
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
-              <div className="font-bold text-gray-900 text-base">{name}</div>
+              <h3 className="font-bold text-gray-900 text-lg">{name}</h3>
               <TrustScore 
                 score={rating}
                 verificationLevel={verificationLevel}
                 completedJobs={completedJobs}
                 responseTime={responseTime}
+                className="ml-2"
               />
             </div>
-            <div className="text-sm text-gray-500">{category}</div>
+            <p className="text-sm text-gray-600 mb-1">{category}</p>
+            <div className="flex items-center text-xs text-gray-500 space-x-3">
+              <span className="flex items-center">
+                <MapPin className="w-3 h-3 mr-1" />
+                {distance}
+              </span>
+              <span className="flex items-center">
+                <Clock className="w-3 h-3 mr-1" />
+                {responseTime}
+              </span>
+              <span className="text-blue-600 font-medium">{completedJobs} jobs</span>
+            </div>
           </div>
         </div>
         <div className="text-right">
-          <div className="flex items-center text-yellow-600 font-bold text-sm">
-            <Star className="w-3 h-3 mr-1" fill="currentColor" />
+          <div className="flex items-center text-yellow-600 font-bold text-lg mb-1">
+            <Star className="w-4 h-4 mr-1" fill="currentColor" />
             {rating}
           </div>
-          <div className="text-xs text-green-600 font-medium">₹{hourlyRate}/hr</div>
+          <div className="text-green-600 font-bold text-lg">₹{hourlyRate}/hr</div>
         </div>
-      </div>
-
-      {/* Location and Response Info */}
-      <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
-        <div className="flex items-center space-x-3">
-          <span className="flex items-center">
-            <MapPin className="w-3 h-3 mr-1" />
-            {distance}
-          </span>
-          <span className="flex items-center">
-            <Clock className="w-3 h-3 mr-1" />
-            {responseTime}
-          </span>
-        </div>
-        <span className="text-blue-600 font-medium">{completedJobs} jobs</span>
       </div>
 
       {/* Skills */}
       {skills.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {skills.slice(0, 2).map((skill, idx) => (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {skills.slice(0, 3).map((skill, idx) => (
             <SkillBadge
               key={idx}
               skill={skill}
               level={idx === 0 ? 'expert' : 'intermediate'}
-              verified={idx < 1}
+              verified={idx < 2}
             />
           ))}
-          {skills.length > 2 && (
-            <span className="text-xs text-gray-400 px-2 py-1">
-              +{skills.length - 2} more
+          {skills.length > 3 && (
+            <span className="text-xs text-gray-400 px-2 py-1 bg-gray-50 rounded-full">
+              +{skills.length - 3} more
             </span>
           )}
         </div>
       )}
 
-      {/* Communication Buttons */}
-      <div className="pt-3 border-t border-gray-100">
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Apply functionality
+          }}
+        >
+          Apply
+        </Button>
         <CommunicationButtons
           targetId={name.toLowerCase().replace(' ', '')}
           targetName={name}
           targetType="worker"
           size="sm"
+          className="flex-1"
         />
       </div>
     </div>
