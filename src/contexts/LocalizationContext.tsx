@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface LocalizationContextType {
@@ -216,6 +217,216 @@ const translations = {
     'home.greetingMorning': 'காலை வணக்கம்',
     'home.greetingAfternoon': 'மதியம் வணக்கம்',
     'home.greetingEvening': 'மாலை வணக்கம்',
+  },
+
+  bn: {
+    // Navigation
+    'nav.home': 'হোম',
+    'nav.search': 'জব খোঁজুন',
+    'nav.my_jobs': 'আমার জব',
+    'nav.messages': 'বার্তা',
+    'nav.profile': 'প্রোফাইল',
+    'nav.find_workers': 'কর্মী খোঁজুন',
+    'nav.my_posts': 'আমার পোস্ট',
+    
+    // Common
+    'common.continue': 'অব্যাহত রাখুন',
+    'common.cancel': 'বাতিল',
+    'common.save': 'সংরক্ষণ',
+    'common.apply': 'আবেদন করুন',
+    'common.call': 'কল করুন',
+    'common.message': 'বার্তা পাঠান',
+    'common.urgent': 'জরুরি',
+    'common.per_day': '/দিন',
+    'common.loading': 'লোড হচ্ছে...',
+    
+    // Language Selection
+    'lang.title': 'আপনার ভাষা নির্বাচন করুন',
+    'lang.subtitle': 'চালিয়ে যেতে আপনার পছন্দের ভাষা নির্বাচন করুন',
+    
+    // Role Selection
+    'role.title': 'আপনার পথ বেছে নিন',
+    'role.subtitle': 'আপনি কীভাবে Fyke ব্যবহার করতে চান',
+    'role.jobseeker': 'চাকরি প্রার্থী',
+    'role.employer': 'নিয়োগকর্তা',
+    'role.jobseeker_desc': 'কাজের সুযোগ খুঁজুন এবং আপনার ক্যারিয়ার গড়ুন',
+    'role.employer_desc': 'দক্ষ কর্মী নিয়োগ দিন এবং প্রকল্প পরিচালনা করুন',
+    
+    // Authentication
+    'auth.welcome': 'Fyke-এ স্বাগতম',
+    'auth.subtitle': 'ভারতের প্রধান ব্লু-কলার জব মার্কেটপ্লেস',
+    'auth.phone_placeholder': '১০-সংখ্যার নম্বর লিখুন',
+    'auth.otp_sent': 'আপনার ফোনে পাঠানো যাচাইকরণ কোড লিখুন',
+    
+    // Home
+    'home.welcome': 'স্বাগতম',
+    'home.jobseeker_subtitle': 'আপনার পরবর্তী সুযোগ খুঁজে পেতে প্রস্তুত?',
+    'home.employer_subtitle': 'অসাধারণ প্রতিভা নিয়োগ দিতে প্রস্তুত?',
+    'home.emergency_jobs': 'জরুরি কাজ',
+    'home.recommended': 'আপনার জন্য সুপারিশকৃত',
+    
+    // Job Search
+    'search.title': 'কাজ খোঁজুন',
+    'search.placeholder': 'কাজের জন্য অনুসন্ধান করুন...',
+    'search.location': 'অবস্থান',
+    'search.category': 'বিভাগ',
+    'search.sort_by': 'সাজান',
+    'search.results': 'ফলাফল',
+    
+    // Profile
+    'profile.title': 'প্রোফাইল',
+    'profile.edit': 'সম্পাদনা',
+    'profile.complete_profile': 'আপনার প্রোফাইল সম্পূর্ণ করুন',
+    'profile.personal_info': 'ব্যক্তিগত তথ্য',
+    'profile.skills': 'দক্ষতা',
+    'profile.verification': 'যাচাইকরণ',
+    'profile.settings': 'সেটিংস',
+    'common.switchMode': 'মোড পরিবর্তন',
+    'common.select_role': 'চালিয়ে যেতে আপনার ভূমিকা নির্বাচন করুন',
+    'role.switch_hint': 'আপনি পরে যেকোনো সময় ভূমিকা পরিবর্তন করতে পারেন',
+    'home.greetingMorning': 'সুপ্রভাত',
+    'home.greetingAfternoon': 'শুভ অপরাহ্ন',
+    'home.greetingEvening': 'শুভ সন্ধ্যা',
+  },
+
+  te: {
+    // Navigation
+    'nav.home': 'హోం',
+    'nav.search': 'ఉద్యోగాలు వెతకండి',
+    'nav.my_jobs': 'నా ఉద్యోగాలు',
+    'nav.messages': 'సందేశాలు',
+    'nav.profile': 'ప్రొఫైల్',
+    'nav.find_workers': 'కార్మికులు వెతకండి',
+    'nav.my_posts': 'నా పోస్ట్‌లు',
+    
+    // Common
+    'common.continue': 'కొనసాగించండి',
+    'common.cancel': 'రద్దు చేయండి',
+    'common.save': 'సేవ్ చేయండి',
+    'common.apply': 'దరఖాస్తు చేయండి',
+    'common.call': 'కాల్ చేయండి',
+    'common.message': 'సందేశం పంపండి',
+    'common.urgent': 'అత్యవసరం',
+    'common.per_day': '/రోజు',
+    'common.loading': 'లోడ్ అవుతోంది...',
+    
+    // Language Selection
+    'lang.title': 'మీ భాషను ఎంచుకోండి',
+    'lang.subtitle': 'కొనసాగించడానికి మీ ఇష్టమైన భాషను ఎంచుకోండి',
+    
+    // Role Selection
+    'role.title': 'మీ మార్గాన్ని ఎంచుకోండి',
+    'role.subtitle': 'మీరు Fyke ని ఎలా ఉపయోగించాలనుకుంటున్నారు',
+    'role.jobseeker': 'ఉద్యోగార్థి',
+    'role.employer': 'యజమాని',
+    'role.jobseeker_desc': 'పని అవకాశాలను కనుగొనండి మరియు మీ కెరీర్‌ను నిర్మించండి',
+    'role.employer_desc': 'నైపుణ్యం గల కార్మికులను నియమించండి మరియు ప్రాజెక్ట్‌లను నిర్వహించండి',
+    
+    // Authentication
+    'auth.welcome': 'Fyke కి స్వాగతం',
+    'auth.subtitle': 'భారతదేశపు ప్రధాన బ్లూ-కాలర్ జాబ్ మార్కెట్‌ప్లేస్',
+    'auth.phone_placeholder': '10-అంకెల నంబర్ ఎంటర్ చేయండి',
+    'auth.otp_sent': 'మీ ఫోన్‌కు పంపిన వెరిఫికేషన్ కోడ్ ఎంటర్ చేయండి',
+    
+    // Home
+    'home.welcome': 'స్వాగతం',
+    'home.jobseeker_subtitle': 'మీ తదుపరి అవకాశాన్ని కనుగొనడానికి సిద్ధంగా ఉన్నారా?',
+    'home.employer_subtitle': 'అద్భుతమైన ప్రతిభను నియమించడానికి సిద్ధంగా ఉన్నారా?',
+    'home.emergency_jobs': 'అత్యవసర ఉద్యోగాలు',
+    'home.recommended': 'మీ కోసం సిఫార్సు చేయబడినవి',
+    
+    // Job Search
+    'search.title': 'ఉద్యోగాలు వెతకండి',
+    'search.placeholder': 'ఉద్యోగాల కోసం వెతకండి...',
+    'search.location': 'స్థానం',
+    'search.category': 'వర్గం',
+    'search.sort_by': 'ఇలా క్రమబద్ధీకరించండి',
+    'search.results': 'ఫలితాలు',
+    
+    // Profile
+    'profile.title': 'ప్రొఫైల్',
+    'profile.edit': 'సవరించండి',
+    'profile.complete_profile': 'మీ ప్రొఫైల్‌ను పూర్తి చేయండి',
+    'profile.personal_info': 'వ్యక్తిగత సమాచారం',
+    'profile.skills': 'నైపుణ్యాలు',
+    'profile.verification': 'వెరిఫికేషన్',
+    'profile.settings': 'సెట్టింగులు',
+    'common.switchMode': 'మోడ్ మార్చండి',
+    'common.select_role': 'కొనసాగించడానికి మీ పాత్రను ఎంచుకోండి',
+    'role.switch_hint': 'మీరు తర్వాత ఎప్పుడైనా పాత్రను మార్చవచ్చు',
+    'home.greetingMorning': 'శుభోదయం',
+    'home.greetingAfternoon': 'శుభ మధ్యాహ్నం',
+    'home.greetingEvening': 'శుభ సాయంత్రం',
+  },
+
+  mr: {
+    // Navigation
+    'nav.home': 'होम',
+    'nav.search': 'नोकऱ्या शोधा',
+    'nav.my_jobs': 'माझ्या नोकऱ्या',
+    'nav.messages': 'संदेश',
+    'nav.profile': 'प्रोफाइल',
+    'nav.find_workers': 'कामगार शोधा',
+    'nav.my_posts': 'माझ्या पोस्ट',
+    
+    // Common
+    'common.continue': 'सुरू ठेवा',
+    'common.cancel': 'रद्द करा',
+    'common.save': 'सेव्ह करा',
+    'common.apply': 'अर्ज करा',
+    'common.call': 'कॉल करा',
+    'common.message': 'संदेश पाठवा',
+    'common.urgent': 'तातडीचे',
+    'common.per_day': '/दिवस',
+    'common.loading': 'लोड होत आहे...',
+    
+    // Language Selection
+    'lang.title': 'तुमची भाषा निवडा',
+    'lang.subtitle': 'पुढे जाण्यासाठी तुमची आवडती भाषा निवडा',
+    
+    // Role Selection
+    'role.title': 'तुमचा मार्ग निवडा',
+    'role.subtitle': 'तुम्हाला Fyke कसे वापरायचे आहे',
+    'role.jobseeker': 'नोकरी शोधणारा',
+    'role.employer': 'नियोक्ता',
+    'role.jobseeker_desc': 'कामाच्या संधी शोधा आणि तुमचे करिअर उभारा',
+    'role.employer_desc': 'कुशल कामगार नियुक्त करा आणि प्रकल्प व्यवस्थापित करा',
+    
+    // Authentication
+    'auth.welcome': 'Fyke मध्ये स्वागत आहे',
+    'auth.subtitle': 'भारताचे आघाडीचे ब्लू-कॉलर जॉब मार्केटप्लेस',
+    'auth.phone_placeholder': '10-अंकी नंबर एंटर करा',
+    'auth.otp_sent': 'तुमच्या फोनवर पाठवलेला व्हेरिफिकेशन कोड एंटर करा',
+    
+    // Home
+    'home.welcome': 'स्वागत आहे',
+    'home.jobseeker_subtitle': 'तुमची पुढची संधी शोधण्यासाठी तयार आहात?',
+    'home.employer_subtitle': 'उत्कृष्ट प्रतिभा नियुक्त करण्यासाठी तयार आहात?',
+    'home.emergency_jobs': 'आपत्कालीन नोकऱ्या',
+    'home.recommended': 'तुमच्यासाठी शिफारसीत',
+    
+    // Job Search
+    'search.title': 'नोकऱ्या शोधा',
+    'search.placeholder': 'नोकऱ्यांसाठी शोधा...',
+    'search.location': 'स्थान',
+    'search.category': 'श्रेणी',
+    'search.sort_by': 'यानुसार क्रमवारी लावा',
+    'search.results': 'परिणाम',
+    
+    // Profile
+    'profile.title': 'प्रोफाइल',
+    'profile.edit': 'संपादित करा',
+    'profile.complete_profile': 'तुमचे प्रोफाइल पूर्ण करा',
+    'profile.personal_info': 'वैयक्तिक माहिती',
+    'profile.skills': 'कौशल्ये',
+    'profile.verification': 'व्हेरिफिकेशन',
+    'profile.settings': 'सेटिंग्ज',
+    'common.switchMode': 'मोड बदला',
+    'common.select_role': 'पुढे जाण्यासाठी तुमची भूमिका निवडा',
+    'role.switch_hint': 'तुम्ही नंतर कधीही भूमिका बदलू शकता',
+    'home.greetingMorning': 'सुप्रभात',
+    'home.greetingAfternoon': 'शुभ दुपार',
+    'home.greetingEvening': 'शुभ संध्याकाळ',
   }
 };
 
