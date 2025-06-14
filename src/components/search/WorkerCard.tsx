@@ -1,10 +1,9 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, MapPin, Clock, Shield, MessageCircle, Phone, UserPlus } from 'lucide-react';
+import { Star, MessageCircle, Phone, CheckCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 interface WorkerCardProps {
@@ -75,119 +74,91 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300 cursor-pointer"
+      className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer"
       onClick={handleCardClick}
       tabIndex={0}
       role="button"
       aria-label={`View profile of ${name}`}
       onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
     >
-      <div className="flex gap-4">
-        {/* Profile Photo - More rectangular/portrait */}
-        <div className="relative flex-shrink-0">
-          <Avatar className="w-16 h-20 rounded-xl border-2 border-gray-100">
+      {/* Profile Section */}
+      <div className="flex flex-col items-center text-center mb-6">
+        {/* Avatar with verification badge */}
+        <div className="relative mb-4">
+          <Avatar className="w-20 h-20 border-4 border-gray-100">
             <AvatarImage src={profileImage} alt={name} className="object-cover" />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg rounded-xl">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-xl">
               {name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
-          {/* Online Status */}
-          {isOnline && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full" />
-          )}
-          
           {/* Verification Badge */}
           {verificationLevel !== 'basic' && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-              <Shield className="w-2.5 h-2.5 text-white" fill="currentColor" />
+            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+              <CheckCircle className="w-4 h-4 text-white" fill="currentColor" />
             </div>
           )}
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Header with name and rate */}
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-bold text-gray-900 text-lg truncate">{name}</h3>
-                {isOnline && (
-                  <Badge className="bg-green-100 text-green-700 text-xs px-2 py-0.5 font-medium">
-                    Online
-                  </Badge>
-                )}
-              </div>
-              <p className="text-gray-600 text-sm font-medium">{category}</p>
-            </div>
-            <div className="text-right ml-3">
-              <div className="text-lg font-bold text-green-600">₹{hourlyRate}</div>
-              <div className="text-xs text-gray-500">per hour</div>
-            </div>
-          </div>
-          
-          {/* Rating & Stats */}
-          <div className="flex items-center gap-4 text-sm mb-3">
+        {/* Name and Category */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-gray-600 font-medium">{category}</span>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
-              <span className="font-semibold text-gray-900">{rating}</span>
-              <span className="text-gray-500">({completedJobs})</span>
+              <span className="font-bold text-gray-900">{rating}</span>
+              <span className="text-gray-500 text-sm">{completedJobs}</span>
             </div>
-            <div className="flex items-center gap-1 text-gray-600">
-              <MapPin className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs">{distance}</span>
-            </div>
-            <div className="flex items-center gap-1 text-gray-600">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs">{responseTime}</span>
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {skills.slice(0, 3).map((skill, i) => (
-              <span key={i} className="bg-blue-50 border border-blue-200 px-2 py-1 rounded-full text-xs font-medium text-blue-700">
-                {skill}
-              </span>
-            ))}
-            {skills.length > 3 && (
-              <span className="text-xs text-gray-500 py-1">+{skills.length - 3} more</span>
-            )}
-          </div>
-          
-          {/* Action Buttons - Hire button on the left */}
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-semibold rounded-lg"
-              onClick={handleHire}
-              tabIndex={-1}
-            >
-              <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-              Hire
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 text-xs font-medium rounded-lg"
-              onClick={handleCall}
-              tabIndex={-1}
-            >
-              <Phone className="w-3.5 h-3.5 mr-1.5" />
-              Call
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 text-xs font-medium rounded-lg"
-              onClick={handleChat}
-              tabIndex={-1}
-            >
-              <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-              Chat
-            </Button>
           </div>
         </div>
+
+        {/* Skills */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          {skills.slice(0, 3).map((skill, i) => (
+            <span key={i} className="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700 font-medium">
+              {skill}
+            </span>
+          ))}
+        </div>
+
+        {/* Rating with more details */}
+        <div className="flex items-center justify-center gap-1 text-lg font-bold text-gray-900 mb-6">
+          <Star className="w-5 h-5 text-yellow-400" fill="currentColor" />
+          <span>{rating}</span>
+          <span className="text-gray-500 text-base font-normal">{completedJobs}</span>
+        </div>
+      </div>
+
+      {/* Hire Button */}
+      <Button
+        className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-lg mb-4 shadow-lg hover:shadow-xl transition-all"
+        onClick={handleHire}
+        tabIndex={-1}
+      >
+        ₹{hourlyRate}/hr
+      </Button>
+
+      {/* Call and Chat Buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          variant="outline"
+          className="h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl font-semibold text-gray-700"
+          onClick={handleCall}
+          tabIndex={-1}
+        >
+          <Phone className="w-5 h-5 mr-2" />
+          Call
+        </Button>
+        <Button
+          variant="outline"
+          className="h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl font-semibold text-gray-700"
+          onClick={handleChat}
+          tabIndex={-1}
+        >
+          <MessageCircle className="w-5 h-5 mr-2" />
+          Chat
+        </Button>
       </div>
     </div>
   );
