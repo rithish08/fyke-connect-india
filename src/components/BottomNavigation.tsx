@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { useUserFlow } from '@/hooks/useUserFlow';
 import { Home, Search, ClipboardList, Mail, User as UserIcon, Users } from "lucide-react";
+import { useCallback } from 'react';
 
 const iconSize = 20;
 
@@ -31,6 +32,13 @@ const BottomNavigation = () => {
   const { t } = useLocalization();
   const { isFlowComplete } = useUserFlow();
 
+  const handleNavigation = useCallback((path: string) => {
+    // Prevent rapid clicks causing navigation issues
+    if (location.pathname !== path) {
+      goTo(path);
+    }
+  }, [location.pathname, goTo]);
+
   // Don't show navigation if flow is not complete
   if (!isFlowComplete) {
     return null;
@@ -52,7 +60,7 @@ const BottomNavigation = () => {
           return (
             <button
               key={item.path}
-              onClick={() => goTo(item.path)}
+              onClick={() => handleNavigation(item.path)}
               className={`flex flex-col items-center flex-1 px-1 py-2 rounded-lg transition-all duration-200 group
                  ${isActive
                   ? 'bg-gray-900 text-white shadow-md scale-105'
@@ -61,6 +69,7 @@ const BottomNavigation = () => {
               aria-current={isActive ? 'page' : undefined}
               tabIndex={0}
               style={{minWidth: 0}}
+              disabled={isActive} // Prevent clicking on already active tab
             >
               <span className={`mb-1 transition-transform duration-150 flex items-center justify-center`}>
                 <item.icon size={iconSize} strokeWidth={2} className={isActive ? "text-white" : "text-gray-500 group-hover:text-gray-900"} />

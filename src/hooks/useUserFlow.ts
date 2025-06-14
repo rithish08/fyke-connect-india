@@ -1,13 +1,13 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export const useUserFlow = () => {
   const { user, isAuthenticated } = useAuth();
   const { goTo } = useScreenNavigation();
 
-  const determineNextScreen = () => {
+  const determineNextScreen = useCallback(() => {
     if (!isAuthenticated) {
       return '/';
     }
@@ -21,9 +21,9 @@ export const useUserFlow = () => {
     }
 
     return '/home';
-  };
+  }, [isAuthenticated, user]);
 
-  const enforceFlow = () => {
+  const enforceFlow = useCallback(() => {
     const nextScreen = determineNextScreen();
     const currentPath = window.location.pathname;
     
@@ -34,12 +34,17 @@ export const useUserFlow = () => {
     const allowedPaths = ['/', '/role-selection', '/login', '/otp-verification', '/profile-setup'];
     if (allowedPaths.includes(currentPath)) return;
     
-    goTo(nextScreen);
-  };
+    // Prevent navigation loops by checking if we're already trying to navigate
+    if (!window.location.href.includes(nextScreen)) {
+      goTo(nextScreen);
+    }
+  }, [determineNextScreen, goTo]);
+
+  const isFlowComplete = isAuthenticated && user?.role && (user.role === 'employer' || user.profileComplete);
 
   return {
     determineNextScreen,
     enforceFlow,
-    isFlowComplete: isAuthenticated && user?.role && (user.role === 'employer' || user.profileComplete)
+    isFlowComplete
   };
 };

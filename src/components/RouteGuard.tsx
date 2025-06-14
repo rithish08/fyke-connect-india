@@ -17,12 +17,17 @@ const RouteGuard = ({
   const { isFlowComplete, enforceFlow } = useUserFlow();
 
   useEffect(() => {
-    if (requireAuth || requireProfile) {
-      enforceFlow();
+    // Only enforce flow if user needs auth/profile and flow isn't complete
+    if ((requireAuth || requireProfile) && !isFlowComplete) {
+      const timer = setTimeout(() => {
+        enforceFlow();
+      }, 100); // Small delay to prevent navigation conflicts
+      
+      return () => clearTimeout(timer);
     }
-  }, [enforceFlow, requireAuth, requireProfile]);
+  }, [enforceFlow, requireAuth, requireProfile, isFlowComplete]);
 
-  // Show loading while checking flow
+  // Show loading while checking flow - but only briefly
   if ((requireAuth || requireProfile) && !isFlowComplete) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
