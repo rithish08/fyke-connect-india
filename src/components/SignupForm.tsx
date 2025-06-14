@@ -1,138 +1,53 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
-const ALL_CATEGORIES = [
-  { name: "Construction", sub: ["Mason", "Plumber", "Painter"] },
-  { name: "Delivery", sub: ["Bike Delivery", "Van Delivery"] },
-  { name: "Cleaning", sub: ["House", "Office"] },
-  { name: "Security", sub: ["Guard", "CCTV"] },
-  { name: "Driver", sub: ["Car", "Van", "Truck"] },
-  { name: "Cooking", sub: ["Cook", "Helper"] },
-  { name: "Gardening", sub: ["Gardener", "Landscaper"] },
-];
-
 const SignupForm = ({ onComplete }: { onComplete: () => void }) => {
   const { updateProfile } = useAuth();
   const [name, setName] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
-  const [primaryCategory, setPrimaryCategory] = useState<string>("");
-  const [subcategories, setSubcategories] = useState<Record<string, string[]>>({});
-
-  const handleCategory = (category: string) => {
-    let updated = [...categories];
-    if (updated.includes(category)) {
-      updated = updated.filter((c) => c !== category);
-      if (primaryCategory === category) setPrimaryCategory(updated[0] || "");
-      setSubcategories((prev) => ({ ...prev, [category]: [] }));
-    } else if (updated.length < 3) {
-      updated.push(category);
-      if (!primaryCategory) setPrimaryCategory(category); // first one is primary
-    }
-    setCategories(updated);
-  };
-
-  const handleSubcategory = (cat: string, sub: string) => {
-    const selected = subcategories[cat] || [];
-    setSubcategories((prev) => ({
-      ...prev,
-      [cat]: selected.includes(sub) ? selected.filter((s) => s !== sub) : [...selected, sub],
-    }));
-  };
-
-  const canSubmit = name.trim() && categories.length > 0 && primaryCategory;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    updateProfile({
-      name,
-      categories,
-      primaryCategory,
-      subcategories,
-      profileComplete: true,
+    if (!name.trim()) return;
+    
+    updateProfile({ 
+      name: name.trim(),
+      profileComplete: false // Will be completed in profile setup
     });
     onComplete();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl shadow w-full max-w-md mx-auto mt-8">
-      <h2 className="text-xl font-bold text-gray-900 mb-2">Sign Up</h2>
-      <div>
-        <label className="block text-sm font-medium">Your Name</label>
-        <input
-          className="mt-1 w-full border px-3 py-2 rounded-lg"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Select up to 3 categories (one will be your primary)
-        </label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {ALL_CATEGORIES.map((c) => (
-            <button
-              type="button"
-              key={c.name}
-              className={`px-3 py-2 rounded-full border-2 text-sm ${categories.includes(c.name) ? "border-blue-600 bg-blue-50 font-semibold" : "border-gray-200 bg-white hover:border-blue-300"}`}
-              onClick={() => handleCategory(c.name)}
-              disabled={!categories.includes(c.name) && categories.length >= 3}
-            >
-              {c.name}
-              {primaryCategory === c.name && (
-                <span className="ml-2 text-xs text-green-500">(Primary)</span>
-              )}
-            </button>
-          ))}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-gray-900">Welcome!</h2>
+          <p className="text-gray-500">Let's get started with your name</p>
         </div>
-        {categories.length > 0 && (
-          <div className="text-xs text-gray-500 mb-1">
-            Click a selected category to remove. Click a selected one again to set as primary.
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+            <input
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-colors"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Enter your full name"
+              required
+            />
           </div>
-        )}
-        {categories.length > 0 && (
-          <div className="mb-1">
-            <label className="block text-xs font-medium mb-1">Tap a category to make primary</label>
-            <div className="flex gap-2">
-              {categories.map((cat) => (
-                <button
-                  type="button"
-                  className={`rounded px-2 py-1 border ${primaryCategory === cat ? "border-green-600 bg-green-50 font-bold" : "border-gray-200"}`}
-                  key={cat}
-                  onClick={() => setPrimaryCategory(cat)}
-                >{cat}</button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      {categories.map((cat) => {
-        const found = ALL_CATEGORIES.find((c) => c.name === cat);
-        if (!found || !found.sub.length) return null;
-        return (
-          <div key={cat}>
-            <div className="text-sm font-medium mb-1">{cat} sub-categories:</div>
-            <div className="flex flex-wrap gap-2">
-              {found.sub.map((sub) => (
-                <button
-                  type="button"
-                  key={sub}
-                  className={`px-3 py-1 rounded border text-xs ${subcategories[cat]?.includes(sub) ? "border-blue-600 bg-blue-100" : "border-gray-200"}`}
-                  onClick={() => handleSubcategory(cat, sub)}
-                >
-                  {sub}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-      <Button type="submit" className="w-full bg-gray-900 text-white mt-4" disabled={!canSubmit}>
-        Complete Registration
-      </Button>
-    </form>
+          
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg" 
+            disabled={!name.trim()}
+          >
+            Continue
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 
