@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { categories } from '@/data/categories';
@@ -19,7 +18,10 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
 
   const selectedCategory = category ? { id: category.toLowerCase(), name: category } : null;
 
-  const handleCategorySelect = (categoryId: string, categoryName: string) => {
+  // Now expects only a single categoryId (and can pick category name from id if needed)
+  const handleCategorySelect = (categoryId: string) => {
+    const found = categories.find(cat => cat.name.toLowerCase() === categoryId);
+    const categoryName = found ? found.name : categoryId;
     setCategory(categoryName);
     // Clear subcategories when category changes
     if (categoryName !== category) {
@@ -27,7 +29,8 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
     }
   };
 
-  const handleSubcategorySelect = (subcategories: string[]) => {
+  // Now expects both categoryId and subcategories
+  const handleSubcategorySelect = (categoryId: string, subcategories: string[]) => {
     setSelectedSubcategories(subcategories);
   };
 
@@ -52,12 +55,19 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
 
       {/* Enhanced Category Selection */}
       <EnhancedCategoryModal
-        selectedCategory={selectedCategory}
-        selectedSubcategories={selectedSubcategories}
+        selectedCategories={
+          selectedCategory ? { [selectedCategory.id]: selectedSubcategories } : {}
+        }
         onCategorySelect={handleCategorySelect}
         onSubcategorySelect={handleSubcategorySelect}
+        onClear={() => {
+          // Clear selection for current category
+          if (selectedCategory) {
+            setSelectedSubcategories([]);
+            setCategory("");
+          }
+        }}
       />
-
       {/* Vehicle Selection for Drivers */}
       {category === "Driver" && (
         <VehicleSelection
