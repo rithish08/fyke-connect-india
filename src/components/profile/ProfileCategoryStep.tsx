@@ -2,9 +2,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { categories } from '@/data/categories';
-import CategoryGrid from './CategoryGrid';
 import VehicleSelection from './VehicleSelection';
-import SubcategoryModal from './SubcategoryModal';
+import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
 
 interface StepProps {
   category: string;
@@ -16,28 +15,16 @@ interface StepProps {
 }
 
 const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role, onNext }: StepProps) => {
-  const [showSubcategories, setShowSubcategories] = useState(false);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
 
-  const selectedCategoryData = categories.find(cat => cat.name === category);
+  const selectedCategory = category ? { id: category.toLowerCase(), name: category } : null;
 
-  const handleCategorySelect = (categoryName: string) => {
+  const handleCategorySelect = (categoryId: string, categoryName: string) => {
     setCategory(categoryName);
-    const categoryData = categories.find(cat => cat.name === categoryName);
-    if (categoryData?.subcategories.length && role === 'jobseeker') {
-      setShowSubcategories(true);
-    }
   };
 
-  const handleSubcategoryToggle = (subcategory: string) => {
-    setSelectedSubcategories(prev => {
-      const newSelection = prev.includes(subcategory) 
-        ? prev.filter(s => s !== subcategory)
-        : prev.length < 3 
-          ? [...prev, subcategory]
-          : prev;
-      return newSelection;
-    });
+  const handleSubcategorySelect = (subcategories: string[]) => {
+    setSelectedSubcategories(subcategories);
   };
 
   const handleNext = () => {
@@ -59,11 +46,12 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
         <p className="text-gray-500">Select your primary category to get started</p>
       </div>
 
-      {/* Category Grid */}
-      <CategoryGrid
-        selectedCategory={category}
+      {/* Enhanced Category Selection */}
+      <EnhancedCategoryModal
+        selectedCategory={selectedCategory}
         selectedSubcategories={selectedSubcategories}
         onCategorySelect={handleCategorySelect}
+        onSubcategorySelect={handleSubcategorySelect}
       />
 
       {/* Vehicle Selection for Drivers */}
@@ -71,17 +59,6 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
         <VehicleSelection
           selectedVehicle={vehicle}
           onVehicleSelect={setVehicle}
-        />
-      )}
-
-      {/* Subcategories Modal */}
-      {selectedCategoryData && (
-        <SubcategoryModal
-          isOpen={showSubcategories}
-          onClose={() => setShowSubcategories(false)}
-          categoryData={selectedCategoryData}
-          selectedSubcategories={selectedSubcategories}
-          onSubcategoryToggle={handleSubcategoryToggle}
         />
       )}
 

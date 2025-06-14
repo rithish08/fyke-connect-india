@@ -1,9 +1,9 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import SubcategorySelection from '@/components/search/SubcategorySelection';
 import BottomNavigation from '@/components/BottomNavigation';
 import { ArrowLeft } from 'lucide-react';
+import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
 
 interface JobSearchSubcategoryViewProps {
   selectedCategory: {id: string, name: string};
@@ -22,6 +22,13 @@ const JobSearchSubcategoryView = ({
 }: JobSearchSubcategoryViewProps) => {
   const { user } = useAuth();
 
+  const handleSubcategoryUpdate = (subcategories: string[]) => {
+    // Clear existing selections first
+    selectedSubcategories.forEach(sub => onSubcategorySelect(sub));
+    // Add new selections
+    subcategories.forEach(sub => onSubcategorySelect(sub));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
@@ -38,28 +45,31 @@ const JobSearchSubcategoryView = ({
           </div>
         </div>
       </div>
+      
       <div className="max-w-2xl mx-auto px-4 pt-6">
-        <SubcategorySelection
-          categoryId={selectedCategory.id}
-          onSubcategorySelect={onSubcategorySelect}
-          onBack={onBack}
+        <EnhancedCategoryModal
+          selectedCategory={selectedCategory}
           selectedSubcategories={selectedSubcategories}
-          multiSelect={true}
+          onCategorySelect={() => {}} // Category already selected
+          onSubcategorySelect={handleSubcategoryUpdate}
         />
+
         {selectedSubcategories.length > 0 && (
           <div className="mt-6">
             <Button 
-              className="w-full"
+              className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold"
               onClick={onSearchWithSubcategories}
             >
               Search {user?.role === 'employer' ? 'Workers' : 'Jobs'} ({selectedSubcategories.length} selected)
             </Button>
           </div>
         )}
+        
         {user?.role === 'jobseeker' && (
-          <div className="mt-6">
+          <div className="mt-4">
             <Button 
-              className="w-full"
+              variant="outline"
+              className="w-full h-12 rounded-2xl border-2 border-gray-200 font-medium"
               onClick={onSearchWithSubcategories}
             >
               View All {selectedCategory.name} Jobs
