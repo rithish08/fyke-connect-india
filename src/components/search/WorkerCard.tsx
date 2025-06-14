@@ -60,7 +60,12 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <div className="font-bold text-gray-900 text-base">{name}</div>
-              <TrustScore level={verificationLevel} />
+              <TrustScore 
+                score={rating}
+                verificationLevel={verificationLevel}
+                completedJobs={completedJobs}
+                responseTime={responseTime}
+              />
             </div>
             <div className="text-sm text-gray-500">{category}</div>
           </div>
