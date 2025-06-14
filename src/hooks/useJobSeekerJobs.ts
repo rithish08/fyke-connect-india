@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Job {
-  id: number;
+  id: string;
   title: string;
   company: string;
   category: string;
@@ -11,8 +11,10 @@ interface Job {
   location: string;
   urgent: boolean;
   distance: string;
-  postedTime: string;
+  timePosted: string;
   skills: string[];
+  rating?: number;
+  description?: string;
 }
 
 export const useJobSeekerJobs = () => {
@@ -25,7 +27,7 @@ export const useJobSeekerJobs = () => {
       const allJobs: Job[] = [
         // Construction Jobs
         { 
-          id: 1, 
+          id: "1", 
           title: "Construction Worker Needed", 
           company: "BuildPro Construction",
           category: "Construction", 
@@ -33,11 +35,13 @@ export const useJobSeekerJobs = () => {
           location: "Mumbai",
           urgent: true,
           distance: "2.5km",
-          postedTime: "2h ago",
-          skills: ["Cement Work", "Building"]
+          timePosted: "2h ago",
+          skills: ["Cement Work", "Building"],
+          rating: 4.5,
+          description: "Looking for experienced construction workers for residential project"
         },
         { 
-          id: 2, 
+          id: "2", 
           title: "Mason Required Urgently", 
           company: "City Builders",
           category: "Construction", 
@@ -45,11 +49,12 @@ export const useJobSeekerJobs = () => {
           location: "Delhi",
           urgent: true,
           distance: "1.2km",
-          postedTime: "1h ago",
-          skills: ["Mason", "Brick Laying"]
+          timePosted: "1h ago",
+          skills: ["Mason", "Brick Laying"],
+          rating: 4.8
         },
         { 
-          id: 3, 
+          id: "3", 
           title: "Electrician for Wiring", 
           company: "ElectroMax",
           category: "Construction", 
@@ -57,13 +62,14 @@ export const useJobSeekerJobs = () => {
           location: "Bangalore",
           urgent: false,
           distance: "3.1km",
-          postedTime: "4h ago",
-          skills: ["Electrician", "Wiring"]
+          timePosted: "4h ago",
+          skills: ["Electrician", "Wiring"],
+          rating: 4.2
         },
 
         // Delivery Jobs
         { 
-          id: 4, 
+          id: "4", 
           title: "Delivery Executive", 
           company: "QuickDelivery Services",
           category: "Delivery", 
@@ -71,11 +77,11 @@ export const useJobSeekerJobs = () => {
           location: "Pune",
           urgent: false,
           distance: "1.8km",
-          postedTime: "4h ago",
+          timePosted: "4h ago",
           skills: ["Two Wheeler", "Navigation"]
         },
         { 
-          id: 5, 
+          id: "5", 
           title: "Food Delivery Partner", 
           company: "FoodFast",
           category: "Delivery", 
@@ -83,13 +89,14 @@ export const useJobSeekerJobs = () => {
           location: "Chennai",
           urgent: true,
           distance: "0.9km",
-          postedTime: "30min ago",
-          skills: ["Food Delivery", "Fast Service"]
+          timePosted: "30min ago",
+          skills: ["Food Delivery", "Fast Service"],
+          rating: 4.6
         },
 
         // Cleaning Jobs
         { 
-          id: 6, 
+          id: "6", 
           title: "House Cleaning Service", 
           company: "CleanMax Services",
           category: "Cleaning", 
@@ -97,11 +104,12 @@ export const useJobSeekerJobs = () => {
           location: "Bangalore",
           urgent: true,
           distance: "1.5km",
-          postedTime: "1h ago",
-          skills: ["Deep Cleaning", "House Cleaning"]
+          timePosted: "1h ago",
+          skills: ["Deep Cleaning", "House Cleaning"],
+          rating: 4.3
         },
         { 
-          id: 7, 
+          id: "7", 
           title: "Office Cleaning Required", 
           company: "Corporate Clean",
           category: "Cleaning", 
@@ -109,13 +117,13 @@ export const useJobSeekerJobs = () => {
           location: "Gurgaon",
           urgent: false,
           distance: "2.8km",
-          postedTime: "5h ago",
+          timePosted: "5h ago",
           skills: ["Office Cleaning", "Sanitization"]
         },
 
         // Security Jobs
         { 
-          id: 8, 
+          id: "8", 
           title: "Security Guard", 
           company: "SecureMax",
           category: "Security", 
@@ -123,11 +131,11 @@ export const useJobSeekerJobs = () => {
           location: "Chennai",
           urgent: false,
           distance: "3.2km",
-          postedTime: "6h ago",
+          timePosted: "6h ago",
           skills: ["Night Shift", "CCTV"]
         },
         { 
-          id: 9, 
+          id: "9", 
           title: "Night Watchman", 
           company: "Safe Guard Services",
           category: "Security", 
@@ -135,13 +143,14 @@ export const useJobSeekerJobs = () => {
           location: "Mumbai",
           urgent: true,
           distance: "2.1km",
-          postedTime: "2h ago",
-          skills: ["Night Guard", "Patrolling"]
+          timePosted: "2h ago",
+          skills: ["Night Guard", "Patrolling"],
+          rating: 4.1
         },
 
         // Driver Jobs
         { 
-          id: 10, 
+          id: "10", 
           title: "Personal Driver Required", 
           company: "Elite Transport",
           category: "Driver", 
@@ -149,11 +158,11 @@ export const useJobSeekerJobs = () => {
           location: "Delhi",
           urgent: false,
           distance: "3.8km",
-          postedTime: "5h ago",
+          timePosted: "5h ago",
           skills: ["Personal Driver", "City Navigation"]
         },
         { 
-          id: 11, 
+          id: "11", 
           title: "Taxi Driver Needed", 
           company: "City Cabs",
           category: "Driver", 
@@ -161,13 +170,13 @@ export const useJobSeekerJobs = () => {
           location: "Kolkata",
           urgent: false,
           distance: "4.2km",
-          postedTime: "3h ago",
+          timePosted: "3h ago",
           skills: ["Taxi Driver", "Customer Service"]
         },
 
         // Cooking Jobs
         { 
-          id: 12, 
+          id: "12", 
           title: "Home Cook Needed", 
           company: "Family Kitchen",
           category: "Cooking", 
@@ -175,11 +184,11 @@ export const useJobSeekerJobs = () => {
           location: "Hyderabad",
           urgent: false,
           distance: "2.2km",
-          postedTime: "3h ago",
+          timePosted: "3h ago",
           skills: ["Home Cook", "Indian Cuisine"]
         },
         { 
-          id: 13, 
+          id: "13", 
           title: "Restaurant Chef", 
           company: "Spice Palace",
           category: "Cooking", 
@@ -187,13 +196,14 @@ export const useJobSeekerJobs = () => {
           location: "Mumbai",
           urgent: true,
           distance: "1.7km",
-          postedTime: "1h ago",
-          skills: ["Restaurant Chef", "Multi-Cuisine"]
+          timePosted: "1h ago",
+          skills: ["Restaurant Chef", "Multi-Cuisine"],
+          rating: 4.7
         },
 
         // Gardening Jobs
         { 
-          id: 14, 
+          id: "14", 
           title: "Garden Maintenance", 
           company: "Green Spaces",
           category: "Gardening", 
@@ -201,11 +211,11 @@ export const useJobSeekerJobs = () => {
           location: "Pune",
           urgent: false,
           distance: "4.1km",
-          postedTime: "7h ago",
+          timePosted: "7h ago",
           skills: ["Plant Care", "Landscaping"]
         },
         { 
-          id: 15, 
+          id: "15", 
           title: "Landscaper Required", 
           company: "Nature Pro",
           category: "Gardening", 
@@ -213,13 +223,13 @@ export const useJobSeekerJobs = () => {
           location: "Bangalore",
           urgent: false,
           distance: "3.5km",
-          postedTime: "4h ago",
+          timePosted: "4h ago",
           skills: ["Landscaping", "Garden Design"]
         },
 
         // Beauty Jobs
         { 
-          id: 16, 
+          id: "16", 
           title: "Hair Stylist Required", 
           company: "Glamour Salon",
           category: "Beauty", 
@@ -227,11 +237,12 @@ export const useJobSeekerJobs = () => {
           location: "Mumbai",
           urgent: true,
           distance: "1.9km",
-          postedTime: "30min ago",
-          skills: ["Hair Styling", "Customer Service"]
+          timePosted: "30min ago",
+          skills: ["Hair Styling", "Customer Service"],
+          rating: 4.4
         },
         { 
-          id: 17, 
+          id: "17", 
           title: "Makeup Artist Needed", 
           company: "Beauty Studio",
           category: "Beauty", 
@@ -239,7 +250,7 @@ export const useJobSeekerJobs = () => {
           location: "Delhi",
           urgent: false,
           distance: "2.4km",
-          postedTime: "3h ago",
+          timePosted: "3h ago",
           skills: ["Makeup Artist", "Bridal Makeup"]
         },
       ];
