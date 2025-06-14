@@ -9,14 +9,26 @@ import { useLocalization } from "@/contexts/LocalizationContext";
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const { setRole } = useAuth();
+  const { setRole, updateProfile } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
 
   const handleContinue = () => {
     if (selectedRole) {
       setRole(selectedRole);
-      navigate('/login');
+      
+      // Update profile with the selected role
+      updateProfile({ 
+        role: selectedRole,
+        profileComplete: selectedRole === 'employer' ? true : false
+      });
+      
+      // Navigate based on role
+      if (selectedRole === 'employer') {
+        navigate('/home');
+      } else {
+        navigate('/profile-setup');
+      }
     }
   };
 

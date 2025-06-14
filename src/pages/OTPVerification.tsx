@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -43,10 +44,13 @@ const OTPVerification = () => {
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
       await login(phone, otpCode);
-      navigate('/home');
+      
+      // Navigate to role selection after successful OTP verification
+      navigate('/role-selection');
+      
       toast({
-        title: "Welcome to Fyke!",
-        description: "Your account has been verified successfully"
+        title: "Phone Verified!",
+        description: "Now choose your role to continue"
       });
     } catch (error) {
       toast({
