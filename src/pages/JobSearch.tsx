@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -31,7 +30,8 @@ const JobSearch = () => {
       urgent: true,
       applications: 12,
       postedTime: '2 hours ago',
-      description: 'Experience in cement work and basic construction required'
+      description: 'Experience in cement work and basic construction required',
+      category: 'Construction'
     },
     {
       id: 2,
@@ -44,7 +44,8 @@ const JobSearch = () => {
       urgent: false,
       applications: 8,
       postedTime: '4 hours ago',
-      description: 'Own vehicle required, flexible timing'
+      description: 'Own vehicle required, flexible timing',
+      category: 'Delivery'
     }
   ];
 
@@ -85,6 +86,16 @@ const JobSearch = () => {
 
   const data = user?.role === 'jobseeker' ? jobSeekerJobs : availableWorkers;
   const isJobSeeker = user?.role === 'jobseeker';
+
+  // FILTER jobs/workers according to selected categories
+  let filteredJobs = jobSeekerJobs;
+  if (isJobSeeker && user?.categories?.length) {
+    filteredJobs = jobSeekerJobs.filter(job => user.categories!.includes(job.category));
+  }
+  let filteredWorkers = availableWorkers;
+  if (!isJobSeeker && user?.categories?.length) {
+    filteredWorkers = availableWorkers.filter(worker => user.categories!.includes(worker.category));
+  }
 
   const handleItemClick = (id: number) => {
     if (isJobSeeker) {
@@ -167,7 +178,7 @@ const JobSearch = () => {
       <div className="p-4 space-y-4">
         {isJobSeeker ? (
           // Job listings for job seekers
-          jobSeekerJobs.map((job) => (
+          filteredJobs.map((job) => (
             <ModernCard 
               key={job.id} 
               className="cursor-pointer hover:scale-[1.01] transition-all duration-200 relative overflow-hidden bg-white shadow border border-gray-100 rounded-2xl"
@@ -236,7 +247,7 @@ const JobSearch = () => {
           ))
         ) : (
           // Worker listings for employers
-          availableWorkers.map((worker) => (
+          filteredWorkers.map((worker) => (
             <ModernCard 
               key={worker.id} 
               className="cursor-pointer hover:scale-[1.01] transition-all duration-200 bg-white shadow border border-gray-100 rounded-2xl"

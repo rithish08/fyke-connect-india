@@ -15,6 +15,9 @@ interface User {
   category?: string;
   vehicle?: string;
   salaryPeriod?: 'daily' | 'weekly' | 'monthly';
+  categories?: string[];
+  primaryCategory?: string;
+  subcategories?: Record<string, string[]>;
 }
 
 interface AuthContextType {
@@ -53,13 +56,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (phone: string, otp: string) => {
-    // Simulate API call with enhanced user data
+    // Simulate API call
     const mockUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       phone,
       role: 'jobseeker',
       verified: Math.random() > 0.3,
-      profileComplete: Math.random() > 0.4,
+      profileComplete: false, // mark as not complete initially
+      categories: [],
+      primaryCategory: undefined,
+      subcategories: {},
       availability: 'available',
       skills: ['Construction', 'Manual Labor'],
       salaryExpectation: { min: 300, max: 600 }

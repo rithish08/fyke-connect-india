@@ -1,121 +1,82 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLocalization } from "@/contexts/LocalizationContext";
+import { Phone } from "lucide-react";
+import SignupForm from "@/components/SignupForm";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const { login, user } = useAuth();
+  const { t } = useLocalization();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (phone.length !== 10) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid 10-digit phone number",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      localStorage.setItem('fyke_phone', phone);
-      navigate('/otp-verification');
-      toast({
-        title: "OTP Sent",
-        description: "Verification code sent to your phone number"
-      });
-    }, 2000);
+  const handleSendOTP = async () => {
+    // Simulate OTP sending
+    console.log('Sending OTP to:', phone);
+    setOtpSent(true);
   };
 
+  const handleVerifyOTP = async () => {
+    try {
+      await login(phone, otp);
+      navigate('/profile-setup');
+    } catch (error) {
+      console.error('OTP Verification Failed:', error);
+    }
+  };
+
+  // If user exists but missing name or category, show signup
+  if (user && (!user.name || !user.categories?.length)) {
+    return <SignupForm onComplete={() => window.location.href = "/profile-setup"} />;
+  }
+
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
-            <span className="text-2xl font-bold text-gray-800">F</span>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="w-full max-w-md p-4 rounded-lg shadow-md">
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold">{t('login.title', 'Login')}</h2>
+            <p className="text-gray-500">{t('login.subtitle', 'Enter your phone number to continue')}</p>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-500">Enter your phone number to continue</p>
-          </div>
-        </div>
-
-        {/* Login Card */}
-        <Card className="p-6 shadow border-gray-100 bg-white">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  +91
-                </span>
+          <div className="space-y-2">
+            <Input
+              type="tel"
+              placeholder={t('login.phone_placeholder', 'Phone Number')}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={otpSent}
+              className="border rounded-md"
+            />
+            {!otpSent ? (
+              <Button onClick={handleSendOTP} className="w-full bg-gray-900 text-white rounded-md">
+                {t('login.send_otp', 'Send OTP')}
+              </Button>
+            ) : (
+              <>
                 <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="Enter 10-digit number"
-                  className="pl-12 py-3 text-lg rounded-2xl border border-gray-200 bg-gray-50 focus:border-gray-400 focus:ring-0"
-                  required
+                  type="text"
+                  placeholder={t('login.otp_placeholder', 'Enter OTP')}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="border rounded-md"
                 />
-              </div>
-              <p className="text-xs text-gray-400 mt-2">
-                We'll send you a verification code
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={phone.length !== 10 || loading}
-              className={`w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 text-white font-medium py-3 rounded-2xl shadow transition-all duration-200`}
-            >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Sending OTP...</span>
-                </div>
-              ) : (
-                'Continue with Phone'
-              )}
-            </Button>
-          </form>
-        </Card>
-
-        {/* Feature Highlights */}
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="space-y-2">
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-lg text-gray-700">⚡</span>
-            </div>
-            <p className="text-xs text-gray-400">Instant<br />Matching</p>
+                <Button onClick={handleVerifyOTP} className="w-full bg-gray-900 text-white rounded-md">
+                  {t('login.verify_otp', 'Verify OTP')}
+                </Button>
+              </>
+            )}
           </div>
-          <div className="space-y-2">
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-lg text-gray-700">🛡️</span>
-            </div>
-            <p className="text-xs text-gray-400">Verified<br />Profiles</p>
+          <div className="text-center text-sm text-gray-500">
+            {t('login.terms', 'By continuing, you agree to our Terms of Service and Privacy Policy')}
           </div>
-          <div className="space-y-2">
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-lg text-gray-700">💰</span>
-            </div>
-            <p className="text-xs text-gray-400">Fair<br />Payments</p>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

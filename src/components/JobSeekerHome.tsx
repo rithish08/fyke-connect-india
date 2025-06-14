@@ -1,126 +1,242 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
-import ProfileProgress from './ProfileProgress';
-import AnimatedWrapper from './AnimatedWrapper';
+import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/contexts/AuthContext";
 
 const JobSeekerHome = () => {
   const navigate = useNavigate();
+  const [jobs, setJobs] = useState([]);
+  const { user } = useAuth();
 
-  const categories = [
-    { name: 'Construction', icon: '🏗️', count: 45, pay: '₹500-800/day', gradient: '' },
-    { name: 'Delivery', icon: '🚚', count: 32, pay: '₹400-600/day', gradient: '' },
-    { name: 'Cleaning', icon: '🧹', count: 28, pay: '₹300-500/day', gradient: '' },
-    { name: 'Security', icon: '🛡️', count: 21, pay: '₹450-700/day', gradient: '' }
+  // Mock job data
+  const allJobs = [
+    {
+      id: 1,
+      title: 'Construction Worker Needed',
+      company: 'BuildPro Construction',
+      location: 'Mumbai, Maharashtra',
+      distance: '2.3 km',
+      salary: '₹500-700/day',
+      type: 'Full Time',
+      urgent: true,
+      applications: 12,
+      postedTime: '2 hours ago',
+      description: 'Experience in cement work and basic construction required',
+      category: 'Construction'
+    },
+    {
+      id: 2,
+      title: 'Delivery Executive',
+      company: 'QuickDelivery Services',
+      location: 'Pune, Maharashtra',
+      distance: '5.1 km',
+      salary: '₹400-600/day',
+      type: 'Part Time',
+      urgent: false,
+      applications: 8,
+      postedTime: '4 hours ago',
+      description: 'Own vehicle required, flexible timing',
+      category: 'Delivery'
+    },
+    {
+      id: 3,
+      title: 'Office Cleaner',
+      company: 'CleanSweep Solutions',
+      location: 'Thane, Maharashtra',
+      distance: '3.5 km',
+      salary: '₹300-500/day',
+      type: 'Part Time',
+      urgent: false,
+      applications: 5,
+      postedTime: '6 hours ago',
+      description: 'Experience in office cleaning preferred',
+      category: 'Cleaning'
+    },
+    {
+      id: 4,
+      title: 'Security Guard',
+      company: 'SecureGuard Services',
+      location: 'Mumbai, Maharashtra',
+      distance: '1.8 km',
+      salary: '₹400-600/day',
+      type: 'Full Time',
+      urgent: true,
+      applications: 15,
+      postedTime: '1 hour ago',
+      description: 'Valid security license required',
+      category: 'Security'
+    },
+    {
+      id: 5,
+      title: 'Warehouse Worker',
+      company: 'Swift Logistics',
+      location: 'Navi Mumbai, Maharashtra',
+      distance: '6.2 km',
+      salary: '₹450-650/day',
+      type: 'Full Time',
+      urgent: false,
+      applications: 10,
+      postedTime: '3 hours ago',
+      description: 'Experience in warehouse operations preferred',
+      category: 'Warehouse'
+    },
+    {
+      id: 6,
+      title: 'Construction Helper',
+      company: 'BuildPro Construction',
+      location: 'Mumbai, Maharashtra',
+      distance: '2.3 km',
+      salary: '₹400-600/day',
+      type: 'Full Time',
+      urgent: false,
+      applications: 7,
+      postedTime: '5 hours ago',
+      description: 'Assisting skilled workers in construction projects',
+      category: 'Construction'
+    },
+    {
+      id: 7,
+      title: 'Delivery Driver',
+      company: 'QuickDelivery Services',
+      location: 'Pune, Maharashtra',
+      distance: '5.1 km',
+      salary: '₹500-700/day',
+      type: 'Part Time',
+      urgent: true,
+      applications: 18,
+      postedTime: '30 minutes ago',
+      description: 'Delivering packages to customers',
+      category: 'Delivery'
+    },
+    {
+      id: 8,
+      title: 'Home Cleaner',
+      company: 'CleanSweep Solutions',
+      location: 'Thane, Maharashtra',
+      distance: '3.5 km',
+      salary: '₹350-550/day',
+      type: 'Part Time',
+      urgent: false,
+      applications: 6,
+      postedTime: '7 hours ago',
+      description: 'Cleaning homes and apartments',
+      category: 'Cleaning'
+    },
+    {
+      id: 9,
+      title: 'Night Security Guard',
+      company: 'SecureGuard Services',
+      location: 'Mumbai, Maharashtra',
+      distance: '1.8 km',
+      salary: '₹450-650/day',
+      type: 'Full Time',
+      urgent: true,
+      applications: 20,
+      postedTime: '45 minutes ago',
+      description: 'Ensuring security during night hours',
+      category: 'Security'
+    },
+    {
+      id: 10,
+      title: 'Warehouse Assistant',
+      company: 'Swift Logistics',
+      location: 'Navi Mumbai, Maharashtra',
+      distance: '6.2 km',
+      salary: '₹400-600/day',
+      type: 'Full Time',
+      urgent: false,
+      applications: 9,
+      postedTime: '4 hours ago',
+      description: 'Assisting in warehouse operations',
+      category: 'Warehouse'
+    }
   ];
 
-  return (
-    <div className="space-y-6 px-0 md:px-4">
-      <ProfileProgress />
+  useEffect(() => {
+    // Simulate fetching jobs from an API
+    setTimeout(() => {
+      setJobs(allJobs);
+    }, 500);
+  }, []);
 
-      <AnimatedWrapper variant="slide" direction="up" delay={200}>
-        <div className="space-y-4">
-          <ModernCard 
-            className="bg-white text-gray-900 border shadow rounded-2xl cursor-pointer hover:shadow-lg transition-transform duration-200"
-            onClick={() => navigate('/search')}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">🔍</span>
+  const handleJobClick = (id: number) => {
+    navigate(`/job/${id}`);
+  };
+
+  const activeCategories = user?.categories?.length ? user.categories : [];
+  const jobsToShow = allJobs.filter(job => activeCategories.length === 0 || activeCategories.includes(job.category));
+
+  return (
+    <div className="space-y-4">
+      {jobsToShow.map((job) => (
+        <ModernCard
+          key={job.id}
+          className="cursor-pointer hover:scale-[1.01] transition-all duration-200 relative overflow-hidden bg-white shadow border border-gray-100 rounded-2xl"
+          onClick={() => handleJobClick(job.id)}
+        >
+          {job.urgent && (
+            <div className="absolute top-0 right-0 w-16 h-16">
+              <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            </div>
+          )}
+          <div className="space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <h3 className="font-semibold text-gray-900 text-lg">{job.title}</h3>
+                  {job.urgent && (
+                    <Badge variant="destructive" className="text-xs rounded-full">
+                      Urgent
+                    </Badge>
+                  )}
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold">Find Jobs Now</h3>
-                  <p className="text-gray-500 text-sm">156 new jobs today</p>
-                </div>
+                <p className="text-sm text-gray-500 font-medium">{job.company}</p>
               </div>
               <div className="text-right">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mb-1"></div>
-                <p className="text-xs text-gray-400">Active</p>
+                <div className="font-bold text-green-700 text-lg">{job.salary}</div>
+                <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">{job.type}</div>
               </div>
             </div>
-          </ModernCard>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <ModernCard 
-              className="bg-white cursor-pointer border hover:shadow-lg rounded-2xl transition duration-200"
-              onClick={() => navigate('/my-jobs')}
-            >
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl">📄</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Applications</h4>
-                  <p className="text-sm text-gray-400">3 pending</p>
-                </div>
-              </div>
-            </ModernCard>
-            <ModernCard 
-              className="bg-white cursor-pointer border hover:shadow-lg rounded-2xl transition duration-200"
-              onClick={() => navigate('/profile')}
-            >
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl">👤</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Profile</h4>
-                  <p className="text-sm text-gray-400">65% complete</p>
-                </div>
-              </div>
-            </ModernCard>
-          </div>
-        </div>
-      </AnimatedWrapper>
 
-      <AnimatedWrapper variant="slide" direction="up" delay={300}>
-        <ModernCard className="bg-white border shadow rounded-2xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🚨</span>
+            <div className="flex items-center space-x-4 text-sm text-gray-400">
+              <span className="flex items-center space-x-1">
+                <span>📍</span>
+                <span>{job.location}</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <span>🚶</span>
+                <span>{job.distance}</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <span>🕐</span>
+                <span>{job.postedTime}</span>
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-700 leading-relaxed">{job.description}</p>
+
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center space-x-4 text-xs text-gray-400">
+                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{job.applications} applications</span>
+                <span className="flex items-center space-x-1">
+                  <span>⚡</span>
+                  <span>Quick apply</span>
+                </span>
               </div>
-              <div>
-                <h3 className="font-bold text-lg">Urgent Jobs</h3>
-                <p className="text-gray-500 text-sm">High pay • 23 available</p>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" className="text-xs rounded-xl border-gray-200">
+                  💾 Save
+                </Button>
+                <Button size="sm" className="text-xs bg-gray-900 hover:bg-gray-800 text-white rounded-xl">
+                  Apply Now
+                </Button>
               </div>
             </div>
-            <Button 
-              size="sm" 
-              className="bg-gray-900 text-white font-semibold px-6 rounded-xl hover:bg-gray-800"
-              onClick={() => navigate('/search?urgent=true')}
-            >
-              View All
-            </Button>
           </div>
         </ModernCard>
-      </AnimatedWrapper>
-
-      <AnimatedWrapper variant="slide" direction="up" delay={400}>
-        <div className="space-y-4">
-          <h3 className="font-bold text-gray-900 text-xl px-2">Popular in Your Area</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {categories.map((category) => (
-              <ModernCard 
-                key={category.name}
-                className="bg-white border cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden"
-                onClick={() => navigate(`/search?category=${category.name.toLowerCase()}`)}
-              >
-                {/* No bg-gradient, just white */}
-                <div className="relative text-center space-y-3">
-                  <div className="text-3xl mb-2">{category.icon}</div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">{category.name}</h4>
-                    <p className="text-xs text-gray-500 mb-1">{category.count} jobs</p>
-                    <p className="text-xs font-semibold text-gray-800">{category.pay}</p>
-                  </div>
-                </div>
-              </ModernCard>
-            ))}
-          </div>
-        </div>
-      </AnimatedWrapper>
+      ))}
     </div>
   );
 };

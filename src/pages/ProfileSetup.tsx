@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +17,7 @@ const ProfileSetup = () => {
   const [step, setStep] = useState(0);
 
   // Form state
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState(user?.primaryCategory || '');
   const [vehicle, setVehicle] = useState(''); // For drivers
   const [skills, setSkills] = useState<string[]>([]);
   const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
@@ -33,6 +32,8 @@ const ProfileSetup = () => {
   const handleFinish = () => {
     updateProfile({
       category,
+      categories: user?.categories, // keep overall categories
+      primaryCategory: category,
       vehicle: category === "Driver" ? vehicle : undefined,
       skills,
       salaryExpectation: { min: Number(salary.amount), max: Number(salary.amount) },
