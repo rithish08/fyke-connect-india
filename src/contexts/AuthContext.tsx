@@ -1,9 +1,12 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: string;
   phone: string;
   name?: string;
+  email?: string;
+  bio?: string;
   role: 'jobseeker' | 'employer';
   verified: boolean;
   profileComplete: boolean;
@@ -49,37 +52,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem('fyke_user');
     
     if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      setIsAuthenticated(true);
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
+        console.log('User loaded from localStorage:', userData);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('fyke_user');
+      }
     }
   }, []);
 
   const login = async (phone: string, otp: string) => {
-    // Simulate API call
-    const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      phone,
-      role: 'jobseeker',
-      verified: Math.random() > 0.3,
-      profileComplete: false, // Will be set to true for employers
-      categories: [],
-      primaryCategory: undefined,
-      subcategories: [],
-      availability: 'available',
-      skills: ['Construction', 'Manual Labor'],
-      salaryExpectation: { min: 300, max: 600 }
-    };
-    
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    localStorage.setItem('fyke_user', JSON.stringify(mockUser));
+    try {
+      // Simulate API call with basic validation
+      if (otp.length !== 6) {
+        throw new Error('Invalid OTP length');
+      }
+
+      // Get stored name if available
+      const storedName = localStorage.getItem('fyke_name') || '';
+      
+      const mockUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        phone,
+        name: storedName,
+        email: '',
+        bio: '',
+        role: 'jobseeker',
+        verified: Math.random() > 0.3,
+        profileComplete: false,
+        categories: [],
+        primaryCategory: undefined,
+        subcategories: [],
+        availability: 'available',
+        skills: ['Construction', 'Manual Labor'],
+        salaryExpectation: { min: 300, max: 600 },
+        location: 'Mumbai, Maharashtra'
+      };
+      
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('fyke_user', JSON.stringify(mockUser));
+      console.log('User logged in successfully:', mockUser);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('fyke_user');
+    localStorage.removeItem('fyke_phone');
+    localStorage.removeItem('fyke_name');
+    console.log('User logged out');
   };
 
   const setRole = (role: 'jobseeker' | 'employer') => {
@@ -91,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('User role updated to:', role);
     }
   };
 
@@ -106,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('Profile updated:', updates);
     }
   };
 

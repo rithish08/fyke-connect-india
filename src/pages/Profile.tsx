@@ -18,10 +18,10 @@ const Profile = () => {
   const { toast } = useToast();
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
-    email: '',
-    location: 'Mumbai, Maharashtra',
+    email: user?.email || '',
+    location: user?.location || 'Mumbai, Maharashtra',
     experience: '2 years',
-    bio: '',
+    bio: user?.bio || '',
     skills: user?.skills || ['Construction', 'Manual Labor', 'Team Work']
   });
   const [showBanner, setShowBanner] = useState(true);
@@ -30,8 +30,10 @@ const Profile = () => {
   const handleProfileUpdate = async (updates: any) => {
     setIsLoading(true);
     try {
+      // Update user profile in context and localStorage
       updateProfile(updates);
       setProfileData(prev => ({ ...prev, ...updates }));
+      
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully"
@@ -76,10 +78,12 @@ const Profile = () => {
 
   // Profile completeness calculation
   const hasName = !!profileData.name;
+  const hasEmail = !!profileData.email;
   const hasPhoto = true;
   const hasSkills = profileData.skills && profileData.skills.length > 0;
   const hasLocation = !!profileData.location;
-  const fields = [hasName, hasPhoto, hasSkills, hasLocation];
+  const hasBio = !!profileData.bio;
+  const fields = [hasName, hasEmail, hasPhoto, hasSkills, hasLocation, hasBio];
   const completePercent = Math.round((fields.filter(Boolean).length / fields.length) * 100);
 
   return (

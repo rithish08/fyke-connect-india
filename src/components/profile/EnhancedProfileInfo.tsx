@@ -27,6 +27,11 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
 }) => {
   const [editData, setEditData] = useState(profileData);
 
+  // Update editData when profileData changes
+  React.useEffect(() => {
+    setEditData(profileData);
+  }, [profileData]);
+
   const handleSave = () => {
     onUpdate(editData);
   };
@@ -34,31 +39,31 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
   const editContent = (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
+        <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700">Full Name</Label>
         <Input
-          id="name"
-          value={editData.name}
+          id="edit-name"
+          value={editData.name || ''}
           onChange={(e) => setEditData({...editData, name: e.target.value})}
           className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
           placeholder="Enter your full name"
         />
       </div>
       <div>
-        <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+        <Label htmlFor="edit-email" className="text-sm font-medium text-gray-700">Email</Label>
         <Input
-          id="email"
+          id="edit-email"
           type="email"
-          value={editData.email}
+          value={editData.email || ''}
           onChange={(e) => setEditData({...editData, email: e.target.value})}
           className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
           placeholder="Enter your email"
         />
       </div>
       <div>
-        <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
+        <Label htmlFor="edit-location" className="text-sm font-medium text-gray-700">Location</Label>
         <Input
-          id="location"
-          value={editData.location}
+          id="edit-location"
+          value={editData.location || ''}
           onChange={(e) => setEditData({...editData, location: e.target.value})}
           className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
           placeholder="Enter your location"
@@ -66,10 +71,10 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
       </div>
       {userRole === 'jobseeker' && (
         <div>
-          <Label htmlFor="experience" className="text-sm font-medium text-gray-700">Experience</Label>
+          <Label htmlFor="edit-experience" className="text-sm font-medium text-gray-700">Experience</Label>
           <Input
-            id="experience"
-            value={editData.experience}
+            id="edit-experience"
+            value={editData.experience || ''}
             onChange={(e) => setEditData({...editData, experience: e.target.value})}
             className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
             placeholder="e.g., 2 years"
@@ -77,9 +82,9 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
         </div>
       )}
       <div>
-        <Label htmlFor="bio" className="text-sm font-medium text-gray-700">Bio</Label>
+        <Label htmlFor="edit-bio" className="text-sm font-medium text-gray-700">Bio</Label>
         <Textarea
-          id="bio"
+          id="edit-bio"
           value={editData.bio || ''}
           onChange={(e) => setEditData({...editData, bio: e.target.value})}
           className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
@@ -93,20 +98,20 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
   const displayContent = (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <User className="w-4 h-4 text-gray-500" />
+        <User className="w-4 h-4 text-gray-500 flex-shrink-0" />
         <span className="text-gray-900">{profileData.name || 'Add your name'}</span>
       </div>
       <div className="flex items-center gap-3">
-        <Mail className="w-4 h-4 text-gray-500" />
+        <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
         <span className="text-gray-600">{profileData.email || 'Add your email'}</span>
       </div>
       <div className="flex items-center gap-3">
-        <MapPin className="w-4 h-4 text-gray-500" />
+        <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
         <span className="text-gray-600">{profileData.location}</span>
       </div>
       {userRole === 'jobseeker' && (
         <div className="flex items-center gap-3">
-          <Briefcase className="w-4 h-4 text-gray-500" />
+          <Briefcase className="w-4 h-4 text-gray-500 flex-shrink-0" />
           <span className="text-gray-600">{profileData.experience}</span>
         </div>
       )}

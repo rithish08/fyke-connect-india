@@ -1,59 +1,42 @@
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import BottomNavigation from '@/components/BottomNavigation';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  message: string;
+  timestamp: string;
+  isOwn: boolean;
+}
+
+interface Conversation {
+  id: number;
+  name: string;
+  role: string;
+  lastMessage: string;
+  time: string;
+  unread: number;
+  avatar: string;
+  online: boolean;
+  messages: Message[];
+}
 
 const Messaging = () => {
+  const { user } = useAuth();
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-
-  // Handle direct chat navigation from other components
-  useEffect(() => {
-    const chatWith = searchParams.get('chatWith');
-    const name = searchParams.get('name');
-    const type = searchParams.get('type');
-    const context = searchParams.get('context');
-
-    if (chatWith && name) {
-      // Show loading state while opening specific chat
-      setIsLoading(true);
-      
-      // Simulate loading and then open the chat
-      setTimeout(() => {
-        // Find existing conversation or create new one
-        const existingChat = conversations.find(c => 
-          c.name === name || c.id.toString() === chatWith
-        );
-        
-        if (existingChat) {
-          setSelectedChat(existingChat.id);
-        } else {
-          // Create new conversation
-          const newConversation = {
-            id: Date.now(),
-            name: name,
-            role: type === 'worker' ? 'Job Seeker' : 'Employer',
-            lastMessage: context ? `About: ${context}` : 'New conversation',
-            time: 'now',
-            unread: 0,
-            avatar: type === 'worker' ? '👷' : '🏢',
-            online: true
-          };
-          conversations.unshift(newConversation);
-          setSelectedChat(newConversation.id);
-        }
-        setIsLoading(false);
-      }, 800);
-    }
-  }, [searchParams]);
-
-  const conversations = [
+  const [conversations, setConversations] = useState<Conversation[]>([
     {
       id: 1,
       name: 'BuildPro Construction',
@@ -62,7 +45,49 @@ const Messaging = () => {
       time: '2 min ago',
       unread: 2,
       avatar: '🏗️',
-      online: true
+      online: true,
+      messages: [
+        {
+          id: 'msg-1',
+          senderId: 'emp-1',
+          senderName: 'BuildPro Construction',
+          message: 'Hi! We reviewed your application for the construction worker position.',
+          timestamp: '10:30 AM',
+          isOwn: false
+        },
+        {
+          id: 'msg-2',
+          senderId: user?.id || 'user-1',
+          senderName: 'You',
+          message: 'Thank you for reviewing my application. I am very interested in this position.',
+          timestamp: '10:32 AM',
+          isOwn: true
+        },
+        {
+          id: 'msg-3',
+          senderId: 'emp-1',
+          senderName: 'BuildPro Construction',
+          message: 'Great! Do you have experience with cement work?',
+          timestamp: '10:35 AM',
+          isOwn: false
+        },
+        {
+          id: 'msg-4',
+          senderId: user?.id || 'user-1',
+          senderName: 'You',
+          message: 'Yes, I have 2 years of experience in construction and cement work.',
+          timestamp: '10:36 AM',
+          isOwn: true
+        },
+        {
+          id: 'msg-5',
+          senderId: 'emp-1',
+          senderName: 'BuildPro Construction',
+          message: 'Perfect! When can you start the construction work?',
+          timestamp: '10:40 AM',
+          isOwn: false
+        }
+      ]
     },
     {
       id: 2,
@@ -72,7 +97,41 @@ const Messaging = () => {
       time: '1 hour ago',
       unread: 0,
       avatar: '👷',
-      online: false
+      online: false,
+      messages: [
+        {
+          id: 'msg-6',
+          senderId: 'worker-1',
+          senderName: 'Rajesh Kumar',
+          message: 'Hello, I saw your job posting for delivery work. I am very interested.',
+          timestamp: '9:30 AM',
+          isOwn: false
+        },
+        {
+          id: 'msg-7',
+          senderId: user?.id || 'user-1',
+          senderName: 'You',
+          message: 'Thank you for your interest. Can you tell me about your experience?',
+          timestamp: '9:35 AM',
+          isOwn: true
+        },
+        {
+          id: 'msg-8',
+          senderId: 'worker-1',
+          senderName: 'Rajesh Kumar',
+          message: 'I have 1 year experience in food delivery with Zomato. I have my own bike.',
+          timestamp: '9:40 AM',
+          isOwn: false
+        },
+        {
+          id: 'msg-9',
+          senderId: 'worker-1',
+          senderName: 'Rajesh Kumar',
+          message: 'Thank you for considering my application',
+          timestamp: '9:45 AM',
+          isOwn: false
+        }
+      ]
     },
     {
       id: 3,
@@ -82,53 +141,95 @@ const Messaging = () => {
       time: '2 hours ago',
       unread: 1,
       avatar: '🚚',
-      online: true
+      online: true,
+      messages: [
+        {
+          id: 'msg-10',
+          senderId: 'emp-2',
+          senderName: 'QuickDelivery Services',
+          message: 'Hi! We saw your profile and would like to discuss a delivery opportunity.',
+          timestamp: '8:30 AM',
+          isOwn: false
+        },
+        {
+          id: 'msg-11',
+          senderId: 'emp-2',
+          senderName: 'QuickDelivery Services',
+          message: 'We have reviewed your profile',
+          timestamp: '8:35 AM',
+          isOwn: false
+        }
+      ]
     }
-  ];
+  ]);
 
-  const messages = [
-    {
-      id: 1,
-      sender: 'BuildPro Construction',
-      message: 'Hi! We reviewed your application for the construction worker position.',
-      time: '10:30 AM',
-      isOwn: false
-    },
-    {
-      id: 2,
-      sender: 'You',
-      message: 'Thank you for reviewing my application. I am very interested in this position.',
-      time: '10:32 AM',
-      isOwn: true
-    },
-    {
-      id: 3,
-      sender: 'BuildPro Construction',
-      message: 'Great! Do you have experience with cement work?',
-      time: '10:35 AM',
-      isOwn: false
-    },
-    {
-      id: 4,
-      sender: 'You',
-      message: 'Yes, I have 2 years of experience in construction and cement work.',
-      time: '10:36 AM',
-      isOwn: true
-    },
-    {
-      id: 5,
-      sender: 'BuildPro Construction',
-      message: 'Perfect! When can you start the construction work?',
-      time: '10:40 AM',
-      isOwn: false
+  // Handle direct chat navigation from other components
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.workerId && state?.workerName) {
+      setIsLoading(true);
+      
+      setTimeout(() => {
+        const existingChat = conversations.find(c => 
+          c.name === state.workerName || c.id.toString() === state.workerId.toString()
+        );
+        
+        if (existingChat) {
+          setSelectedChat(existingChat.id);
+        } else {
+          const newConversation: Conversation = {
+            id: Date.now(),
+            name: state.workerName,
+            role: 'Job Seeker',
+            lastMessage: 'New conversation started',
+            time: 'now',
+            unread: 0,
+            avatar: '👷',
+            online: true,
+            messages: []
+          };
+          setConversations(prev => [newConversation, ...prev]);
+          setSelectedChat(newConversation.id);
+        }
+        setIsLoading(false);
+      }, 500);
     }
-  ];
+  }, [location.state]);
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      // Add message logic here
+    if (newMessage.trim() && selectedChat) {
+      const currentTime = new Date().toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      const newMsg: Message = {
+        id: `msg-${Date.now()}`,
+        senderId: user?.id || 'user-1',
+        senderName: 'You',
+        message: newMessage.trim(),
+        timestamp: currentTime,
+        isOwn: true
+      };
+
+      setConversations(prev => prev.map(conv => {
+        if (conv.id === selectedChat) {
+          return {
+            ...conv,
+            messages: [...conv.messages, newMsg],
+            lastMessage: newMessage.trim(),
+            time: 'now'
+          };
+        }
+        return conv;
+      }));
+
       setNewMessage('');
     }
+  };
+
+  const getCurrentChat = () => {
+    return conversations.find(c => c.id === selectedChat);
   };
 
   const ChatSkeleton = () => (
@@ -196,7 +297,9 @@ const Messaging = () => {
   );
 
   const ChatWindow = () => {
-    const currentChat = conversations.find(c => c.id === selectedChat);
+    const currentChat = getCurrentChat();
+    
+    if (!currentChat) return null;
     
     return (
       <div className="flex flex-col h-full">
@@ -214,16 +317,16 @@ const Messaging = () => {
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  {currentChat?.avatar}
+                  {currentChat.avatar}
                 </div>
-                {currentChat?.online && (
+                {currentChat.online && (
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                 )}
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{currentChat?.name}</h3>
+                <h3 className="font-semibold text-gray-900">{currentChat.name}</h3>
                 <p className="text-xs text-gray-500">
-                  {currentChat?.online ? 'Online' : 'Last seen 1 hour ago'}
+                  {currentChat.online ? 'Online' : 'Last seen 1 hour ago'}
                 </p>
               </div>
             </div>
@@ -232,7 +335,7 @@ const Messaging = () => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
+          {currentChat.messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
@@ -248,7 +351,7 @@ const Messaging = () => {
                 <p className={`text-xs mt-1 ${
                   message.isOwn ? 'text-blue-100' : 'text-gray-500'
                 }`}>
-                  {message.time}
+                  {message.timestamp}
                 </p>
               </div>
             </div>
