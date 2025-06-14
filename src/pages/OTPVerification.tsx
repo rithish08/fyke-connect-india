@@ -1,17 +1,16 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
@@ -30,33 +29,8 @@ const OTPVerification = () => {
     }
   }, [resendTimer]);
 
-  const handleChange = (index: number, value: string) => {
-    if (value.length > 1) return;
-    
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-verify when all fields are filled
-    if (newOtp.every(digit => digit !== '') && value) {
-      handleVerify(newOtp.join(''));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerify = async (otpCode?: string) => {
-    const code = otpCode || otp.join('');
-    if (code.length !== 6) {
+  const handleOTPComplete = async (otpCode: string) => {
+    if (otpCode.length !== 6) {
       toast({
         title: "Invalid OTP",
         description: "Please enter the complete 6-digit code",
@@ -69,7 +43,7 @@ const OTPVerification = () => {
     
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
-      await login(phone, code);
+      await login(phone, otpCode);
       navigate('/home');
       toast({
         title: "Welcome to Fyke!",
@@ -81,6 +55,7 @@ const OTPVerification = () => {
         description: "Invalid OTP. Please try again.",
         variant: "destructive"
       });
+      setOtp(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
     }
@@ -116,50 +91,30 @@ const OTPVerification = () => {
         {/* OTP Card */}
         <Card className="p-6 shadow-xl border-0">
           <div className="space-y-6">
-            {/* OTP Input */}
-            <div className="flex justify-center space-x-3">
-              {otp.map((digit, index) => (
-                <Input
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
-                  maxLength={1}
-                />
-              ))}
-            </div>
+            {/* Enhanced OTP Input */}
+            <EnhancedOTPInput
+              value={otp}
+              onChange={setOtp}
+              onComplete={handleOTPComplete}
+            />
 
             {/* Auto-verification note */}
-            <p className="text-center text-sm text-gray-500">
-              Code will be verified automatically
-            </p>
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-sm text-gray-500">Code will be verified automatically</p>
+              </div>
+            </div>
 
-            {/* Manual verify button */}
-            <Button
-              onClick={() => handleVerify()}
-              disabled={otp.some(digit => digit === '') || loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-medium py-3 rounded-xl shadow-lg transition-all duration-200"
-            >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Verifying...</span>
-                </div>
-              ) : (
-                'Verify Code'
-              )}
-            </Button>
-
-            {/* Resend */}
+            {/* Timer Display */}
             <div className="text-center">
               {resendTimer > 0 ? (
-                <p className="text-sm text-gray-500">
-                  Resend code in {resendTimer}s
-                </p>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-500">
+                    Resend in {resendTimer}s
+                  </p>
+                </div>
               ) : (
                 <button
                   onClick={handleResend}
