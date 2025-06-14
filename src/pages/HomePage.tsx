@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,8 +7,8 @@ import BottomNavigation from '@/components/BottomNavigation';
 import HomeHeader from '@/components/HomeHeader';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
-// Remove the old RoleSwitcher import and usage
-// Add responsive alignment
+import CompactRoleSwitcher from '@/components/CompactRoleSwitcher';
+
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLocalization();
@@ -30,16 +31,19 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white pb-20">
       <HomeHeader currentTime={currentTime} />
-      {/* Remove inline RoleSwitcher call, replaced with new banner style */}
+      
       <div className="flex justify-center pt-0 sm:pt-2">
         <div className="w-full max-w-2xl">
+          <CompactRoleSwitcher />
           <div className="pt-2">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>
       </div>
+      
       <BottomNavigation />
     </div>
   );
 };
+
 export default HomePage;

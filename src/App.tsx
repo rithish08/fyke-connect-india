@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,8 @@ import Messaging from "./pages/Messaging";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
+import PostJob from "./pages/PostJob";
+import WorkerProfile from "./pages/WorkerProfile";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +41,8 @@ const App = () => (
               <Route path="/home" element={<HomePage />} />
               <Route path="/search" element={<JobSearch />} />
               <Route path="/job/:id" element={<JobDetails />} />
+              <Route path="/worker/:id" element={<WorkerProfile />} />
+              <Route path="/post-job" element={<PostJob />} />
               <Route path="/my-jobs" element={<MyJobs />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/messages" element={<Messaging />} />
