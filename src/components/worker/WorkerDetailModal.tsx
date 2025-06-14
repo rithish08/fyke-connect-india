@@ -4,14 +4,10 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import TrustScore from '@/components/trust/TrustScore';
-import SkillBadge from '@/components/verification/SkillBadge';
-import CommunicationButtons from '@/components/communication/CommunicationButtons';
-import { Star, MapPin, Clock } from 'lucide-react';
+import { Star, MapPin, Clock, CheckCircle, ArrowLeft, MessageCircle, Phone } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface WorkerDetailModalProps {
   isOpen: boolean;
@@ -40,97 +36,112 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Worker Profile</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-start space-x-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-xl font-bold text-blue-600">
-                {worker.name[0]}
-              </span>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold">{worker.name}</h3>
-              <p className="text-gray-600">{worker.category}</p>
-              <div className="flex items-center space-x-2 mt-1">
-                <Badge className={`${worker.isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                  {worker.isOnline ? 'Online' : 'Offline'}
-                </Badge>
-                <Badge variant="outline">{worker.verificationLevel}</Badge>
-              </div>
-            </div>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0 rounded-3xl">
+        {/* Header */}
+        <DialogHeader className="p-6 pb-0">
+          <div className="flex items-center mb-6">
+            <Button variant="ghost" size="sm" onClick={onClose} className="p-2 mr-4">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
           </div>
 
+          {/* Profile Section */}
+          <div className="flex flex-col items-center text-center">
+            <div className="relative mb-4">
+              <Avatar className="w-24 h-24">
+                <AvatarImage src="/placeholder.svg" alt={worker.name} />
+                <AvatarFallback className="bg-gray-100 text-gray-600 text-2xl font-bold">
+                  {worker.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              {worker.verificationLevel !== 'basic' && (
+                <div className="absolute -top-2 -right-2">
+                  <CheckCircle className="w-8 h-8 text-green-500 bg-white rounded-full" fill="currentColor" />
+                </div>
+              )}
+            </div>
+            
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{worker.name}</h2>
+            
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-green-600 font-medium">Online</span>
+              {worker.verificationLevel !== 'basic' && (
+                <CheckCircle className="w-4 h-4 text-green-500" />
+              )}
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="px-6 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="flex items-center justify-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-                <span className="font-bold">{worker.rating}</span>
+              <div className="flex items-center justify-center space-x-1 mb-1">
+                <Star className="w-4 h-4 text-gray-900" fill="currentColor" />
+                <span className="font-bold text-lg">{worker.rating}</span>
               </div>
-              <p className="text-xs text-gray-500">Rating</p>
+              <p className="text-sm text-gray-500">Rating</p>
             </div>
             <div>
-              <div className="font-bold">{worker.completedJobs}</div>
-              <p className="text-xs text-gray-500">Jobs Done</p>
+              <div className="font-bold text-lg">{worker.completedJobs}</div>
+              <p className="text-sm text-gray-500">jobs completed</p>
             </div>
             <div>
-              <div className="font-bold">₹{worker.hourlyRate}/hr</div>
-              <p className="text-xs text-gray-500">Rate</p>
+              <div className="font-bold text-lg">₹{worker.hourlyRate}/hr</div>
+              <p className="text-sm text-gray-500">Rate</p>
             </div>
           </div>
 
-          {/* Trust Score */}
-          <TrustScore
-            score={worker.rating}
-            verificationLevel={worker.verificationLevel}
-            completedJobs={worker.completedJobs}
-            responseTime={worker.responseTime}
-          />
-
-          {/* Skills */}
+          {/* Skills Section */}
           <div>
-            <h4 className="font-semibold mb-2">Skills</h4>
+            <h4 className="font-bold text-lg text-gray-900 mb-3">Skills</h4>
             <div className="flex flex-wrap gap-2">
               {worker.skills.map((skill, idx) => (
-                <SkillBadge
+                <span
                   key={idx}
-                  skill={skill}
-                  level={idx === 0 ? 'expert' : 'intermediate'}
-                  verified={idx < 2}
-                />
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
+                >
+                  {skill}
+                </span>
               ))}
             </div>
           </div>
 
           {/* Location & Response */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center justify-between py-4 border-t border-gray-100">
             <div className="flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-gray-400" />
-              <span className="text-sm">{worker.distance} away</span>
+              <span className="text-gray-600">{worker.distance} away</span>
             </div>
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-gray-400" />
-              <span className="text-sm">Responds {worker.responseTime}</span>
+              <span className="text-gray-600">< {worker.responseTime}</span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
-            <CommunicationButtons
-              targetId={worker.id}
-              targetName={worker.name}
-              targetType="worker"
-              className="justify-center"
-            />
+          <div className="space-y-3 pb-6">
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                variant="outline" 
+                className="h-12 rounded-2xl border-2 border-gray-200 font-medium"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Chat
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-12 rounded-2xl border-2 border-gray-200 font-medium"
+              >
+                <Phone className="w-5 h-5 mr-2" />
+                Call
+              </Button>
+            </div>
             
             <Button 
               onClick={() => onHire(worker.id)}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl text-lg font-medium"
             >
               Hire Now
             </Button>

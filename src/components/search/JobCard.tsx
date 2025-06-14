@@ -10,6 +10,8 @@ interface JobCardProps {
   urgent?: boolean;
   distance?: string;
   postedTime?: string;
+  company?: string;
+  description?: string;
 }
 
 const JobCard: React.FC<JobCardProps> = ({ 
@@ -19,63 +21,72 @@ const JobCard: React.FC<JobCardProps> = ({
   salary,
   urgent = false,
   distance = "2.5km",
-  postedTime = "2h ago"
+  postedTime = "2h ago",
+  company = "Local Business",
+  description = "Looking for skilled worker for immediate start"
 }) => (
   <div
-    className={`mb-4 bg-white border rounded-xl shadow p-4 animate-fade-in hover-scale transition-all group relative ${
-      urgent ? 'border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50' : 'border-gray-100'
-    }`}
+    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all duration-200"
     tabIndex={0}
     role="listitem"
     aria-label={title}
   >
-    {urgent && (
-      <div className="absolute top-2 right-2">
-        <div className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center">
-          <Zap className="w-3 h-3 mr-1" />
-          URGENT
+    {/* Header */}
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex-1">
+        <div className="flex items-center space-x-2 mb-2">
+          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          {urgent && (
+            <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center">
+              <Zap className="w-3 h-3 mr-1" />
+              URGENT
+            </div>
+          )}
+        </div>
+        <p className="text-gray-600 mb-1">{company}</p>
+        <p className="text-gray-500 text-sm">{category}</p>
+      </div>
+      <div className="text-right">
+        <div className="text-green-600 font-bold text-lg">₹{salary}</div>
+      </div>
+    </div>
+
+    {/* Description */}
+    <p className="text-gray-700 mb-4 text-sm leading-relaxed">{description}</p>
+
+    {/* Skills */}
+    {skills.length > 0 && (
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {skills.slice(0, 3).map((skill, i) => (
+            <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+              {skill}
+            </span>
+          ))}
+          {skills.length > 3 && (
+            <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">
+              +{skills.length - 3} more
+            </span>
+          )}
         </div>
       </div>
     )}
 
-    <div className="font-bold text-base text-gray-900 pr-16">{title}</div>
-    
-    <div className="flex items-center justify-between mt-2">
-      <div className="text-xs text-gray-500">
-        <span className="font-semibold">{category}</span>
-        
-        {skills.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {skills.slice(0, 3).map((skill, i) => (
-              <span key={i} className="inline-block px-1 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-[11px]">
-                {skill}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      <div className="text-right">
-        <div className="px-1.5 py-0.5 bg-green-50 text-green-700 font-semibold rounded-full text-[11px]">
-          {salary} ₹
-        </div>
-      </div>
-    </div>
-
-    <div className="flex items-center justify-between mt-3 text-xs text-gray-400">
-      <div className="flex items-center space-x-3">
+    {/* Footer */}
+    <div className="flex items-center justify-between text-sm text-gray-500 border-t pt-4">
+      <div className="flex items-center space-x-4">
         <span className="flex items-center">
-          <MapPin className="w-3 h-3 mr-1" />
+          <MapPin className="w-4 h-4 mr-1" />
           {distance}
         </span>
         <span className="flex items-center">
-          <Clock className="w-3 h-3 mr-1" />
+          <Clock className="w-4 h-4 mr-1" />
           {postedTime}
         </span>
       </div>
       
       {urgent && (
-        <span className="text-orange-600 font-medium">Quick Response Needed</span>
+        <span className="text-red-600 font-medium text-xs">Quick Response Needed</span>
       )}
     </div>
   </div>

@@ -1,9 +1,8 @@
 
 import React from "react";
 import TrustScore from "@/components/trust/TrustScore";
-import SkillBadge from "@/components/verification/SkillBadge";
 import CommunicationButtons from "@/components/communication/CommunicationButtons";
-import { Star, MapPin, Clock } from 'lucide-react';
+import { Star, MapPin, Clock, CheckCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
@@ -38,106 +37,71 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 }) => {
   return (
     <div
-      className="mb-3 bg-white border border-gray-100 rounded-xl shadow-sm p-4 animate-fade-in hover-scale transition-all group cursor-pointer"
-      tabIndex={0}
-      role="listitem"
-      aria-label={`${name}, ${category}`}
+      className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all duration-200"
       onClick={onClick}
     >
-      {/* Header with Avatar and Basic Info */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3 flex-1">
+      {/* Header with name, rating and hourly rate */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
           <div className="relative">
-            <Avatar className="w-12 h-12">
+            <Avatar className="w-16 h-16">
               <AvatarImage src={profileImage} alt={name} />
-              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
+              <AvatarFallback className="bg-gray-100 text-gray-600 text-lg font-semibold">
                 {name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            {isOnline && (
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            {verificationLevel !== 'basic' && (
+              <div className="absolute -top-1 -right-1">
+                <CheckCircle className="w-6 h-6 text-green-500 bg-white rounded-full" fill="currentColor" />
+              </div>
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-1">
-              <h3 className="font-bold text-gray-900 text-base truncate">{name}</h3>
-              <div className="flex items-center text-yellow-500">
-                <Star className="w-4 h-4 mr-1" fill="currentColor" />
-                <span className="text-sm font-semibold">{rating}</span>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <Star className="w-4 h-4 text-gray-900 mr-1" fill="currentColor" />
+                <span className="text-lg font-semibold text-gray-900">{rating}</span>
+              </div>
+              <span className="text-gray-600">{hourlyRate}/hr</span>
+              <div className="flex items-center text-gray-600">
+                <Clock className="w-3 h-3 mr-1" />
+                <span className="text-sm">{responseTime}</span>
               </div>
             </div>
-            <p className="text-sm text-gray-600 mb-1">{category}</p>
-            <div className="flex items-center text-xs text-gray-500 space-x-3">
-              <span className="flex items-center">
-                <MapPin className="w-3 h-3 mr-1" />
-                {distance}
-              </span>
-              <span className="flex items-center">
-                <Clock className="w-3 h-3 mr-1" />
-                {responseTime}
-              </span>
-            </div>
           </div>
-        </div>
-        <div className="text-right">
-          <div className="text-green-600 font-bold text-lg">₹{hourlyRate}/hr</div>
-          <div className="text-xs text-gray-500">{completedJobs} jobs</div>
         </div>
       </div>
 
-      {/* Trust Score */}
-      <div className="mb-3">
-        <TrustScore 
-          score={rating}
-          verificationLevel={verificationLevel}
-          completedJobs={completedJobs}
-          responseTime={responseTime}
-          className="justify-start"
-        />
+      {/* Jobs completed */}
+      <div className="mb-4">
+        <span className="text-gray-900 text-lg font-medium">{completedJobs} jobs completed</span>
       </div>
 
       {/* Skills */}
-      {skills.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
           {skills.slice(0, 3).map((skill, idx) => (
-            <SkillBadge
+            <span
               key={idx}
-              skill={skill}
-              level={idx === 0 ? 'expert' : 'intermediate'}
-              verified={idx < 2}
-            />
-          ))}
-          {skills.length > 3 && (
-            <span className="text-xs text-gray-400 px-2 py-1 bg-gray-50 rounded-full">
-              +{skills.length - 3} more
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
+            >
+              {skill}
             </span>
-          )}
+          ))}
         </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <Button 
-          variant="default" 
-          size="sm" 
-          className="flex-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            // Apply functionality
-          }}
-        >
-          Apply
-        </Button>
-        <CommunicationButtons
-          targetId={name.toLowerCase().replace(' ', '')}
-          targetName={name}
-          targetType="worker"
-          size="sm"
-          showCall={true}
-          showChat={true}
-          className="flex-1"
-        />
       </div>
+
+      {/* Apply button */}
+      <Button 
+        className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl text-lg font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          // Apply functionality
+        }}
+      >
+        Apply
+      </Button>
     </div>
   );
 };

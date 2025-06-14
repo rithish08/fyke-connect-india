@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Star, MapPin, Clock, CheckCircle, ArrowLeft, MessageCircle, Phone } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BottomNavigation from '@/components/BottomNavigation';
 
 const WorkerProfile = () => {
@@ -14,25 +14,26 @@ const WorkerProfile = () => {
   // Mock worker data - in real app this would come from API
   const worker = {
     id: id || '1',
-    name: 'Rajesh Kumar',
+    name: 'Sanjay Kumar',
     phone: '+91 98765 43210',
-    email: 'rajesh.kumar@email.com',
+    email: 'sanjay.kumar@email.com',
     location: 'Mumbai, Maharashtra',
-    distance: '2.3 km',
-    category: 'Construction',
-    skills: ['Cement Work', 'Brick Laying', 'Basic Plumbing', 'Painting'],
+    distance: '3.8 km',
+    category: 'Delivery',
+    skills: ['Delivery Driver', 'Heavy Vehicle', 'Long Distance'],
     experience: '5 years',
-    rating: 4.8,
+    rating: 4.6,
     reviewCount: 156,
     availability: 'available' as const,
     profilePhoto: null,
     verified: true,
-    salaryExpectation: { min: 500, max: 800 },
-    salaryPeriod: 'daily' as const,
-    completedJobs: 89,
-    description: 'Experienced construction worker with expertise in cement work and basic repairs. Reliable and punctual.',
-    vehicle: null,
-    languages: ['Hindi', 'English', 'Marathi']
+    hourlyRate: 480,
+    completedJobs: 67,
+    description: 'Experienced delivery driver with expertise in heavy vehicle operations and long distance transport. Reliable and punctual.',
+    vehicle: 'Heavy Vehicle License',
+    languages: ['Hindi', 'English', 'Marathi'],
+    responseTime: '18 min',
+    isOnline: true
   };
 
   const handleContact = () => {
@@ -46,103 +47,110 @@ const WorkerProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
-        <div className="flex items-center space-x-3">
+      <div className="bg-white p-6">
+        <div className="flex items-center mb-6">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => navigate(-1)}
-            className="p-2"
+            className="p-2 mr-4"
           >
-            ←
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold text-gray-900">Worker Profile</h1>
+        </div>
+
+        {/* Profile Header */}
+        <div className="flex flex-col items-center text-center">
+          <div className="relative mb-4">
+            <Avatar className="w-24 h-24">
+              <AvatarImage src="/placeholder.svg" alt={worker.name} />
+              <AvatarFallback className="bg-gray-100 text-gray-600 text-2xl font-bold">
+                {worker.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            {worker.verified && (
+              <div className="absolute -top-2 -right-2">
+                <CheckCircle className="w-8 h-8 text-green-500 bg-white rounded-full" fill="currentColor" />
+              </div>
+            )}
+          </div>
+          
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{worker.name}</h1>
+          
+          <div className="flex items-center space-x-2 mb-6">
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span className="text-green-600 font-medium">Online</span>
+            {worker.verified && (
+              <CheckCircle className="w-4 h-4 text-green-500" />
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Profile Header */}
-        <ModernCard className="p-6">
-          <div className="flex items-start space-x-4">
-            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-2xl">👤</span>
+      <div className="p-6 space-y-6">
+        {/* Stats */}
+        <div className="bg-white rounded-2xl p-6">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="flex items-center justify-center space-x-1 mb-2">
+                <Star className="w-5 h-5 text-gray-900" fill="currentColor" />
+                <span className="font-bold text-xl">{worker.rating}</span>
+              </div>
+              <p className="text-gray-500">Rating</p>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h2 className="text-xl font-bold text-gray-900">{worker.name}</h2>
-                {worker.verified && (
-                  <Badge className="bg-green-100 text-green-700 text-xs">✓ Verified</Badge>
-                )}
-              </div>
-              <p className="text-gray-600 mb-2">{worker.category} Worker</p>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>📍 {worker.distance}</span>
-                <span>⭐ {worker.rating} ({worker.reviewCount})</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  worker.availability === 'available' ? 'bg-green-100 text-green-700' :
-                  worker.availability === 'busy' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-gray-100 text-gray-700'
-                }`}>
-                  {worker.availability}
-                </span>
-              </div>
+            <div>
+              <div className="font-bold text-xl text-gray-900">{worker.completedJobs}</div>
+              <p className="text-gray-500">jobs completed</p>
+            </div>
+            <div>
+              <div className="font-bold text-xl text-green-600">₹{worker.hourlyRate}/hr</div>
+              <p className="text-gray-500">Rate</p>
             </div>
           </div>
-        </ModernCard>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <ModernCard className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{worker.completedJobs}</div>
-            <div className="text-xs text-gray-500">Jobs Done</div>
-          </ModernCard>
-          <ModernCard className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{worker.experience}</div>
-            <div className="text-xs text-gray-500">Experience</div>
-          </ModernCard>
-          <ModernCard className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">₹{worker.salaryExpectation.min}-{worker.salaryExpectation.max}</div>
-            <div className="text-xs text-gray-500">Per {worker.salaryPeriod}</div>
-          </ModernCard>
         </div>
 
         {/* Skills */}
-        <ModernCard className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Skills & Expertise</h3>
+        <div className="bg-white rounded-2xl p-6">
+          <h3 className="font-bold text-lg text-gray-900 mb-4">Skills</h3>
           <div className="flex flex-wrap gap-2">
             {worker.skills.map((skill, index) => (
-              <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <span 
+                key={index} 
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
+              >
                 {skill}
-              </Badge>
+              </span>
             ))}
           </div>
-        </ModernCard>
+        </div>
+
+        {/* Location & Response Time */}
+        <div className="bg-white rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-5 h-5 text-gray-400" />
+              <span className="text-gray-700 font-medium">{worker.distance} away</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Clock className="w-5 h-5 text-gray-400" />
+              <span className="text-gray-700 font-medium">< {worker.responseTime}</span>
+            </div>
+          </div>
+        </div>
 
         {/* About */}
-        <ModernCard className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">About</h3>
+        <div className="bg-white rounded-2xl p-6">
+          <h3 className="font-bold text-lg text-gray-900 mb-3">About</h3>
           <p className="text-gray-700 leading-relaxed">{worker.description}</p>
-        </ModernCard>
-
-        {/* Languages */}
-        <ModernCard className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Languages</h3>
-          <div className="flex flex-wrap gap-2">
-            {worker.languages.map((language, index) => (
-              <Badge key={index} variant="outline" className="bg-gray-50 text-gray-700">
-                {language}
-              </Badge>
-            ))}
-          </div>
-        </ModernCard>
+        </div>
 
         {/* Contact Information */}
         {showContact && (
-          <ModernCard className="p-6 bg-green-50 border-green-200">
-            <h3 className="font-semibold text-gray-900 mb-3">Contact Information</h3>
+          <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
+            <h3 className="font-bold text-lg text-gray-900 mb-3">Contact Information</h3>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span>📞</span>
+                <Phone className="w-4 h-4 text-gray-500" />
                 <span className="font-medium">{worker.phone}</span>
               </div>
               {worker.email && (
@@ -152,23 +160,35 @@ const WorkerProfile = () => {
                 </div>
               )}
             </div>
-          </ModernCard>
+          </div>
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Button 
+              variant="outline" 
+              className="h-12 rounded-2xl border-2 border-gray-200 font-medium"
+              onClick={handleContact}
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Chat
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-12 rounded-2xl border-2 border-gray-200 font-medium"
+              onClick={handleContact}
+            >
+              <Phone className="w-5 h-5 mr-2" />
+              Call
+            </Button>
+          </div>
+          
           <Button 
-            variant="outline" 
-            className="h-12 rounded-xl border-gray-300"
-            onClick={handleContact}
-          >
-            {showContact ? '📞 Call Now' : '👁️ View Contact'}
-          </Button>
-          <Button 
-            className="h-12 bg-green-600 hover:bg-green-700 text-white rounded-xl"
+            className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl text-lg font-medium"
             onClick={handleHire}
           >
-            💼 Hire Now
+            Hire Now
           </Button>
         </div>
       </div>
