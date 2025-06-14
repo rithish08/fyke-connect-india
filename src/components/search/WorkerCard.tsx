@@ -69,7 +69,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 
   return (
     <div
-      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer group flex items-stretch min-h-[140px]"
+      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer group flex items-stretch min-h-[110px]"
       tabIndex={0}
       role="button"
       aria-label={`Open profile of ${name}`}
@@ -77,26 +77,14 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
       onKeyDown={(e) => {
         if (e.key === "Enter") handleProfileClick();
       }}
-      style={{ minHeight: "140px" }} // Slightly larger card
+      style={{ minHeight: "110px" }}
     >
-      {/* Profile Image */}
-      <div className="flex flex-col items-center justify-center pr-4">
+      {/* Profile Image - square/rectangle design */}
+      <div className="flex flex-col items-center justify-center pr-4 w-[65px]">
         <div className="relative">
-          <Avatar
-            className="rounded-xl border border-gray-200 overflow-hidden"
-            style={{
-              width: "70px",
-              height: "104px", // 30% taller than old 80px (16*1.3 ≈ 21 => 16*1.3*5px=104px).
-              minWidth: "70px",
-              minHeight: "104px"
-            }}
-          >
-            <AvatarImage
-              src={profileImage}
-              alt={name}
-              className="object-cover w-full h-full rounded-xl"
-            />
-            <AvatarFallback className="bg-blue-300 text-white font-bold text-lg rounded-xl w-full h-full flex items-center justify-center">
+          <Avatar className="h-16 w-16 rounded-lg border border-gray-200 overflow-hidden">
+            <AvatarImage src={profileImage} alt={name} className="object-cover h-16 w-16 rounded-lg" />
+            <AvatarFallback className="bg-blue-300 text-white font-bold text-lg rounded-lg">
               {name
                 .split(" ")
                 .map((n) => n[0])
@@ -141,9 +129,12 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           {/* Skills/Subcategories */}
           <div className="flex flex-row flex-wrap items-center gap-1 mb-2">
             {displayedSkills.map((skill, i) => (
+              // Only add right margin to first chip if there are more
               <span
                 key={i}
-                className={"bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium"}
+                className={
+                  "bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium"
+                }
               >
                 {skill}
               </span>
@@ -155,30 +146,33 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
             )}
           </div>
         </div>
-        {/* Optional: add content or stats here */}
+        {/* Longer Hire (Rate) button */}
+        <div className="flex gap-2 mt-auto">
+          <Button
+            variant="default"
+            className="h-9 px-6 rounded-lg bg-gradient-to-tl from-blue-600 to-blue-400 text-white font-bold shadow-lg w-[140px] max-w-full tracking-tight"
+            tabIndex={-1}
+            style={{
+              borderRadius: "13px",
+              boxShadow: "0 2px 16px 0 #2563eb33",
+              fontSize: "1.15rem",
+            }}
+            onClick={e => {
+              e.stopPropagation();
+              // Optionally show modal or navigate
+              if (showModal) showModal({ id, name });
+            }}
+          >
+            ₹{hourlyRate} /Hire
+          </Button>
+        </div>
       </div>
 
-      {/* Right side: Hire button above Call and Chat */}
-      <div className="flex flex-col items-end justify-center pl-4 min-w-[120px]">
-        <Button
-          variant="default"
-          className="mb-2 h-10 px-8 rounded-lg bg-gradient-to-tl from-blue-600 to-blue-400 text-white font-bold shadow-lg w-[160px] max-w-full tracking-tight"
-          tabIndex={-1}
-          style={{
-            borderRadius: "13px",
-            boxShadow: "0 2px 16px 0 #2563eb33",
-            fontSize: "1.07rem",
-          }}
-          onClick={e => {
-            e.stopPropagation();
-            if (showModal) showModal({ id, name });
-          }}
-        >
-          ₹{hourlyRate} /Hire
-        </Button>
+      {/* Call & Chat buttons stacked vertically at the right end */}
+      <div className="flex flex-col items-end justify-center pl-4 min-w-[70px]">
         <Button
           variant="outline"
-          className="mb-2 h-9 w-28 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+          className="mb-2 h-9 w-16 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
           onClick={handleCall}
           tabIndex={-1}
         >
@@ -187,7 +181,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         </Button>
         <Button
           variant="outline"
-          className="h-9 w-28 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+          className="h-9 w-16 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
           onClick={handleChat}
           tabIndex={-1}
         >
