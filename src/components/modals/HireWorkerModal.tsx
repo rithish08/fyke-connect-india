@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, CheckCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface HireWorkerModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { translateText, translateCategory } = useTranslation();
 
   const handleHire = async () => {
     setIsSubmitting(true);
@@ -42,8 +44,8 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
     // Simulate API call
     setTimeout(() => {
       toast({
-        title: "Hire Request Sent! 🎉",
-        description: `Your request has been sent to ${worker.name}. They'll respond shortly.`,
+        title: translateText('hire.request_sent', 'Hire Request Sent! 🎉'),
+        description: translateText('hire.request_description', `Your request has been sent to ${worker.name}. They'll respond shortly.`),
       });
       setIsSubmitting(false);
       onClose();
@@ -60,11 +62,11 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
             size="sm"
             onClick={onClose}
             className="absolute right-4 top-4 p-2 rounded-full hover:bg-gray-100"
-            aria-label="Close modal"
+            aria-label={translateText('common.close', 'Close modal')}
           >
             <X className="w-4 h-4" />
           </Button>
-          <DialogTitle className="sr-only">Hire {worker.name}</DialogTitle>
+          <DialogTitle className="sr-only">{translateText('hire.title', `Hire ${worker.name}`)}</DialogTitle>
         </DialogHeader>
 
         <div className="px-6 pb-6">
@@ -88,7 +90,7 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
             
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-lg text-gray-900 truncate">{worker.name}</h3>
-              <p className="text-sm text-gray-600 mb-1">{worker.category}</p>
+              <p className="text-sm text-gray-600 mb-1">{translateCategory(worker.category)}</p>
               <div className="flex items-center space-x-3 text-xs text-gray-500">
                 <div className="flex items-center">
                   <Star className="w-3 h-3 text-yellow-400 mr-1" fill="currentColor" />
@@ -105,17 +107,17 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
             
             <div className="text-right">
               <div className="text-xl font-bold text-green-600">₹{worker.hourlyRate || 350}</div>
-              <div className="text-xs text-gray-500">per hour</div>
+              <div className="text-xs text-gray-500">{translateText('hire.per_hour', 'per hour')}</div>
             </div>
           </div>
 
           {/* Message Input */}
           <div className="space-y-3 mb-6">
             <label className="block text-sm font-medium text-gray-700">
-              Message (Optional)
+              {translateText('hire.message_optional', 'Message (Optional)')}
             </label>
             <Textarea
-              placeholder="Tell them about your project requirements..."
+              placeholder={translateText('hire.message_placeholder', 'Tell them about your project requirements...')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={3}
@@ -130,7 +132,7 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
               disabled={isSubmitting}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-70"
             >
-              {isSubmitting ? 'Sending Request...' : `Hire ${worker.name}`}
+              {isSubmitting ? translateText('hire.sending', 'Sending Request...') : translateText('hire.hire_worker', `Hire ${worker.name}`)}
             </Button>
             
             <Button
@@ -138,7 +140,7 @@ const HireWorkerModal: React.FC<HireWorkerModalProps> = ({
               onClick={onClose}
               className="w-full h-12 rounded-xl border-2 border-gray-200 font-medium hover:bg-gray-50"
             >
-              Cancel
+              {translateText('common.cancel', 'Cancel')}
             </Button>
           </div>
         </div>
