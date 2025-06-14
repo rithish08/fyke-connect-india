@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -101,3 +102,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* --- VISUAL ALIGNMENT BORDER TEST --- */
+/* Remove these lines after testing! */
+div, section, main, header, nav, aside, footer, article {
+  outline: 1px solid #ff8901 !important;
+}
+body > * {
+  outline: 1px solid #1e90ff !important;
+}
+/* --- END VISUAL ALIGNMENT BORDER TEST --- */
+
