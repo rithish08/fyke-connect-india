@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { Phone } from "lucide-react";
-import SignupForm from "@/components/SignupForm";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
@@ -19,6 +19,7 @@ const LoginScreen = () => {
   const handleSendOTP = async () => {
     // Simulate OTP sending
     console.log('Sending OTP to:', phone);
+    localStorage.setItem('fyke_phone', phone || '');
     setOtpSent(true);
   };
 
@@ -31,11 +32,7 @@ const LoginScreen = () => {
     }
   };
 
-  // If user exists but missing name or category, show signup
-  if (user && (!user.name || !user.categories?.length)) {
-    return <SignupForm onComplete={() => window.location.href = "/profile-setup"} />;
-  }
-
+  // Always show login (phone/otp) and on success, go to /profile-setup
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md p-4 rounded-lg shadow-md">

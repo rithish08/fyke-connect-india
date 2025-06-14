@@ -8,6 +8,7 @@ import SkillSelectionStep from '@/components/profile/SkillSelectionStep';
 import SalaryStep from '@/components/profile/SalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
 import { BadgeCheck } from "lucide-react";
+import { useEffect } from 'react';
 
 const STEPS = ["category", "skills", "salary", "availability"];
 
@@ -23,10 +24,15 @@ const ProfileSetup = () => {
   const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+    // If user already completed profile, go to home
+    if (user?.profileComplete) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
 
   // Collect all and save on finish
   const handleFinish = () => {
