@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,17 +9,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/modern-card';
+import CategorySelection from '@/components/search/CategorySelection';
+import SubcategorySelection from '@/components/search/SubcategorySelection';
 import BottomNavigation from '@/components/BottomNavigation';
 import CommunicationButtons from '@/components/communication/CommunicationButtons';
-import { Building2, User } from 'lucide-react';
+import { Building2, User, ArrowLeft, CheckCircle } from 'lucide-react';
 
 const PostJob = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
+  const [currentStep, setCurrentStep] = useState<'category' | 'subcategory' | 'form'>('category');
+  const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string} | null>(null);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
+  
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
     description: '',
     requirements: '',
     location: '',
@@ -32,14 +38,32 @@ const PostJob = () => {
     businessType: 'personal' as 'personal' | 'commercial'
   });
 
-  const categories = [
-    'Construction', 'Delivery', 'Cleaning', 'Security', 'Warehouse', 
-    'Manufacturing', 'Driver', 'Cook', 'Helper', 'Maintenance'
-  ];
+  const handleCategorySelect = (categoryId: string, categoryName: string) => {
+    setSelectedCategory({ id: categoryId, name: categoryName });
+    setCurrentStep('subcategory');
+  };
+
+  const handleSubcategorySelect = (subcategory: string) => {
+    if (selectedSubcategories.includes(subcategory)) {
+      setSelectedSubcategories(prev => prev.filter(s => s !== subcategory));
+    } else {
+      setSelectedSubcategories(prev => [...prev, subcategory]);
+    }
+  };
+
+  const handleProceedToForm = () => {
+    if (selectedSubcategories.length > 0) {
+      setCurrentStep('form');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Job posted:', formData);
+    console.log('Job posted:', {
+      ...formData,
+      category: selectedCategory,
+      subcategories: selectedSubcategories
+    });
     alert('Job posted successfully!');
     navigate('/my-jobs');
   };
@@ -53,6 +77,87 @@ const PostJob = () => {
     return null;
   }
 
+  // Category Selection Step
+  if (currentStep === 'category') {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="bg-white shadow-sm p-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/home')}
+              className="p-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <h1 className="text-xl font-bold text-gray-900">Post New Job</h1>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-6">
+          <ModernCard className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Select Job Category</h2>
+            <p className="text-gray-600 mb-6">Choose the type of work you need help with</p>
+            <CategorySelection 
+              onCategorySelect={handleCategorySelect}
+              title="What type of worker do you need?"
+            />
+          </ModernCard>
+        </div>
+
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  // Subcategory Selection Step
+  if (currentStep === 'subcategory' && selectedCategory) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="bg-white shadow-sm p-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setCurrentStep('category')}
+              className="p-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <h1 className="text-xl font-bold text-gray-900">Select Skills Needed</h1>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-6">
+          <ModernCard className="p-6">
+            <SubcategorySelection
+              categoryId={selectedCategory.id}
+              onSubcategorySelect={handleSubcategorySelect}
+              onBack={() => setCurrentStep('category')}
+              selectedSubcategories={selectedSubcategories}
+              multiSelect={true}
+            />
+            
+            {selectedSubcategories.length > 0 && (
+              <div className="mt-6">
+                <Button 
+                  className="w-full"
+                  onClick={handleProceedToForm}
+                >
+                  Continue to Job Details ({selectedSubcategories.length} skills selected)
+                </Button>
+              </div>
+            )}
+          </ModernCard>
+        </div>
+
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  // Job Form Step
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
@@ -61,16 +166,31 @@ const PostJob = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/home')}
+            onClick={() => setCurrentStep('subcategory')}
             className="p-2"
           >
-            ←
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-xl font-bold text-gray-900">Post New Job</h1>
+          <h1 className="text-xl font-bold text-gray-900">Job Details</h1>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Selected Category & Skills Summary */}
+        <ModernCard className="p-4 bg-green-50 border-green-200">
+          <div className="flex items-center space-x-2 mb-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span className="font-semibold text-green-900">Selected Category: {selectedCategory?.name}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedSubcategories.map((skill) => (
+              <Badge key={skill} variant="default" className="bg-green-600">
+                {skill}
+              </Badge>
+            ))}
+          </div>
+        </ModernCard>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Business Type Selection */}
           <ModernCard className="p-6">
@@ -108,38 +228,25 @@ const PostJob = () => {
             <h2 className="text-lg font-semibold mb-4">Job Details</h2>
             <div className="space-y-4">
               <Input
-                placeholder="Job Title (e.g., Construction Worker Needed)"
+                placeholder="Job Title (e.g., Need Experienced Plumber for Bathroom Repair)"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 required
               />
-              
-              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat.toLowerCase()}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
 
               <Textarea
-                placeholder="Job Description"
+                placeholder="Detailed Job Description - What work needs to be done?"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={3}
+                rows={4}
                 required
               />
 
               <Textarea
-                placeholder="Requirements & Skills Needed"
+                placeholder="Specific Requirements & Skills Needed (e.g., Experience with modern fixtures, Own tools required)"
                 value={formData.requirements}
                 onChange={(e) => handleInputChange('requirements', e.target.value)}
-                rows={2}
+                rows={3}
               />
             </div>
           </ModernCard>
@@ -149,7 +256,7 @@ const PostJob = () => {
             <h2 className="text-lg font-semibold mb-4">Location & Pay</h2>
             <div className="space-y-4">
               <Input
-                placeholder="Job Location"
+                placeholder="Job Location (Address or Area)"
                 value={formData.location}
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 required
@@ -187,7 +294,7 @@ const PostJob = () => {
 
           {/* Job Type & Urgency */}
           <ModernCard className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Job Type</h2>
+            <h2 className="text-lg font-semibold mb-4">Job Type & Priority</h2>
             <div className="space-y-4">
               <Select value={formData.jobType} onValueChange={(value) => handleInputChange('jobType', value)}>
                 <SelectTrigger>
@@ -218,7 +325,7 @@ const PostJob = () => {
             </div>
           </ModernCard>
 
-          {/* Contact Information with Communication Options */}
+          {/* Contact Information */}
           <ModernCard className="p-6">
             <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
             <div className="space-y-4">
@@ -260,7 +367,7 @@ const PostJob = () => {
               Post Job Now
             </Button>
             <p className="text-xs text-gray-500 text-center">
-              Your job will be visible to {Math.floor(Math.random() * 200 + 100)} workers in your area
+              Your job will be visible to workers matching the selected skills in your area
             </p>
           </div>
         </form>

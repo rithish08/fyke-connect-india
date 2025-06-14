@@ -24,7 +24,12 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
   const category = categories.find(cat => cat.id === categoryId);
   
   if (!category) {
-    return <div>Category not found</div>;
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Category not found</p>
+        <Button onClick={onBack} className="mt-4">Go Back</Button>
+      </div>
+    );
   }
 
   const IconComponent = category.icon;
@@ -32,9 +37,6 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-3">
-        <Button variant="ghost" size="sm" onClick={onBack} className="p-2">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
         <div className="flex items-center space-x-3">
           <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center`}>
             <IconComponent className="w-4 h-4 text-white" />
@@ -44,7 +46,8 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
       </div>
 
       {multiSelect && selectedSubcategories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 p-4 bg-blue-50 rounded-lg">
+          <p className="w-full text-sm font-medium text-blue-900 mb-2">Selected Specializations:</p>
           {selectedSubcategories.map((sub) => (
             <Badge key={sub} variant="default" className="bg-blue-600">
               {sub}
@@ -60,7 +63,7 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
             <ModernCard
               key={subcategory}
               className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                isSelected ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'
+                isSelected ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500' : 'hover:bg-gray-50'
               }`}
               onClick={() => onSubcategorySelect(subcategory)}
             >
@@ -76,17 +79,13 @@ const SubcategorySelection: React.FC<SubcategorySelectionProps> = ({
       </div>
 
       {multiSelect && (
-        <div className="pt-4 border-t">
-          <Button 
-            className="w-full"
-            disabled={selectedSubcategories.length === 0}
-            onClick={() => {
-              // This would trigger the search with selected subcategories
-              console.log('Search with:', selectedSubcategories);
-            }}
-          >
-            Search {selectedSubcategories.length > 0 ? `(${selectedSubcategories.length} selected)` : ''}
-          </Button>
+        <div className="pt-4 border-t bg-white p-4 rounded-lg">
+          <p className="text-sm text-gray-600 mb-3">
+            {selectedSubcategories.length === 0 
+              ? 'Select one or more specializations to continue'
+              : `${selectedSubcategories.length} specialization${selectedSubcategories.length > 1 ? 's' : ''} selected`
+            }
+          </p>
         </div>
       )}
     </div>
