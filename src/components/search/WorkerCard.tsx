@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, MessageCircle, Phone, CheckCircle, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import HireWorkerModal from "./HireWorkerModal";
+import HireWorkerModal from "@/components/modals/HireWorkerModal";
 
 interface WorkerCardProps {
   id: string | number;
@@ -13,10 +14,14 @@ interface WorkerCardProps {
   skills: string[];
   rating: number;
   completedJobs?: number;
+  verificationLevel?: "basic" | "verified" | "premium";
+  responseTime?: string;
   distance?: string;
   hourlyRate?: number;
   isOnline?: boolean;
   profileImage?: string;
+  onClick?: (worker: any) => void;
+  showModal?: (worker: any) => void;
 }
 
 const WorkerCard: React.FC<WorkerCardProps> = ({
@@ -26,10 +31,13 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   skills = [],
   rating,
   completedJobs = 0,
+  verificationLevel = "basic",
+  responseTime = "< 1hr",
   distance = "1.2 km",
   hourlyRate = 350,
   isOnline = false,
   profileImage = "/placeholder.svg",
+  onClick,
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -67,13 +75,14 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
     });
   };
 
+  // Get first two skills
   const displayedSkills = skills.slice(0, 2);
   const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
 
   return (
     <>
       <div
-        className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer flex items-start min-h-[96px] gap-3"
+        className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer group flex items-start min-h-[110px]"
         tabIndex={0}
         role="button"
         aria-label={`Open profile of ${name}`}
@@ -81,59 +90,89 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         onKeyDown={(e) => {
           if (e.key === "Enter") handleProfileClick();
         }}
+        style={{ minHeight: "110px" }}
       >
-        <div className="relative shrink-0">
-          <Avatar className="h-14 w-14 rounded-lg border border-gray-200 overflow-hidden">
-            <AvatarImage src={profileImage} alt={name} className="object-cover h-14 w-14 rounded-lg" />
-            <AvatarFallback className="bg-blue-300 text-white font-bold text-lg rounded-lg">
-              {name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          {isOnline && (
-            <span className="absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white z-40" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <div className="flex gap-2 items-center mb-0.5">
-            <span className="font-semibold leading-4 text-base text-gray-900 truncate max-w-[145px]">{name}</span>
-            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">{category}</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-gray-600">
-            <span className="flex items-center"><Star className="w-4 h-4 text-yellow-400 mr-0.5" fill="currentColor" />{rating}</span>
-            <span className="mx-1 text-gray-300 font-bold">·</span>
-            {completedJobs > 0 && (
-              <span>{completedJobs} jobs</span>
+        {/* Profile image and info, make image wider and aligned with name */}
+        <div className="flex flex-col justify-start items-center pr-2 pt-1">
+          <div className="relative">
+            <Avatar className="h-20 w-20 rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+              <AvatarImage src={profileImage} alt={name} className="object-cover h-20 w-20 rounded-lg" />
+              <AvatarFallback className="bg-blue-300 text-white font-bold text-xl rounded-lg">
+                {name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {isOnline && (
+              <span className="absolute bottom-1 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white z-40" />
             )}
-            <span className="mx-1 text-gray-300 font-bold">·</span>
-            <span className="flex items-center"><MapPin className="w-3 h-3 text-gray-400 mr-0.5" />{distance}</span>
-          </div>
-          <div className="flex flex-wrap gap-1 mt-0.5">
-            {displayedSkills.map((skill) => (
-              <span
-                key={skill}
-                className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-medium text-xs"
-              >
-                {skill}
+            {verificationLevel !== "basic" && (
+              <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-white flex items-center justify-center z-40">
+                <CheckCircle className="w-3 h-3 text-white" fill="currentColor" />
               </span>
-            ))}
-            {moreSkills > 0 && (
-              <span className="text-gray-500 text-xs font-medium">+{moreSkills} more</span>
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-1 items-end justify-between ml-2">
+
+        {/* Main info section */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between gap-0">
+          <div>
+            {/* Name & main info (inline with profile image) */}
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-base text-gray-900 truncate max-w-[170px]" style={{ lineHeight: "1.2" }}>
+                {name}
+              </span>
+            </div>
+            {/* Category below name */}
+            <div>
+              <span className="mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                {category}
+              </span>
+            </div>
+            {/* Rating + Distance */}
+            <div className="flex items-center gap-2 mt-1 mb-1 text-gray-600 text-[13px]">
+              <Star className="w-4 h-4 text-yellow-400 mr-0.5" fill="currentColor" />
+              <span className="font-medium">{rating}</span>
+              <span className="mx-2 text-gray-300">|</span>
+              <MapPin className="w-4 h-4 mr-0.5 text-gray-400" />
+              <span className="text-xs text-gray-500">{distance}</span>
+            </div>
+            {/* Skills/Subcategories and +more */}
+            <div className="flex flex-row flex-wrap items-center gap-1 mb-2">
+              {displayedSkills.map((skill, i) => (
+                <span
+                  key={i}
+                  className="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium"
+                >
+                  {skill}
+                </span>
+              ))}
+              {moreSkills > 0 && (
+                <span className="text-xs text-gray-400 ml-1">
+                  +{moreSkills} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right side column for actions */}
+        <div className="flex flex-col items-end justify-center pl-4 min-w-[80px]">
           <Button
             variant={hireRequested ? "secondary" : "default"}
-            className={`h-8 px-3 rounded-lg text-xs font-semibold shadow border-none outline-none min-w-[66px]
+            className={`h-10 w-28 mb-3 rounded-xl font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
               ${hireRequested
                 ? "bg-green-100 text-green-700 cursor-default"
                 : "bg-gradient-to-tr from-blue-500 via-sky-400 to-indigo-400 text-white hover:scale-105 hover:bg-blue-600"
               }`}
+            tabIndex={-1}
             disabled={hireRequested}
+            style={{
+              letterSpacing: "0.01em",
+              boxShadow: "0 4px 16px 0 #2563eb20",
+            }}
             onClick={e => {
               e.stopPropagation();
               if (!hireRequested) setHireOpen(true);
@@ -141,26 +180,24 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           >
             {hireRequested ? "Requested" : `₹${hourlyRate} /Hire`}
           </Button>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              className="rounded-lg p-1 text-gray-700 border min-w-0"
-              size="icon"
-              onClick={handleCall}
-              tabIndex={-1}
-            >
-              <Phone className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-lg p-1 text-gray-700 border min-w-0"
-              size="icon"
-              onClick={handleChat}
-              tabIndex={-1}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="mb-2 h-9 w-28 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+            onClick={handleCall}
+            tabIndex={-1}
+          >
+            <Phone className="w-4 h-4 mr-1" />
+            Call
+          </Button>
+          <Button
+            variant="outline"
+            className="h-9 w-28 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+            onClick={handleChat}
+            tabIndex={-1}
+          >
+            <MessageCircle className="w-4 h-4 mr-1" />
+            Chat
+          </Button>
         </div>
       </div>
       <HireWorkerModal
