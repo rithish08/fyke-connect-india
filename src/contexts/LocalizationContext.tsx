@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface LocalizationContextType {
@@ -70,7 +69,13 @@ const translations = {
     'profile.personal_info': 'Personal Information',
     'profile.skills': 'Skills',
     'profile.verification': 'Verification',
-    'profile.settings': 'Settings'
+    'profile.settings': 'Settings',
+    'common.switchMode': 'Switch Mode',
+    'common.select_role': 'Select your role to continue',
+    'role.switch_hint': 'You can switch roles anytime later in the app',
+    'home.greetingMorning': 'Good Morning',
+    'home.greetingAfternoon': 'Good Afternoon',
+    'home.greetingEvening': 'Good Evening',
   },
   
   hi: {
@@ -134,7 +139,13 @@ const translations = {
     'profile.personal_info': 'Personal Information',
     'profile.skills': 'Skills',
     'profile.verification': 'Verification',
-    'profile.settings': 'Settings'
+    'profile.settings': 'Settings',
+    'common.switchMode': 'मोड बदलें',
+    'common.select_role': 'आगे बढ़ने के लिए अपनी भूमिका चुनें',
+    'role.switch_hint': 'आप बाद में कभी भी भूमिका बदल सकते हैं',
+    'home.greetingMorning': 'सुप्रभात',
+    'home.greetingAfternoon': 'शुभ अपराह्न',
+    'home.greetingEvening': 'शुभ संध्या',
   },
   
   ta: {
@@ -198,7 +209,13 @@ const translations = {
     'profile.personal_info': 'Personal Information',
     'profile.skills': 'Skills',
     'profile.verification': 'Verification',
-    'profile.settings': 'Settings'
+    'profile.settings': 'Settings',
+    'common.switchMode': 'முறையை மாற்றவும்',
+    'common.select_role': 'தொடர உங்கள் பாத்திரத்தை தேர்ந்தெடுக்கவும்',
+    'role.switch_hint': 'நீங்கள் எதிர்காலத்தில் வேறு பங்கு எப்போதும் மாற்றலாம்',
+    'home.greetingMorning': 'காலை வணக்கம்',
+    'home.greetingAfternoon': 'மதியம் வணக்கம்',
+    'home.greetingEvening': 'மாலை வணக்கம்',
   }
 };
 
@@ -220,13 +237,14 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const storedLang = localStorage.getItem('fyke_language');
     if (storedLang && translations[storedLang as keyof typeof translations]) {
       setLanguageState(storedLang);
+      document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
     }
   }, []);
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang);
     localStorage.setItem('fyke_language', lang);
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+    document.documentElement.dir = ['ar', 'ur'].includes(lang) ? 'rtl' : 'ltr';
   };
 
   const t = (key: string, fallback?: string): string => {
