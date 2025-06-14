@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, MapPin, Zap, Building2, Star } from "lucide-react";
+import { Clock, MapPin, Zap, Building2, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -35,7 +35,6 @@ const JobCard: React.FC<JobCardProps> = ({
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    // Navigate to job details with job data
     navigate(`/job/${title.replace(/\s+/g, '-').toLowerCase()}`, {
       state: {
         job: {
@@ -58,112 +57,90 @@ const JobCard: React.FC<JobCardProps> = ({
 
   const handleApplyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement apply functionality
     console.log(`Applying for ${title}`);
-  };
-
-  const handleSaveClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log(`Saving job: ${title}`);
   };
 
   return (
     <div
-      className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group"
+      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group"
       onClick={handleCardClick}
-      tabIndex={0}
-      role="listitem"
-      aria-label={title}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2">
-            <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{title}</h3>
+      <div className="flex items-start justify-between mb-3">
+        {/* Left Section - Job Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2 mb-1">
+            <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+              {title}
+            </h3>
             {urgent && (
-              <Badge variant="destructive" className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center">
+              <Badge variant="destructive" className="bg-red-500 text-white text-xs px-2 py-0.5 font-bold">
                 <Zap className="w-3 h-3 mr-1" />
                 URGENT
               </Badge>
             )}
           </div>
           
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="flex items-center space-x-2 mb-1">
             <Building2 className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-700 font-medium">{company}</span>
+            <span className="text-sm text-gray-700 font-medium truncate">{company}</span>
             <div className="flex items-center space-x-1">
               <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
-              <span className="text-sm text-gray-600">{companyRating}</span>
+              <span className="text-xs text-gray-600">{companyRating}</span>
             </div>
           </div>
           
-          <p className="text-gray-500 text-sm">{category}</p>
+          <p className="text-xs text-gray-500 mb-2 truncate">{category}</p>
+          
+          <div className="flex items-center space-x-3 text-xs text-gray-500">
+            <div className="flex items-center space-x-1">
+              <MapPin className="w-3 h-3" />
+              <span>{distance}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Clock className="w-3 h-3" />
+              <span>{postedTime}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Users className="w-3 h-3" />
+              <span>{applicants} applied</span>
+            </div>
+          </div>
         </div>
         
-        <div className="text-right">
-          <div className="text-2xl font-bold text-green-600">₹{salary}</div>
-          <div className="text-sm text-gray-500">{applicants} applied</div>
+        {/* Right Section - Salary + Action */}
+        <div className="flex items-center space-x-3 flex-shrink-0">
+          <div className="text-right">
+            <div className="text-xl font-bold text-green-600">₹{salary}</div>
+            <div className="text-xs text-gray-500">per day</div>
+          </div>
+          
+          <Button
+            size="sm"
+            className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all"
+            onClick={handleApplyClick}
+          >
+            Apply
+          </Button>
         </div>
       </div>
-
-      {/* Description */}
-      <p className="text-gray-700 mb-4 text-sm leading-relaxed line-clamp-2">{description}</p>
-
-      {/* Skills */}
+      
+      {/* Skills - Compact Row */}
       {skills.length > 0 && (
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
+        <div className="pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-1.5">
             {skills.slice(0, 4).map((skill, i) => (
-              <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
+              <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">
                 {skill}
               </span>
             ))}
             {skills.length > 4 && (
-              <span className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-sm">
-                +{skills.length - 4} more
+              <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-xs">
+                +{skills.length - 4}
               </span>
             )}
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mb-4 text-sm text-gray-500 border-t pt-4">
-        <div className="flex items-center space-x-4">
-          <span className="flex items-center space-x-1">
-            <MapPin className="w-4 h-4" />
-            <span>{distance}</span>
-          </span>
-          <span className="flex items-center space-x-1">
-            <Clock className="w-4 h-4" />
-            <span>{postedTime}</span>
-          </span>
-        </div>
-        
-        {urgent && (
-          <span className="text-red-600 font-medium text-xs flex items-center">
-            <Zap className="w-3 h-3 mr-1" />
-            Quick Response Needed
-          </span>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex space-x-3">
-        <Button
-          variant="outline"
-          className="flex-1 h-11 rounded-2xl border-2 border-gray-200 hover:border-gray-300 font-medium transition-all"
-          onClick={handleSaveClick}
-        >
-          Save
-        </Button>
-        <Button
-          className="flex-1 h-11 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-medium transition-all hover:shadow-lg"
-          onClick={handleApplyClick}
-        >
-          Apply Now
-        </Button>
-      </div>
     </div>
   );
 };

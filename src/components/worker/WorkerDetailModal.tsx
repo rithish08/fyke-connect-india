@@ -5,9 +5,10 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Clock, ArrowLeft, MessageCircle, Phone, Shield } from 'lucide-react';
+import { Star, MapPin, Clock, ArrowLeft, MessageCircle, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
@@ -61,11 +62,21 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
     navigate('/messages', { state: { workerId: worker.id, workerName: worker.name } });
   };
 
+  const getVerificationBadge = () => {
+    switch (worker.verificationLevel) {
+      case 'premium': return { color: 'bg-purple-500', text: 'Premium' };
+      case 'verified': return { color: 'bg-green-500', text: 'Verified' };
+      default: return null;
+    }
+  };
+
+  const verificationBadge = getVerificationBadge();
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 rounded-3xl bg-white">
-        {/* Header with Back Button */}
         <DialogHeader className="relative p-6 pb-4">
+          <DialogTitle className="sr-only">Worker Profile - {worker.name}</DialogTitle>
           <Button 
             variant="ghost" 
             size="sm" 
@@ -86,11 +97,13 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
                   {worker.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              {worker.verificationLevel !== 'basic' && (
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-3 border-white">
+              
+              {verificationBadge && (
+                <div className={`absolute -bottom-1 -right-1 w-7 h-7 ${verificationBadge.color} rounded-full flex items-center justify-center border-3 border-white`}>
                   <Shield className="w-4 h-4 text-white" fill="currentColor" />
                 </div>
               )}
+              
               {worker.isOnline && (
                 <div className="absolute top-1 right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
               )}
@@ -105,9 +118,18 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
               <span className="text-gray-500">({worker.completedJobs} reviews)</span>
             </div>
 
-            <Badge variant="secondary" className="bg-green-100 text-green-700">
-              Available now
-            </Badge>
+            <div className="flex items-center space-x-2">
+              {worker.isOnline && (
+                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  Available now
+                </Badge>
+              )}
+              {verificationBadge && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  {verificationBadge.text}
+                </Badge>
+              )}
+            </div>
           </div>
 
           {/* Quick Stats */}
@@ -130,7 +152,7 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 mb-3">Skills & Expertise</h3>
             <div className="flex flex-wrap gap-2">
-              {worker.skills.slice(0, 4).map((skill, idx) => (
+              {worker.skills.map((skill, idx) => (
                 <span
                   key={idx}
                   className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
@@ -138,11 +160,6 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
                   {skill}
                 </span>
               ))}
-              {worker.skills.length > 4 && (
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm">
-                  +{worker.skills.length - 4} more
-                </span>
-              )}
             </div>
           </div>
 
