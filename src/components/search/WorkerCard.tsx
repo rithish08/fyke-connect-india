@@ -52,13 +52,13 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 
   return (
     <div
-      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer group flex items-start min-h-[110px]"
+      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 cursor-pointer group hover:shadow-md hover:border-gray-200 flex items-start"
       tabIndex={0}
       role="button"
       aria-label={`Open profile of ${name}`}
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
-      style={{ minHeight: '110px' }}
+      style={{ minHeight: '130px' }}
     >
       <WorkerAvatar
         name={name}

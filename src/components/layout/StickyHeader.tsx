@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { Bell, ArrowRightLeft, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ScrollingNotification from "./ScrollingNotification";
+import { getResponsiveTextSize } from "@/utils/textSizing";
 
 const pageNames: Record<string, string> = {
   "/home": "home.title",
@@ -21,71 +23,65 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
   const location = useLocation();
   const { t } = useLocalization();
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return t('home.greetingMorning', 'Good Morning');
-    if (hour < 17) return t('home.greetingAfternoon', 'Good Afternoon');
-    return t('home.greetingEvening', 'Good Evening');
-  };
-
   const pageKey = pageNames[location.pathname] || "app.title";
   const pageTitle = t(pageKey, "App");
   const isJobSeeker = user?.role === "jobseeker";
   const roleDisplayName = isJobSeeker ? t('role.jobseeker', 'Job Seeker') : t('role.employer', 'Employer');
 
+  const roleFontSize = getResponsiveTextSize(roleDisplayName, {
+    baseSize: 12,
+    minSize: 10,
+    maxSize: 14
+  });
+
   return (
     <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-      {/* Top Header with Brand, Role, and Bell */}
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center space-x-2">
+      {/* Scrolling Notification Bar */}
+      <ScrollingNotification />
+      
+      {/* Main Header */}
+      <div className="flex items-center justify-between h-14 px-4 border-b border-gray-50">
+        <div className="flex items-center space-x-3">
           <span className="font-black text-3xl text-gray-900 tracking-tight">fyke</span>
           <span className="text-gray-300 text-2xl font-light">/</span>
-          <span className="text-sm font-medium text-gray-500 capitalize">{roleDisplayName}</span>
-        </div>
-        <button 
-          onClick={() => navigate('/notifications')}
-          className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-        >
-          <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
-        </button>
-      </div>
-      
-      {/* User Info with Role Switcher */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <p className="text-lg font-semibold text-gray-800">
-              {getGreeting()}! 👋
-            </p>
+          <div 
+            className="px-2 py-1 rounded-full bg-gray-100 font-medium text-gray-600 capitalize max-w-[100px] overflow-hidden"
+            style={{ fontSize: roleFontSize }}
+          >
+            <span className="truncate block">{roleDisplayName}</span>
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {user?.name ?? user?.phone}
-          </p>
         </div>
         
-        {/* Compact Role Switcher */}
-        <div className="flex items-center">
+        <div className="flex items-center space-x-3">
+          {/* Role Switcher */}
           <Button
             onClick={switchRole}
             variant="outline"
             size="sm"
-            className="h-9 px-3 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 border flex items-center space-x-2"
+            className="h-8 px-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 border flex items-center space-x-1.5"
             title={`Switch to ${isJobSeeker ? 'Employer' : 'Job Seeker'}`}
           >
-            <div className={`flex items-center justify-center w-5 h-5 rounded-full ${
+            <div className={`flex items-center justify-center w-4 h-4 rounded-full ${
               isJobSeeker ? 'bg-blue-100' : 'bg-green-100'
             }`}>
-              {isJobSeeker ? <User className="w-3 h-3 text-blue-600" /> : <Users className="w-3 h-3 text-green-600" />}
+              {isJobSeeker ? <User className="w-2.5 h-2.5 text-blue-600" /> : <Users className="w-2.5 h-2.5 text-green-600" />}
             </div>
-            <ArrowRightLeft className="w-3.5 h-3.5 text-gray-600" />
-            <span className="text-xs font-medium text-gray-700">{t('common.switch', 'Switch')}</span>
+            <ArrowRightLeft className="w-3 h-3 text-gray-600" />
           </Button>
+          
+          {/* Notification Bell */}
+          <button 
+            onClick={() => navigate('/notifications')}
+            className="relative flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <Bell className="w-4 h-4 text-gray-600" />
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
+          </button>
         </div>
       </div>
 
-      {/* Page Name */}
-      <div className="flex items-center min-h-[28px] px-4 pb-2 text-xs text-gray-400 font-medium select-none border-b border-gray-50">
+      {/* Page Title */}
+      <div className="flex items-center min-h-[32px] px-4 py-2 text-sm text-gray-500 font-medium border-b border-gray-50">
         <span>{pageTitle}</span>
       </div>
     </div>
