@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, MessageCircle, Phone, CheckCircle, MapPin } from "lucide-react";
@@ -44,7 +45,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   distance = "1.2 km",
   hourlyRate = 350,
   isOnline = false,
-  profileImage = "/placeholder.svg",
+  profileImage = "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=400&fit=crop&crop=face",
   onClick,
 }) => {
   const navigate = useNavigate();
@@ -107,11 +108,11 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         style={{ minHeight: "110px" }}
       >
         {/* Profile Section */}
-        <div className="flex flex-col justify-start items-center pr-2 pt-1">
+        <div className="flex flex-col justify-start items-center pr-3 pt-1">
           <div className="relative">
-            <Avatar className="h-20 w-20 rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-              <AvatarImage src={profileImage} alt={name} className="object-cover h-20 w-20 rounded-lg" />
-              <AvatarFallback className="bg-blue-300 text-white font-bold text-xl rounded-lg">
+            <Avatar className="h-18 w-18 rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+              <AvatarImage src={profileImage} alt={name} className="object-cover h-18 w-18 rounded-lg" />
+              <AvatarFallback className="bg-blue-300 text-white font-bold text-lg rounded-lg">
                 {name
                   .split(" ")
                   .map((n) => n[0])
@@ -130,21 +131,21 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col justify-between gap-0">
+        <div className="flex-1 min-w-0 flex flex-col justify-between gap-1">
           <div>
-            {/* Name & main info (inline with profile image) */}
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-base text-gray-900 truncate max-w-[170px]" style={{ lineHeight: "1.2" }}>
+            {/* Name & main info */}
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-semibold text-base text-gray-900 truncate max-w-[160px]" style={{ lineHeight: "1.2" }}>
                 {name}
               </span>
             </div>
-            {/* Category below name */}
-            <div>
+            {/* Category */}
+            <div className="mb-1">
               <span
-                className="mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-700"
+                className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-700"
                 style={{
-                  fontSize: getResponsiveFontSize(translateCategory(category), 13, 8),
-                  maxWidth: 92,
+                  fontSize: getResponsiveFontSize(translateCategory(category), 12, 8),
+                  maxWidth: 85,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap"
@@ -154,22 +155,26 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
               </span>
             </div>
             {/* Rating + Distance */}
-            <div className="flex items-center gap-2 mt-1 mb-1 text-gray-600 text-[13px]">
-              <Star className="w-4 h-4 text-yellow-400 mr-0.5" fill="currentColor" />
-              <span className="font-medium">{rating}</span>
-              <span className="mx-2 text-gray-300">|</span>
-              <MapPin className="w-4 h-4 mr-0.5 text-gray-400" />
-              <span className="text-xs text-gray-500">{distance}</span>
+            <div className="flex items-center gap-2 mb-2 text-gray-600 text-[12px]">
+              <div className="flex items-center">
+                <Star className="w-3.5 h-3.5 text-yellow-400 mr-1" fill="currentColor" />
+                <span className="font-medium">{rating}</span>
+              </div>
+              <span className="mx-1 text-gray-300">|</span>
+              <div className="flex items-center">
+                <MapPin className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                <span className="text-xs text-gray-500">{distance}</span>
+              </div>
             </div>
-            {/* Skills/Subcategories and +more */}
-            <div className="flex flex-row flex-wrap items-center gap-1 mb-2">
+            {/* Skills */}
+            <div className="flex flex-row flex-wrap items-center gap-1">
               {displayedSkills.map((skill, i) => (
                 <span
                   key={i}
                   className="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium"
                   style={{
-                    fontSize: getResponsiveFontSize(skill, 12, 8),
-                    maxWidth: 90,
+                    fontSize: getResponsiveFontSize(skill, 11, 8),
+                    maxWidth: 85,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap"
@@ -188,14 +193,14 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         </div>
 
         {/* Actions column */}
-        <div className="flex flex-col items-end justify-center pl-4 min-w-[80px] w-full max-w-[150px]">
-          {/* Helper text above the button, intentionally with poor grammar, no punctuation */}
-          <div className="mb-1 w-full text-[11px] text-left text-gray-400 font-medium leading-tight truncate" style={{lineHeight: 1.1, marginBottom: 2}}>
-            to hire click the bluebutton to hire with rate
+        <div className="flex flex-col items-end justify-center pl-4 min-w-[85px] w-full max-w-[140px]">
+          {/* Helper text */}
+          <div className="mb-1 w-full text-[10px] text-left text-gray-400 font-medium leading-tight" style={{lineHeight: 1.1, marginBottom: 3}}>
+            click to request
           </div>
           <Button
             variant={hireRequested ? "secondary" : "default"}
-            className={`h-7 w-[40%] min-w-[66px] max-w-[120px] px-2 py-1 mb-1 rounded-lg font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
+            className={`h-10 w-[40%] min-w-[70px] max-w-[110px] px-2 py-1 mb-1 rounded-lg font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
               ${hireRequested
                 ? "bg-green-100 text-green-700 cursor-default"
                 : "bg-gradient-to-tr from-blue-500 via-sky-400 to-indigo-400 text-white hover:scale-105 hover:bg-blue-600"
@@ -203,11 +208,10 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
             tabIndex={-1}
             disabled={hireRequested}
             style={{
-              letterSpacing: "0.01em",
-              boxShadow: "0 4px 16px 0 #2563eb20",
-              fontSize: !hireRequested && String(hourlyRate).length > 10 ? "11px" : "13px",
-              minHeight: "28px",
-              minWidth: "68px"
+              letterSpacing: "0.01em",3              boxShadow: "0 4px 16px 0 #2563eb20",
+              fontSize: !hireRequested && String(hourlyRate).length > 10 ? "11px" : "12px",
+              minHeight: "40px",
+              minWidth: "70px"
             }}
             onClick={e => {
               e.stopPropagation();
@@ -218,20 +222,19 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </Button>
           <Button
             variant="outline"
-            className="mb-1 h-8 min-w-0 px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 flex items-center justify-center"
+            className="mb-1 h-8 w-[40%] min-w-[70px] max-w-[110px] px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 flex items-center justify-center"
             onClick={e => {
               e.stopPropagation();
               toast({ title: "Calling...", description: `Calling ${name}` });
             }}
             tabIndex={-1}
-            style={{ width: "fit-content" }}
           >
-            <Phone className="w-4 h-4 mr-1" />
+            <Phone className="w-3.5 h-3.5 mr-1" />
             Call
           </Button>
           <Button
             variant="outline"
-            className="h-8 min-w-0 px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 flex items-center justify-center"
+            className="h-8 w-[40%] min-w-[70px] max-w-[110px] px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 flex items-center justify-center"
             onClick={e => {
               e.stopPropagation();
               navigate("/messages", {
@@ -242,9 +245,8 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
               });
             }}
             tabIndex={-1}
-            style={{ width: "fit-content" }}
           >
-            <MessageCircle className="w-4 h-4 mr-1" />
+            <MessageCircle className="w-3.5 h-3.5 mr-1" />
             Chat
           </Button>
         </div>
