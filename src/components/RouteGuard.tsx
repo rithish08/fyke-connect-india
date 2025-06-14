@@ -26,7 +26,7 @@ const RouteGuard = ({
   if ((requireAuth || requireProfile) && !isFlowComplete) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <ShimmerLoader height={60} width={200} />
+        <ShimmerLoader height={60} width="200px" />
       </div>
     );
   }
