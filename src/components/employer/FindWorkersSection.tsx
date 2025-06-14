@@ -1,18 +1,11 @@
-
 import { useNavigate } from 'react-router-dom';
 import { ModernCard } from '@/components/ui/modern-card';
 import AnimatedWrapper from '@/components/AnimatedWrapper';
 import { Users } from 'lucide-react';
-
 const FindWorkersSection = () => {
   const navigate = useNavigate();
-
-  return (
-    <AnimatedWrapper variant="slide" direction="up" delay={100}>
-      <ModernCard 
-        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105"
-        onClick={() => navigate('/search')}
-      >
+  return <AnimatedWrapper variant="slide" direction="up" delay={100}>
+      <ModernCard onClick={() => navigate('/search')} className="bg-gradient-to-r from-blue-200 to-purple-200 text-white border-0 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -29,8 +22,6 @@ const FindWorkersSection = () => {
           </div>
         </div>
       </ModernCard>
-    </AnimatedWrapper>
-  );
+    </AnimatedWrapper>;
 };
-
 export default FindWorkersSection;
