@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { Bell, ArrowRightLeft, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ScrollingNotification from "./ScrollingNotification";
 
 const pageNames: Record<string, string> = {
   "/home": "home.title",
@@ -36,9 +35,6 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
 
   return (
     <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-      {/* Scrolling Notification */}
-      <ScrollingNotification />
-      
       {/* Top Header with Brand, Role, and Bell */}
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center space-x-2">
