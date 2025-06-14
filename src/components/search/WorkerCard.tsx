@@ -39,7 +39,6 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   profileImage = "/placeholder.svg",
   onClick,
   showModal,
-  ...props
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -76,101 +75,114 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-200 cursor-pointer"
+      className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group"
       onClick={handleCardClick}
       tabIndex={0}
       role="button"
       aria-label={`View profile of ${name}`}
       onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
     >
-      <div className="flex items-center space-x-4">
+      <div className="flex items-start space-x-4">
         {/* Avatar & Status */}
         <div className="relative flex-shrink-0">
-          <Avatar className="w-14 h-14 border-2 border-white shadow-sm">
+          <Avatar className="w-16 h-16 border-3 border-white shadow-lg ring-2 ring-gray-100">
             <AvatarImage src={profileImage} alt={name} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-sm">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
               {name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
+          
+          {/* Online Status */}
           {isOnline && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full" />
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-3 border-white rounded-full shadow-sm" />
           )}
+          
+          {/* Verification Badge */}
           {verificationLevel !== 'basic' && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-              <Check className="w-2.5 h-2.5 text-white" />
+            <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-3 border-white shadow-sm">
+              <Shield className="w-3 h-3 text-white" fill="currentColor" />
             </div>
           )}
         </div>
 
         {/* Main Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 text-base truncate">{name}</h3>
-            {isOnline && <Badge className="bg-green-100 text-green-700 text-xs px-2 py-0.5">Online</Badge>}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <h3 className="font-bold text-gray-900 text-lg truncate">{name}</h3>
+              {isOnline && (
+                <Badge className="bg-green-100 text-green-700 text-xs px-2 py-1 font-medium">
+                  Online
+                </Badge>
+              )}
+            </div>
+            <div className="text-right">
+              <div className="text-xl font-bold text-green-600">₹{hourlyRate}</div>
+              <div className="text-xs text-gray-500 font-medium">per hour</div>
+            </div>
           </div>
           
-          <p className="text-sm text-gray-600 mb-2">{category}</p>
+          <p className="text-gray-600 font-medium mb-3">{category}</p>
           
-          <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
-            <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
-              <span className="font-medium text-gray-700">{rating}</span>
+          {/* Rating & Stats */}
+          <div className="flex items-center gap-6 text-sm mb-4">
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
+              <span className="font-bold text-gray-900">{rating}</span>
+              <span className="text-gray-500">({completedJobs})</span>
             </div>
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              <span>{distance}</span>
+            <div className="flex items-center gap-1.5 text-gray-600">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <span className="font-medium">{distance}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>{responseTime}</span>
+            <div className="flex items-center gap-1.5 text-gray-600">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="font-medium">{responseTime}</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
-            {skills.slice(0, 2).map((skill, i) => (
-              <span key={i} className="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+          {/* Skills */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {skills.slice(0, 3).map((skill, i) => (
+              <span key={i} className="bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-full text-xs font-semibold text-blue-700">
                 {skill}
               </span>
             ))}
-            {skills.length > 2 && (
-              <span className="text-xs text-gray-500 py-1">+{skills.length - 2} more</span>
+            {skills.length > 3 && (
+              <span className="text-xs text-gray-500 py-1.5 font-medium">+{skills.length - 3} more</span>
             )}
           </div>
-        </div>
-
-        {/* Rate & Actions */}
-        <div className="flex flex-col items-end gap-3 flex-shrink-0">
-          <div className="text-right">
-            <div className="text-lg font-bold text-green-600">₹{hourlyRate}</div>
-            <div className="text-xs text-gray-500">per hour</div>
-          </div>
           
+          {/* Action Buttons */}
           <div className="flex gap-2">
             <Button
               size="sm"
               variant="outline"
-              className="w-8 h-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-200"
+              className="flex-1 h-10 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 font-semibold transition-all"
               onClick={handleCall}
               tabIndex={-1}
             >
-              <Phone className="w-4 h-4" />
+              <Phone className="w-4 h-4 mr-2" />
+              Call
             </Button>
             <Button
               size="sm"
               variant="outline"
-              className="w-8 h-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-200"
+              className="flex-1 h-10 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 font-semibold transition-all"
               onClick={handleChat}
               tabIndex={-1}
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Chat
             </Button>
             <Button
               size="sm"
-              className="w-8 h-8 p-0 rounded-full bg-blue-600 hover:bg-blue-700"
+              className="flex-1 h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
               onClick={handleHire}
               tabIndex={-1}
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4 mr-2" />
+              Hire
             </Button>
           </div>
         </div>
