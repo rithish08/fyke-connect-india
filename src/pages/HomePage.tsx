@@ -2,15 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocalization } from '@/contexts/LocalizationContext';
-import BottomNavigation from '@/components/BottomNavigation';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
-import StickyHeader from '@/components/layout/StickyHeader';
+import MobileOptimizedHeader from '@/components/layout/MobileOptimizedHeader';
+import EnhancedRoleSwitcher from '@/components/layout/EnhancedRoleSwitcher';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
-  const { t } = useLocalization();
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -28,16 +27,19 @@ const HomePage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white">
-      <StickyHeader currentTime={currentTime} />
+    <div className="min-h-screen bg-gray-50">
+      <MobileOptimizedHeader currentTime={currentTime} />
+      
       <div className="flex justify-center">
         <div className="w-full max-w-2xl">
-          <div className="pt-4 pb-20">
+          <div className="pt-2 pb-20">
+            <EnhancedRoleSwitcher />
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>
       </div>
-      <BottomNavigation />
+      
+      <MobileBottomNav />
     </div>
   );
 };
