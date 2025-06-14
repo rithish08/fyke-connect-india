@@ -1,6 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
+import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import EarningsPotential from './EarningsPotential';
 import ProfileProgress from './ProfileProgress';
@@ -10,106 +10,127 @@ const JobSeekerHome = () => {
   const navigate = useNavigate();
 
   const categories = [
-    { name: 'Construction', icon: '🏗️', count: 45, pay: '₹500-800/day', color: 'bg-blue-50 border-blue-300 text-blue-700' },
-    { name: 'Delivery', icon: '🚚', count: 32, pay: '₹400-600/day', color: 'bg-green-50 border-green-300 text-green-700' },
-    { name: 'Cleaning', icon: '🧹', count: 28, pay: '₹300-500/day', color: 'bg-purple-50 border-purple-300 text-purple-700' },
-    { name: 'Security', icon: '🛡️', count: 21, pay: '₹450-700/day', color: 'bg-orange-50 border-orange-300 text-orange-700' }
+    { name: 'Construction', icon: '🏗️', count: 45, pay: '₹500-800/day', gradient: 'from-blue-500 to-cyan-500' },
+    { name: 'Delivery', icon: '🚚', count: 32, pay: '₹400-600/day', gradient: 'from-green-500 to-emerald-500' },
+    { name: 'Cleaning', icon: '🧹', count: 28, pay: '₹300-500/day', gradient: 'from-purple-500 to-violet-500' },
+    { name: 'Security', icon: '🛡️', count: 21, pay: '₹450-700/day', gradient: 'from-orange-500 to-amber-500' }
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 px-4">
       {/* Earnings Potential */}
       <EarningsPotential />
 
       {/* Profile Progress */}
       <ProfileProgress />
 
-      {/* Primary Actions - Enhanced */}
+      {/* Primary Actions */}
       <AnimatedWrapper variant="slide" direction="up" delay={200}>
         <div className="space-y-4">
-          <Button 
+          <ModernCard 
+            variant="elevated"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200"
             onClick={() => navigate('/search')}
-            className="w-full h-20 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xl font-bold rounded-2xl shadow-xl relative overflow-hidden group"
           >
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            <div className="relative flex items-center justify-center space-x-4">
-              <span className="text-3xl">🔍</span>
-              <div className="text-left">
-                <div>Find Jobs Now</div>
-                <div className="text-sm font-normal opacity-90">156 new jobs today</div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <span className="text-3xl">🔍</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Find Jobs Now</h3>
+                  <p className="text-blue-100 text-sm">156 new jobs today</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mb-1"></div>
+                <p className="text-xs text-blue-100">Active</p>
               </div>
             </div>
-          </Button>
+          </ModernCard>
           
           <div className="grid grid-cols-2 gap-4">
-            <Button 
+            <ModernCard 
+              variant="glass"
+              className="cursor-pointer hover:scale-[1.02] transition-transform duration-200"
               onClick={() => navigate('/my-jobs')}
-              variant="outline"
-              className="h-16 border-2 border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold rounded-xl relative overflow-hidden group"
             >
-              <div className="text-center">
-                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">📄</div>
-                <div className="text-sm">My Applications</div>
-                <div className="text-xs opacity-75">3 pending</div>
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl flex items-center justify-center mx-auto">
+                  <span className="text-xl text-white">📄</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Applications</h4>
+                  <p className="text-sm text-gray-600">3 pending</p>
+                </div>
               </div>
-            </Button>
-            <Button 
+            </ModernCard>
+            
+            <ModernCard 
+              variant="glass"
+              className="cursor-pointer hover:scale-[1.02] transition-transform duration-200"
               onClick={() => navigate('/profile')}
-              variant="outline"
-              className="h-16 border-2 border-orange-200 hover:bg-orange-50 text-orange-700 font-semibold rounded-xl relative overflow-hidden group"
             >
-              <div className="text-center">
-                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">👤</div>
-                <div className="text-sm">Profile</div>
-                <div className="text-xs opacity-75">65% complete</div>
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mx-auto">
+                  <span className="text-xl text-white">👤</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Profile</h4>
+                  <p className="text-sm text-gray-600">65% complete</p>
+                </div>
               </div>
-            </Button>
+            </ModernCard>
           </div>
         </div>
       </AnimatedWrapper>
 
-      {/* Urgent Jobs Alert - Enhanced */}
+      {/* Urgent Jobs Alert */}
       <AnimatedWrapper variant="slide" direction="up" delay={300}>
-        <Card className="p-4 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-xl">
+        <ModernCard variant="elevated" className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <span className="text-xl animate-pulse">🚨</span>
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                <span className="text-2xl animate-pulse">🚨</span>
               </div>
               <div>
-                <h3 className="font-bold text-lg">Urgent Jobs Available</h3>
-                <p className="text-sm opacity-90">High pay • Immediate start • 23 jobs</p>
+                <h3 className="font-bold text-lg">Urgent Jobs</h3>
+                <p className="text-red-100 text-sm">High pay • 23 available</p>
               </div>
             </div>
             <Button 
               size="sm" 
-              className="bg-white text-red-600 hover:bg-gray-100 font-bold px-6 shadow-lg"
+              className="bg-white text-red-600 hover:bg-gray-100 font-semibold px-6 rounded-xl"
               onClick={() => navigate('/search?urgent=true')}
             >
               View All
             </Button>
           </div>
-        </Card>
+        </ModernCard>
       </AnimatedWrapper>
 
-      {/* Popular Categories - Enhanced */}
+      {/* Popular Categories */}
       <AnimatedWrapper variant="slide" direction="up" delay={400}>
-        <div>
-          <h3 className="font-bold text-gray-900 mb-4 text-xl">Popular in Your Area</h3>
+        <div className="space-y-4">
+          <h3 className="font-bold text-gray-900 text-xl px-2">Popular in Your Area</h3>
           <div className="grid grid-cols-2 gap-4">
             {categories.map((category) => (
-              <Card 
+              <ModernCard 
                 key={category.name}
-                className={`p-4 ${category.color} border-2 cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-lg group`}
+                variant="glass"
+                className="cursor-pointer hover:scale-[1.02] transition-all duration-300 relative overflow-hidden"
                 onClick={() => navigate(`/search?category=${category.name.toLowerCase()}`)}
               >
-                <div className="text-center space-y-2">
-                  <div className="text-3xl group-hover:scale-110 transition-transform">{category.icon}</div>
-                  <div className="font-bold text-sm">{category.name}</div>
-                  <div className="text-xs opacity-75">{category.count} jobs</div>
-                  <div className="text-xs font-semibold">{category.pay}</div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-5`}></div>
+                <div className="relative text-center space-y-3">
+                  <div className="text-3xl mb-2">{category.icon}</div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">{category.name}</h4>
+                    <p className="text-xs text-gray-600 mb-1">{category.count} jobs</p>
+                    <p className="text-xs font-semibold text-gray-800">{category.pay}</p>
+                  </div>
                 </div>
-              </Card>
+              </ModernCard>
             ))}
           </div>
         </div>

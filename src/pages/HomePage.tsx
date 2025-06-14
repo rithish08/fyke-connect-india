@@ -29,12 +29,12 @@ const HomePage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white pb-20">
       <HomeHeader currentTime={currentTime} />
       
       <RoleSwitcher />
 
-      <div className="p-4">
+      <div className="pt-4">
         {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
       </div>
 

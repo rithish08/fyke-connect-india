@@ -1,7 +1,8 @@
 
-import { Card } from '@/components/ui/card';
+import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import AnimatedWrapper from './AnimatedWrapper';
 
 interface ProfileStep {
   id: string;
@@ -56,46 +57,56 @@ const ProfileProgress = () => {
   if (progressPercentage === 100) return null;
 
   return (
-    <Card className="mx-4 my-3 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-gray-900">Complete Your Profile</h3>
-            <p className="text-sm text-gray-600">{completedSteps} of {profileSteps.length} completed</p>
-          </div>
-          <div className="text-2xl">🚀</div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-orange-500 to-yellow-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-
-        {/* Next Steps */}
-        <div className="space-y-2">
-          {profileSteps
-            .filter(step => !step.completed)
-            .slice(0, 2)
-            .map((step) => (
-              <div key={step.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-100">
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">{step.icon}</span>
-                  <div>
-                    <p className="font-medium text-sm text-gray-900">{step.title}</p>
-                    <p className="text-xs text-green-600">{step.benefit}</p>
-                  </div>
-                </div>
-                <Button size="sm" variant="outline" className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50">
-                  Add
-                </Button>
+    <AnimatedWrapper variant="slide" direction="up" delay={150}>
+      <ModernCard variant="glass" className="bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-2xl flex items-center justify-center">
+                <span className="text-xl">🚀</span>
               </div>
-            ))}
+              <div>
+                <h3 className="font-bold text-gray-900">Complete Your Profile</h3>
+                <p className="text-sm text-gray-600">{completedSteps} of {profileSteps.length} completed</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              className="bg-gradient-to-r from-orange-500 to-yellow-500 h-3 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+
+          {/* Next Steps */}
+          <div className="space-y-3">
+            {profileSteps
+              .filter(step => !step.completed)
+              .slice(0, 2)
+              .map((step) => (
+                <ModernCard key={step.id} variant="default" className="p-4 border border-orange-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center">
+                        <span className="text-sm">{step.icon}</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-gray-900">{step.title}</p>
+                        <p className="text-xs text-green-600">{step.benefit}</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50 rounded-xl">
+                      Add
+                    </Button>
+                  </div>
+                </ModernCard>
+              ))}
+          </div>
         </div>
-      </div>
-    </Card>
+      </ModernCard>
+    </AnimatedWrapper>
   );
 };
 
