@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,8 +19,15 @@ const HomePage = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       goTo('/');
+      return;
     }
-  }, [isAuthenticated, goTo]);
+
+    // Check if user needs to complete profile setup
+    if (user && user.role === 'jobseeker' && !user.profileComplete) {
+      goTo('/profile-setup');
+      return;
+    }
+  }, [isAuthenticated, user, goTo]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);

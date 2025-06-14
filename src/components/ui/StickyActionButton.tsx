@@ -2,9 +2,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 
-// Pass children for label/icon, className to adjust width/spacing.
-// Sticky above bottom nav and always at the bottom with safe padding.
-// Props: disabled, onClick, className, children (button text)
 interface StickyActionButtonProps {
   disabled?: boolean;
   onClick: () => void;
@@ -20,36 +17,35 @@ const StickyActionButton: React.FC<StickyActionButtonProps> = ({
   className,
   style
 }) => {
-  // Safe area padding for iOS/Android notch/home indicator
   return (
     <div
       className={`
-        fixed left-0 right-0 bottom-[56px] z-40
+        fixed left-0 right-0 bottom-0 z-40
         w-full max-w-2xl mx-auto
-        px-4 pb-[env(safe-area-inset-bottom,20px)] pt-1
+        px-4 py-4 pb-[env(safe-area-inset-bottom,20px)]
         pointer-events-none
         transition-all
+        bg-gradient-to-t from-white via-white/95 to-transparent
       `}
       style={{
-        // Spread any extra style (so we can customize per screen)
         ...style,
       }}
     >
       <div
         className={`
-          pointer-events-auto bg-white/85 backdrop-blur-md
-          rounded-2xl shadow-lg mb-3
+          pointer-events-auto bg-white/95 backdrop-blur-md
+          rounded-2xl shadow-lg
           border border-gray-100
-          p-0
+          p-1
         `}
         style={{
-          boxShadow: "0 3px 20px 0 rgba(23,36,61,.09)",
-          // Soft shadow for floating effect
+          boxShadow: "0 8px 30px 0 rgba(0,0,0,.12)",
         }}
       >
         <Button
-          className={`w-full h-12 rounded-2xl font-semibold text-base transition-colors 
+          className={`w-full h-12 rounded-xl font-semibold text-base transition-colors 
             bg-blue-600 hover:bg-blue-700 text-white
+            disabled:bg-gray-300 disabled:text-gray-500
             ${className || ""}
           `}
           disabled={disabled}

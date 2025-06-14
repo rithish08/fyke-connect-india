@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
 import SalaryStep from '@/components/profile/SalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
+import StickyActionButton from '@/components/ui/StickyActionButton';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
 
 const STEPS = ["category", "salary", "availability"];
@@ -24,14 +26,17 @@ const ProfileSetup = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate('/');
+      return;
     }
     // Redirect employers to home since they don't need profile setup
     if (user?.role === 'employer') {
       navigate('/home');
+      return;
     }
     if (user?.profileComplete) {
       navigate('/home');
+      return;
     }
   }, [user, navigate]);
 
@@ -61,14 +66,31 @@ const ProfileSetup = () => {
     if (step > 0) {
       setStep(step - 1);
     } else {
-      navigate('/login');
+      navigate('/role-selection');
+    }
+  };
+
+  const canContinueStep = () => {
+    switch (step) {
+      case 0: return category !== '';
+      case 1: return salary.amount !== '';
+      case 2: return true;
+      default: return false;
+    }
+  };
+
+  const handleStepContinue = () => {
+    if (step < STEPS.length - 1) {
+      setStep(step + 1);
+    } else {
+      handleFinish();
     }
   };
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8 pb-24">
       <div className="w-full max-w-lg mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -107,7 +129,7 @@ const ProfileSetup = () => {
         </div>
 
         {/* Step Content */}
-        <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
+        <Card className="p-6 shadow-xl rounded-3xl bg-white border-0 min-h-[400px]">
           {step === 0 && (
             <ProfileCategoryStep
               category={category}
@@ -115,14 +137,14 @@ const ProfileSetup = () => {
               vehicle={vehicle}
               setVehicle={setVehicle}
               role={user.role}
-              onNext={() => setStep(step + 1)}
+              onNext={() => {}} // We handle navigation via the sticky button
             />
           )}
           {step === 1 && (
             <SalaryStep
               salary={salary}
               setSalary={setSalary}
-              onNext={() => setStep(step + 1)}
+              onNext={() => {}} // We handle navigation via the sticky button
               onBack={() => setStep(step - 1)}
             />
           )}
@@ -131,7 +153,7 @@ const ProfileSetup = () => {
               availability={availability}
               setAvailability={setAvailability}
               onBack={() => setStep(step - 1)}
-              onFinish={handleFinish}
+              onFinish={() => {}} // We handle navigation via the sticky button
             />
           )}
         </Card>
@@ -141,6 +163,15 @@ const ProfileSetup = () => {
           Complete your profile to get verified and access better job opportunities
         </div>
       </div>
+
+      {/* Sticky Action Button */}
+      <StickyActionButton
+        onClick={handleStepContinue}
+        disabled={!canContinueStep()}
+        className="w-full max-w-lg mx-auto"
+      >
+        {step === STEPS.length - 1 ? 'Complete Profile' : 'Continue'}
+      </StickyActionButton>
     </div>
   );
 };
