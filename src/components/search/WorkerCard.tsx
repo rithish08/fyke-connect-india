@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import HireWorkerModal from "@/components/modals/HireWorkerModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface WorkerCardProps {
   id: string | number;
@@ -22,6 +23,14 @@ interface WorkerCardProps {
   profileImage?: string;
   onClick?: (worker: any) => void;
   showModal?: (worker: any) => void;
+}
+
+function getResponsiveFontSize(text: string, base = 13, min = 9) {
+  if (!text) return `${base}px`;
+  if (text.length <= 12) return `${base}px`;
+  if (text.length <= 18) return `${base - 2}px`;
+  if (text.length <= 28) return `${base - 4}px`;
+  return `${min}px`;
 }
 
 const WorkerCard: React.FC<WorkerCardProps> = ({
@@ -41,6 +50,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { translateCategory } = useTranslation();
   const [hireOpen, setHireOpen] = useState(false);
   const [hireRequested, setHireRequested] = useState(false);
 
@@ -92,7 +102,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         }}
         style={{ minHeight: "110px" }}
       >
-        {/* Profile image and info, make image wider and aligned with name */}
+        {/* Profile image and info */}
         <div className="flex flex-col justify-start items-center pr-2 pt-1">
           <div className="relative">
             <Avatar className="h-20 w-20 rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -127,8 +137,17 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
             </div>
             {/* Category below name */}
             <div>
-              <span className="mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-700">
-                {category}
+              <span
+                className="mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-700"
+                style={{
+                  fontSize: getResponsiveFontSize(translateCategory(category), 13, 8),
+                  maxWidth: 92,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {translateCategory(category)}
               </span>
             </div>
             {/* Rating + Distance */}
@@ -145,6 +164,13 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
                 <span
                   key={i}
                   className="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium"
+                  style={{
+                    fontSize: getResponsiveFontSize(skill, 12, 8),
+                    maxWidth: 90,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap"
+                  }}
                 >
                   {skill}
                 </span>
@@ -160,9 +186,13 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
 
         {/* Right side column for actions */}
         <div className="flex flex-col items-end justify-center pl-4 min-w-[80px]">
+          {/* Helper text (no grammar fix requested) */}
+          <div className="mb-1 w-28 text-[10px] text-left text-gray-400 font-medium leading-tight truncate">
+            to hire click the blue button to hire with rate
+          </div>
           <Button
             variant={hireRequested ? "secondary" : "default"}
-            className={`h-10 w-28 mb-3 rounded-xl font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
+            className={`h-7 px-3 w-24 mb-2 rounded-lg font-semibold shadow transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
               ${hireRequested
                 ? "bg-green-100 text-green-700 cursor-default"
                 : "bg-gradient-to-tr from-blue-500 via-sky-400 to-indigo-400 text-white hover:scale-105 hover:bg-blue-600"
@@ -172,17 +202,20 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
             style={{
               letterSpacing: "0.01em",
               boxShadow: "0 4px 16px 0 #2563eb20",
+              fontSize: !hireRequested && String(hourlyRate).length > 10 ? "11px" : "13px",
+              minHeight: "28px",
+              minWidth: "68px"
             }}
             onClick={e => {
               e.stopPropagation();
-              if (!hireRequested) setHireOpen(true);
+              if (!hireRequested) setHireRequested(true);
             }}
           >
-            {hireRequested ? "Requested" : `₹${hourlyRate} /Hire`}
+            {hireRequested ? "Requested" : `₹${hourlyRate}`}
           </Button>
           <Button
             variant="outline"
-            className="mb-2 h-9 w-28 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+            className="mb-2 h-8 w-24 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
             onClick={handleCall}
             tabIndex={-1}
           >
@@ -191,7 +224,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </Button>
           <Button
             variant="outline"
-            className="h-9 w-28 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+            className="h-8 w-24 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
             onClick={handleChat}
             tabIndex={-1}
           >
@@ -200,14 +233,9 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           </Button>
         </div>
       </div>
-      <HireWorkerModal
-        open={hireOpen}
-        onClose={() => setHireOpen(false)}
-        onHire={handleHire}
-        workerName={name}
-      />
     </>
   );
 };
 
 export default WorkerCard;
+
