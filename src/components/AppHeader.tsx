@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import AnimatedWrapper from './AnimatedWrapper';
+
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import CompactRoleSwitcher from "@/components/CompactRoleSwitcher";
-import { useLocation } from "react-router-dom";
 import { useLocalization } from "@/contexts/LocalizationContext";
 
 const pageNames: Record<string, string> = {
@@ -12,10 +12,9 @@ const pageNames: Record<string, string> = {
   "/profile": "Profile",
   "/messages": "Messages",
   "/notifications": "Notifications"
-  // ...add others as needed...
 };
 
-const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
+const AppHeader = ({ currentTime }: { currentTime: Date }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,7 +57,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
             <button onClick={() => navigate('/notifications')}
               className="relative">
               <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100"><span className="text-xl">🔔</span>
-              <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
+                <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
               </span>
             </button>
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
@@ -69,10 +68,12 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
           </div>
         </div>
       </div>
-      {/* Use Compact switcher for smaller footprint */}
-      <CompactRoleSwitcher />
+      {/* CompactRoleSwitcher - always show for quick role toggle */}
+      <div className="px-4 pb-2">
+        <CompactRoleSwitcher />
+      </div>
     </>
   );
 };
 
-export default HomeHeader;
+export default AppHeader;

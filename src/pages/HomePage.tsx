@@ -1,12 +1,12 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
-import HomeHeader from '@/components/HomeHeader';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
-import CompactRoleSwitcher from '@/components/CompactRoleSwitcher';
+import AppHeader from '@/components/AppHeader';
 import BannerAd from '@/components/BannerAd';
 import ProfileProgress from '@/components/ProfileProgress';
 
@@ -32,7 +32,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      <HomeHeader currentTime={currentTime} />
+      <AppHeader currentTime={currentTime} />
       <div className="flex justify-center pt-0 sm:pt-2">
         <div className="w-full max-w-2xl">
           {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
