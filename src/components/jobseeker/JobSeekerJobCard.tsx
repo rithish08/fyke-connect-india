@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Clock, MapPin, DollarSign, Star, User, Bookmark, Share2, Eye } from 'lucide-react';
+import { Clock, MapPin, DollarSign, Star, User, Bookmark, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/modern-card';
@@ -19,7 +19,6 @@ interface Job {
   rating?: number;
   urgent?: boolean;
   description?: string;
-  applicants?: number;
   verified?: boolean;
 }
 
@@ -79,7 +78,7 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
   };
 
   return (
-    <ModernCard className="p-4 mb-3 hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+    <ModernCard className="p-4 mb-3 hover:shadow-lg transition-all duration-200">
       <div className="space-y-3">
         {/* Header with actions */}
         <div className="flex justify-between items-start">
@@ -122,7 +121,7 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
           </div>
         </div>
 
-        {/* Job details with better visual hierarchy */}
+        {/* Job details */}
         <div className="space-y-2">
           <div className="flex flex-wrap gap-3 text-sm">
             <div className="flex items-center gap-1 text-gray-600">
@@ -141,16 +140,10 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
               <Clock className="w-4 h-4" />
               <span>{job.timePosted}</span>
             </div>
-            {job.applicants && (
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                <span>{job.applicants} applicants</span>
-              </div>
-            )}
             {job.rating && (
-              <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
-                <Star className="w-3 h-3 fill-green-500 text-green-500" />
-                <span className="text-green-700 font-medium text-xs">{job.rating}</span>
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-gray-700 font-medium">{job.rating}</span>
               </div>
             )}
           </div>
@@ -163,7 +156,7 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
           </p>
         )}
 
-        {/* Enhanced action buttons */}
+        {/* Action buttons */}
         <div className="flex gap-2 pt-2">
           <Button
             onClick={handleApply}
@@ -186,12 +179,6 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
           >
             Details
           </Button>
-        </div>
-
-        {/* Trust indicators */}
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-          <span>Posted by verified employer</span>
-          <span>Response rate: 95%</span>
         </div>
       </div>
     </ModernCard>

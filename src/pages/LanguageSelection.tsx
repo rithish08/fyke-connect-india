@@ -27,17 +27,15 @@ const LanguageSelection = () => {
   const handleContinue = () => {
     setLanguage(selectedLanguage);
     
-    // Direct flow based on authentication status
-    if (isAuthenticated && user) {
-      if (!user.role) {
-        navigate('/role-selection');
-      } else if (user.role === 'jobseeker' && !user.profileComplete) {
-        navigate('/profile-setup');
-      } else {
-        navigate('/home');
-      }
-    } else {
+    // Proper flow: Language -> Authentication -> Role -> Profile (if jobseeker) -> Home
+    if (!isAuthenticated) {
       navigate('/login');
+    } else if (!user?.role) {
+      navigate('/role-selection');
+    } else if (user.role === 'jobseeker' && !user.profileComplete) {
+      navigate('/profile-setup');
+    } else {
+      navigate('/home');
     }
   };
 

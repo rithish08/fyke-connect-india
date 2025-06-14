@@ -8,18 +8,22 @@ export const useUserFlow = () => {
   const { goTo } = useScreenNavigation();
 
   const determineNextScreen = useCallback(() => {
+    // Step 1: Check authentication
     if (!isAuthenticated) {
       return '/login';
     }
 
+    // Step 2: Check role selection
     if (!user?.role) {
       return '/role-selection';
     }
 
+    // Step 3: Check profile completion (only for job seekers)
     if (user.role === 'jobseeker' && !user.profileComplete) {
       return '/profile-setup';
     }
 
+    // Step 4: Go to home
     return '/home';
   }, [isAuthenticated, user]);
 
