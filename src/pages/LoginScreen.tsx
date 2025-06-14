@@ -1,150 +1,110 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Phone, MessageSquare, User } from "lucide-react";
+import { Smartphone, ArrowLeft } from "lucide-react";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const { login, updateProfile, user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { sendOTP } = useAuth();
   const { translateText } = useTranslation();
   const navigate = useNavigate();
 
   const handleSendOTP = async () => {
-    console.log('Sending OTP to:', phone);
-    localStorage.setItem('fyke_phone', phone || '');
-    localStorage.setItem('fyke_name', name || '');
-    setOtpSent(true);
-  };
-
-  const handleVerifyOTP = async () => {
+    if (!phone || !name) return;
+    
+    setIsLoading(true);
     try {
-      await login(phone, otp);
-      
-      // Update user profile with name
-      updateProfile({
-        name: name,
-      });
-      
-      // Navigate to OTP verification page instead of handling role selection here
+      await sendOTP(phone, name);
       navigate('/otp-verification');
     } catch (error) {
-      console.error('Login Failed:', error);
+      console.error('Failed to send OTP:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleBackToLanguage = () => {
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
-        <CardContent className="p-8 space-y-6">
-          {/* Header */}
-          <div className="text-center space-y-3">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-              <Phone className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {translateText('login.title', 'Welcome to Fyke')}
-              </h1>
-              <p className="text-gray-500 text-sm">
-                {otpSent ? 
-                  translateText('login.verifyNumber', 'Verify your number') : 
-                  translateText('login.enterDetails', 'Enter your details to get started')
-                }
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleBackToLanguage}
+            className="w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-shadow"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {translateText('login.title', 'Welcome to Fyke')}
+            </h1>
+          </div>
+          <div className="w-10 h-10"></div>
+        </div>
+
+        {/* Login Card */}
+        <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Smartphone className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                {translateText('login.verifyNumber', 'Verify your number')}
+              </h2>
+              <p className="text-gray-600 text-sm">
+                {translateText('login.enterDetails', 'Enter your details to get started')}
               </p>
             </div>
-          </div>
 
-          {/* Name and Phone Input */}
-          {!otpSent ? (
             <div className="space-y-4">
-              {/* Name Input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <User className="w-5 h-5" />
-                </div>
+              <div>
                 <Input
                   type="text"
                   placeholder={translateText('login.fullName', 'Your Full Name')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="h-12 text-lg rounded-xl border-gray-200"
                 />
               </div>
               
-              {/* Phone Input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  +91
-                </div>
+              <div>
                 <Input
                   type="tel"
-                  placeholder="9876543210"
+                  placeholder="Phone Number"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                  className="h-12 text-lg rounded-xl border-gray-200"
+                  maxLength={10}
                 />
               </div>
-              
-              <Button 
-                onClick={handleSendOTP} 
-                disabled={phone.length !== 10 || !name.trim()}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
-              >
-                {translateText('login.sendOTP', 'Send OTP')}
-              </Button>
             </div>
-          ) : (
-            /* OTP Input */
-            <div className="space-y-4">
-              <div className="text-center">
-                <MessageSquare className="w-12 h-12 text-blue-500 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">
-                  {translateText('login.otpSentTo', 'OTP sent to')} +91 {phone}
-                </p>
-              </div>
-              <Input
-                type="text"
-                placeholder={translateText('login.enter6DigitOTP', 'Enter 6-digit OTP')}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="h-14 text-lg text-center tracking-wider border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                maxLength={6}
-              />
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setOtpSent(false)}
-                  className="flex-1 h-12 rounded-xl border-gray-200"
-                >
-                  {translateText('login.changeNumber', 'Change Number')}
-                </Button>
-                <Button 
-                  onClick={handleVerifyOTP}
-                  disabled={otp.length !== 6}
-                  className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl"
-                >
-                  {translateText('login.verify', 'Verify')}
-                </Button>
-              </div>
-            </div>
-          )}
 
-          {/* Footer */}
-          <div className="text-center">
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <Button
+              onClick={handleSendOTP}
+              disabled={!phone || !name || isLoading}
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg"
+            >
+              {isLoading ? 'Sending...' : translateText('login.sendOTP', 'Send OTP')}
+            </Button>
+
+            <p className="text-xs text-gray-500 text-center leading-relaxed">
               {translateText('login.termsAgreement', 'By continuing, you agree to our Terms of Service and Privacy Policy')}
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

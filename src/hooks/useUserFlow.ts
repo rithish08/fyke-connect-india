@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 
 export const useUserFlow = () => {
   const { user, isAuthenticated } = useAuth();
@@ -9,7 +9,7 @@ export const useUserFlow = () => {
 
   const determineNextScreen = useCallback(() => {
     if (!isAuthenticated) {
-      return '/';
+      return '/login';
     }
 
     if (!user?.role) {
@@ -31,10 +31,18 @@ export const useUserFlow = () => {
     if (currentPath === nextScreen) return;
     
     // Allow certain paths during flow
-    const allowedPaths = ['/', '/role-selection', '/login', '/otp-verification', '/profile-setup'];
+    const allowedPaths = [
+      '/', 
+      '/login', 
+      '/otp-verification', 
+      '/role-selection', 
+      '/profile-setup'
+    ];
+    
+    // If on an allowed path, don't force redirect
     if (allowedPaths.includes(currentPath)) return;
     
-    // Prevent navigation loops by checking if we're already trying to navigate
+    // Only redirect if not already navigating
     if (!window.location.href.includes(nextScreen)) {
       goTo(nextScreen);
     }
