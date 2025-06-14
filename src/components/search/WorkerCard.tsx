@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, MessageCircle, Phone, CheckCircle, MapPin } from "lucide-react";
@@ -145,16 +144,17 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         </div>
       </div>
 
-      {/* Call, Chat, and Hire button on the right in a column (Hire on top, same width as Call/Chat) */}
+      {/* Right side column for actions */}
       <div className="flex flex-col items-end justify-center pl-4 min-w-[80px]">
         <Button
           variant="default"
-          className="h-9 w-20 px-4 mb-2 rounded-lg bg-gradient-to-tl from-blue-600 to-blue-400 text-white font-bold shadow-lg tracking-tight"
+          className="h-11 w-24 px-6 mb-3 rounded-2xl bg-gradient-to-tr from-blue-500 via-sky-400 to-indigo-400 text-white font-semibold shadow-md hover:scale-105 active:scale-100 transition-all duration-150 border-none outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400"
           tabIndex={-1}
           style={{
-            borderRadius: "13px",
-            boxShadow: "0 2px 16px 0 #2563eb33",
-            fontSize: "1.05rem",
+            borderRadius: "16px",
+            fontSize: "1.08rem",
+            letterSpacing: "0.01em",
+            boxShadow: "0 4px 22px 0 #2563eb22",
           }}
           onClick={e => {
             e.stopPropagation();
@@ -165,7 +165,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         </Button>
         <Button
           variant="outline"
-          className="mb-2 h-9 w-20 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+          className="mb-2 h-9 w-24 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
           onClick={handleCall}
           tabIndex={-1}
         >
@@ -174,7 +174,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
         </Button>
         <Button
           variant="outline"
-          className="h-9 w-20 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
+          className="h-9 w-24 px-0 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
           onClick={handleChat}
           tabIndex={-1}
         >
