@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import ShimmerLoader from '@/components/ui/ShimmerLoader';
+import { SkeletonGrid } from '@/components/ui/skeleton-cards';
 import JobCard from '@/components/search/JobCard';
 import WorkerCard from '@/components/search/WorkerCard';
 import QuickHireCard from '@/components/instant-hire/QuickHireCard';
@@ -10,9 +9,10 @@ import LocationPicker from '@/components/location/LocationPicker';
 import WorkerDetailModal from '@/components/worker/WorkerDetailModal';
 import QuickPostModal from '@/components/job/QuickPostModal';
 import BottomNavigation from '@/components/BottomNavigation';
-import { MapPin, Zap, Plus } from 'lucide-react';
+import { MapPin, Zap, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/modern-card';
+import { Input } from '@/components/ui/input';
 
 interface FilterState {
   distance: number;
@@ -73,6 +73,7 @@ const jobsDb = [
 const JobSearch = () => {
   const { user } = useAuth();
   const [results, setResults] = useState<null | any[]>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState<any>(null);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<any>(null);
@@ -121,13 +122,29 @@ const JobSearch = () => {
     setShowWorkerModal(true);
   };
 
+  // Enhanced loading state with proper skeleton
   if (!results) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-2xl mx-auto px-2 pt-4">
-          <ShimmerLoader height={50} className="my-5" />
-          <ShimmerLoader height={50} className="my-3" />
-          <ShimmerLoader height={50} className="my-3" />
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder={`Search ${user?.role === 'employer' ? 'workers' : 'jobs'}...`}
+                  className="pl-10 bg-gray-50 border-gray-200 rounded-xl"
+                  disabled
+                />
+              </div>
+              <Button size="sm" className="rounded-xl" disabled>
+                <MapPin className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-2xl mx-auto px-4 pt-4">
+          <SkeletonGrid count={5} type={user?.role === 'employer' ? 'worker' : 'job'} />
         </div>
         <BottomNavigation />
       </div>
@@ -136,34 +153,43 @@ const JobSearch = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <main className="max-w-2xl mx-auto px-2 pt-5" aria-live="polite">
-        {/* Location Header */}
-        <ModernCard className="p-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-5 h-5 text-blue-600" />
-              <div>
-                <div className="font-semibold text-gray-900">
-                  {location?.area || 'Select Location'}
-                </div>
-                <div className="text-xs text-gray-600">
-                  {user?.role === 'employer' ? 'Find workers nearby' : 'Find jobs in your area'}
-                </div>
-              </div>
+      {/* Enhanced sticky header with search */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder={`Search ${user?.role === 'employer' ? 'workers' : 'jobs'}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-gray-50 border-gray-200 rounded-xl"
+              />
             </div>
             <Button
-              variant="outline"
               size="sm"
+              variant="outline"
               onClick={() => setShowLocationPicker(!showLocationPicker)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              className="rounded-xl border-gray-200"
             >
-              Change
+              <MapPin className="w-4 h-4" />
             </Button>
           </div>
-        </ModernCard>
 
+          {/* Location display */}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-2 text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span>{location?.area || 'Current Location'}</span>
+            </div>
+            <span className="text-gray-500">{results.length} results</span>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-2xl mx-auto px-4" aria-live="polite">
         {showLocationPicker && (
-          <ModernCard className="p-4 mb-4">
+          <ModernCard className="p-4 mb-4 mt-4">
             <LocationPicker
               onLocationSelect={(loc) => {
                 setLocation(loc);
@@ -181,41 +207,57 @@ const JobSearch = () => {
           resultCount={results.length}
         />
 
-        {/* Urgent Jobs Toggle / Quick Post Button */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Action bar */}
+        <div className="flex items-center justify-between mb-4 bg-white p-3 rounded-xl shadow-sm">
           {user?.role === 'employer' ? (
             <>
-              <span className="font-semibold text-gray-900">Available Workers</span>
+              <span className="font-semibold text-gray-900 text-sm">Available Workers</span>
               <div className="flex space-x-2">
                 <Button
                   variant={urgentOnly ? "default" : "outline"}
                   size="sm"
                   onClick={() => setUrgentOnly(!urgentOnly)}
-                  className="flex items-center space-x-1"
+                  className="flex items-center space-x-1 text-xs"
                 >
-                  <Zap className="w-4 h-4" />
-                  <span>Online Only</span>
+                  <Zap className="w-3 h-3" />
+                  <span>Online</span>
                 </Button>
                 <Button
                   onClick={() => setShowQuickPost(true)}
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 flex items-center space-x-1"
+                  className="bg-green-600 hover:bg-green-700 flex items-center space-x-1 text-xs"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Quick Post</span>
+                  <Plus className="w-3 h-3" />
+                  <span>Post</span>
                 </Button>
               </div>
             </>
           ) : (
-            <span className="font-semibold text-gray-900">Available Jobs</span>
+            <>
+              <span className="font-semibold text-gray-900 text-sm">Available Jobs</span>
+              <Button
+                variant={urgentOnly ? "default" : "outline"}
+                size="sm"
+                onClick={() => setUrgentOnly(!urgentOnly)}
+                className="flex items-center space-x-1 text-xs"
+              >
+                <Zap className="w-3 h-3" />
+                <span>Urgent</span>
+              </Button>
+            </>
           )}
         </div>
 
         {/* Results */}
         {results.length === 0 && (
-          <div className="text-gray-400 text-center my-8 text-base animate-fade-in">
-            No results found with current filters.<br />
-            <span className="text-xs text-gray-300">Try adjusting your search criteria.</span>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <div className="text-gray-500 text-center">
+              <p className="font-medium">No results found</p>
+              <p className="text-sm mt-1">Try adjusting your search criteria</p>
+            </div>
           </div>
         )}
 

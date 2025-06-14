@@ -3,36 +3,48 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileInfo from '@/components/profile/ProfileInfo';
+import EnhancedProfileInfo from '@/components/profile/EnhancedProfileInfo';
 import ProfileSkills from '@/components/profile/ProfileSkills';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileVerification from '@/components/profile/ProfileVerification';
 import ProfileSettings from '@/components/profile/ProfileSettings';
-import FloatingEditButton from '@/components/profile/FloatingEditButton';
 import BannerAd from '@/components/BannerAd';
 import ProfileProgress from '@/components/ProfileProgress';
 import BottomNavigation from '@/components/BottomNavigation';
+import { SkeletonProfileCard } from '@/components/ui/skeleton-cards';
 
 const Profile = () => {
   const { user, updateProfile, logout } = useAuth();
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: '',
     location: 'Mumbai, Maharashtra',
     experience: '2 years',
+    bio: '',
     skills: user?.skills || ['Construction', 'Manual Labor', 'Team Work']
   });
   const [showBanner, setShowBanner] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSave = () => {
-    updateProfile({ name: profileData.name });
-    setIsEditing(false);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully"
-    });
+  const handleProfileUpdate = async (updates: any) => {
+    setIsLoading(true);
+    try {
+      updateProfile(updates);
+      setProfileData(prev => ({ ...prev, ...updates }));
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -43,30 +55,50 @@ const Profile = () => {
     });
   };
 
-  // Profile completeness calculation for progress ring
+  // Show loading state
+  if (!user || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="max-w-xl mx-auto pt-8 px-4 space-y-6">
+          <div className="flex flex-col items-center">
+            <div className="w-28 h-28 bg-gray-200 rounded-full animate-pulse mb-4" />
+            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse mb-2" />
+            <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+          </div>
+          <SkeletonProfileCard />
+          <SkeletonProfileCard />
+          <SkeletonProfileCard />
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  // Profile completeness calculation
   const hasName = !!profileData.name;
-  const hasPhoto = true; // assume true for now
+  const hasPhoto = true;
   const hasSkills = profileData.skills && profileData.skills.length > 0;
   const hasLocation = !!profileData.location;
   const fields = [hasName, hasPhoto, hasSkills, hasLocation];
   const completePercent = Math.round((fields.filter(Boolean).length / fields.length) * 100);
 
-  if (!user) return null;
-
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
       <ProfileProgress />
-      <div className="flex flex-col items-center pt-8 pb-4">
+      
+      {/* Profile Header */}
+      <div className="flex flex-col items-center pt-8 pb-4 px-4">
         <ProfileHeader
           name={profileData.name}
           phone={user.phone}
           role={user.role}
           verified={!!user.verified}
         />
-        {/* Profile Progress Ring */}
-        <div className="flex flex-col items-center mt-2">
-          <div className="relative w-20 h-20 flex items-center justify-center mb-1">
+        
+        {/* Profile Completion Ring */}
+        <div className="flex flex-col items-center mt-4">
+          <div className="relative w-20 h-20 flex items-center justify-center mb-2">
             <svg className="absolute top-0 left-0" width="80" height="80">
               <circle
                 cx="40"
@@ -99,25 +131,25 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Main Profile Sections */}
-      <div className="w-full max-w-xl mx-auto space-y-7 mt-6">
-        <ProfileInfo
+      {/* Profile Sections */}
+      <div className="w-full max-w-xl mx-auto space-y-4 px-4">
+        <EnhancedProfileInfo
           profileData={profileData}
-          isEditing={isEditing}
-          setProfileData={setProfileData}
-          handleSave={handleSave}
           userRole={user.role}
+          onUpdate={handleProfileUpdate}
         />
+        
         <ProfileSkills
           userRole={user.role}
           skills={profileData.skills}
-          isEditing={isEditing}
+          isEditing={false}
         />
+        
         <ProfileStats userRole={user.role} />
         <ProfileVerification verified={!!user.verified} />
         <ProfileSettings onLogout={handleLogout} />
       </div>
-      <FloatingEditButton isEditing={isEditing} setIsEditing={setIsEditing} />
+      
       <BottomNavigation />
     </div>
   );
