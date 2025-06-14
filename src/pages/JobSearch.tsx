@@ -32,9 +32,7 @@ const jobsDb = [
   { id: 5, title: "Security Guard Needed", category: "Security", skills: ["Night Shift"], salary: "400", urgent: false },
   { id: 6, title: "Home Cook Required", category: "Cooking", skills: ["Indian Cuisine"], salary: "450", urgent: false },
   { id: 7, title: "Hair Stylist for Salon", category: "Beauty", skills: ["Hair Cutting"], salary: "500", urgent: true },
-  { id: 8, title: "Warehouse Helper", category: "Warehouse", skills: ["Packing"], salary: "320", urgent: false },
-  { id: 9, title: "Factory Worker", category: "Manufacturing", skills: ["Assembly"], salary: "380", urgent: false },
-  { id: 10, title: "Food Delivery Partner", category: "Delivery", skills: ["Two Wheeler"], salary: "400", urgent: true },
+  { id: 8, title: "Delivery Partner Needed", category: "Delivery", skills: ["Two Wheeler"], salary: "400", urgent: true },
 ];
 
 const JobSearch = () => {
@@ -58,6 +56,12 @@ const JobSearch = () => {
   const [urgentOnly, setUrgentOnly] = useState(false);
 
   const handleCategorySelect = (categoryId: string, categoryName: string) => {
+    // For job seekers, check if they can select this category
+    if (user?.role === 'jobseeker' && user?.primaryCategory && user.primaryCategory !== categoryName) {
+      // Job seekers can only view their selected category
+      return;
+    }
+    
     setSelectedCategory({ id: categoryId, name: categoryName });
     setCurrentView('subcategory');
   };
@@ -102,6 +106,16 @@ const JobSearch = () => {
     }
   }, [currentView, filters, urgentOnly, selectedCategory]);
 
+  // For job seekers, auto-navigate to their category
+  useEffect(() => {
+    if (user?.role === 'jobseeker' && user?.primaryCategory && currentView === 'category') {
+      // Auto-select job seeker's category and go to subcategory view
+      const categoryId = user.primaryCategory.toLowerCase();
+      setSelectedCategory({ id: categoryId, name: user.primaryCategory });
+      setCurrentView('subcategory');
+    }
+  }, [user, currentView]);
+
   const handleQuickHire = (workerId: string) => {
     console.log('Quick hiring worker:', workerId);
   };
@@ -112,6 +126,10 @@ const JobSearch = () => {
   };
 
   const handleBackToCategory = () => {
+    // Job seekers cannot go back to category selection
+    if (user?.role === 'jobseeker') {
+      return;
+    }
     setCurrentView('category');
     setSelectedCategory(null);
     setSelectedSubcategories([]);
@@ -122,20 +140,21 @@ const JobSearch = () => {
     setResults(null);
   };
 
-  if (currentView === 'category') {
+  // For job seekers, skip category selection if they have a primary category
+  if (currentView === 'category' && user?.role === 'employer') {
     return (
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
           <div className="max-w-2xl mx-auto">
             <h1 className="text-xl font-bold text-gray-900">
-              {user?.role === 'employer' ? 'Find Workers by Category' : 'Find Jobs by Category'}
+              Find Workers by Category
             </h1>
           </div>
         </div>
         <div className="max-w-2xl mx-auto px-4 pt-6">
           <CategorySelection 
             onCategorySelect={handleCategorySelect}
-            title={user?.role === 'employer' ? 'Select Worker Category' : 'Select Job Category'}
+            title="Select Worker Category"
           />
         </div>
         <BottomNavigation />
@@ -149,10 +168,14 @@ const JobSearch = () => {
         <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
           <div className="max-w-2xl mx-auto">
             <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" onClick={handleBackToCategory} className="p-2">
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-              <h1 className="text-xl font-bold text-gray-900">Select Specialization</h1>
+              {user?.role === 'employer' && (
+                <Button variant="ghost" size="sm" onClick={handleBackToCategory} className="p-2">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              )}
+              <h1 className="text-xl font-bold text-gray-900">
+                {user?.role === 'jobseeker' ? 'Find Jobs in ' + selectedCategory.name : 'Select Specialization'}
+              </h1>
             </div>
           </div>
         </div>
@@ -171,6 +194,16 @@ const JobSearch = () => {
                 onClick={handleSearchWithSubcategories}
               >
                 Search {user?.role === 'employer' ? 'Workers' : 'Jobs'} ({selectedSubcategories.length} selected)
+              </Button>
+            </div>
+          )}
+          {user?.role === 'jobseeker' && (
+            <div className="mt-6">
+              <Button 
+                className="w-full"
+                onClick={handleSearchWithSubcategories}
+              >
+                View All {selectedCategory.name} Jobs
               </Button>
             </div>
           )}

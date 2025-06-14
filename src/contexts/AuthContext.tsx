@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -17,7 +18,7 @@ interface User {
   salaryPeriod?: 'daily' | 'weekly' | 'monthly';
   categories?: string[];
   primaryCategory?: string;
-  subcategories?: Record<string, string[]>;
+  subcategories?: string[];
 }
 
 interface AuthContextType {
@@ -65,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       profileComplete: false, // mark as not complete initially
       categories: [],
       primaryCategory: undefined,
-      subcategories: {},
+      subcategories: [],
       availability: 'available',
       skills: ['Construction', 'Manual Labor'],
       salaryExpectation: { min: 300, max: 600 }

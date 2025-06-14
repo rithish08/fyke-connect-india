@@ -1,6 +1,6 @@
 
 export const workersDb = [
-  // Construction Workers
+  // Construction Workers (Enhanced)
   { 
     id: '1', 
     name: "Raj Kumar", 
@@ -43,10 +43,38 @@ export const workersDb = [
     verificationLevel: 'premium' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Delivery Workers
   { 
     id: '4', 
+    name: "Vikash Yadav", 
+    category: "Construction", 
+    skills: ["Carpenter", "Wood Work", "Furniture"], 
+    rating: 4.7,
+    distance: "2.1km",
+    responseTime: "< 8min",
+    hourlyRate: 380,
+    isOnline: true,
+    completedJobs: 28,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '5', 
+    name: "Mohan Gupta", 
+    category: "Construction", 
+    skills: ["Painter", "Wall Painting", "Decoration"], 
+    rating: 4.5,
+    distance: "3.2km",
+    responseTime: "< 20min",
+    hourlyRate: 320,
+    isOnline: true,
+    completedJobs: 41,
+    verificationLevel: 'basic' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Delivery Workers (Enhanced)
+  { 
+    id: '6', 
     name: "Arjun Reddy", 
     category: "Delivery", 
     skills: ["Food Delivery", "Two Wheeler", "Fast Service"], 
@@ -60,7 +88,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '5', 
+    id: '7', 
     name: "Vikram Joshi", 
     category: "Delivery", 
     skills: ["Package Delivery", "Four Wheeler", "Long Distance"], 
@@ -73,10 +101,38 @@ export const workersDb = [
     verificationLevel: 'basic' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Cleaning Workers
   { 
-    id: '6', 
+    id: '8', 
+    name: "Rohit Sharma", 
+    category: "Delivery", 
+    skills: ["Grocery Delivery", "Two Wheeler", "Customer Service"], 
+    rating: 4.6,
+    distance: "1.5km",
+    responseTime: "< 7min",
+    hourlyRate: 290,
+    isOnline: true,
+    completedJobs: 112,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '9', 
+    name: "Ankit Kumar", 
+    category: "Delivery", 
+    skills: ["Medicine Delivery", "Urgent Delivery", "Safe Handling"], 
+    rating: 4.8,
+    distance: "2.4km",
+    responseTime: "< 5min",
+    hourlyRate: 350,
+    isOnline: false,
+    completedJobs: 94,
+    verificationLevel: 'premium' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Cleaning Workers (Enhanced)
+  { 
+    id: '10', 
     name: "Priya Sharma", 
     category: "Cleaning", 
     skills: ["House Cleaning", "Deep Cleaning", "Sanitization"], 
@@ -90,7 +146,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '7', 
+    id: '11', 
     name: "Sunita Devi", 
     category: "Cleaning", 
     skills: ["Office Cleaning", "Window Cleaning", "Floor Care"], 
@@ -103,10 +159,38 @@ export const workersDb = [
     verificationLevel: 'basic' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Security Workers
   { 
-    id: '8', 
+    id: '12', 
+    name: "Kavita Singh", 
+    category: "Cleaning", 
+    skills: ["Deep Cleaning", "Kitchen Cleaning", "Bathroom Cleaning"], 
+    rating: 4.7,
+    distance: "1.9km",
+    responseTime: "< 12min",
+    hourlyRate: 300,
+    isOnline: true,
+    completedJobs: 62,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '13', 
+    name: "Meera Jain", 
+    category: "Cleaning", 
+    skills: ["Post-Construction", "Industrial Cleaning", "Heavy Duty"], 
+    rating: 4.5,
+    distance: "3.5km",
+    responseTime: "< 25min",
+    hourlyRate: 350,
+    isOnline: true,
+    completedJobs: 38,
+    verificationLevel: 'basic' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Security Workers (Enhanced)
+  { 
+    id: '14', 
     name: "Manoj Gupta", 
     category: "Security", 
     skills: ["Night Guard", "CCTV Operation", "Access Control"], 
@@ -120,7 +204,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '9', 
+    id: '15', 
     name: "Ravi Tiwari", 
     category: "Security", 
     skills: ["Event Security", "Crowd Control", "Emergency Response"], 
@@ -133,10 +217,38 @@ export const workersDb = [
     verificationLevel: 'basic' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Drivers
   { 
-    id: '10', 
+    id: '16', 
+    name: "Sanjay Verma", 
+    category: "Security", 
+    skills: ["CCTV Operator", "Monitoring", "Surveillance"], 
+    rating: 4.6,
+    distance: "1.8km",
+    responseTime: "< 8min",
+    hourlyRate: 360,
+    isOnline: true,
+    completedJobs: 71,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '17', 
+    name: "Deepak Yadav", 
+    category: "Security", 
+    skills: ["Residential Security", "Patrol", "Key Management"], 
+    rating: 4.5,
+    distance: "2.9km",
+    responseTime: "< 18min",
+    hourlyRate: 340,
+    isOnline: true,
+    completedJobs: 42,
+    verificationLevel: 'basic' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Drivers (Enhanced)
+  { 
+    id: '18', 
     name: "Devika Sharma", 
     category: "Driver", 
     skills: ["Taxi Driver", "City Navigation", "Safe Driving"], 
@@ -150,7 +262,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '11', 
+    id: '19', 
     name: "Sanjay Kumar", 
     category: "Driver", 
     skills: ["Delivery Driver", "Heavy Vehicle", "Long Distance"], 
@@ -163,10 +275,38 @@ export const workersDb = [
     verificationLevel: 'verified' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Cooks
   { 
-    id: '12', 
+    id: '20', 
+    name: "Rajesh Khanna", 
+    category: "Driver", 
+    skills: ["Personal Driver", "Executive Transport", "Punctual"], 
+    rating: 4.8,
+    distance: "2.2km",
+    responseTime: "< 10min",
+    hourlyRate: 450,
+    isOnline: false,
+    completedJobs: 93,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '21', 
+    name: "Amit Patel", 
+    category: "Driver", 
+    skills: ["Tour Guide", "Outstation", "Multi-lingual"], 
+    rating: 4.7,
+    distance: "1.6km",
+    responseTime: "< 6min",
+    hourlyRate: 500,
+    isOnline: true,
+    completedJobs: 54,
+    verificationLevel: 'premium' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Cooks (Enhanced)
+  { 
+    id: '22', 
     name: "Kavita Rao", 
     category: "Cooking", 
     skills: ["Home Cook", "Indian Cuisine", "Vegetarian"], 
@@ -180,7 +320,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '13', 
+    id: '23', 
     name: "Amit Chef", 
     category: "Cooking", 
     skills: ["Restaurant Chef", "Multi-Cuisine", "Event Catering"], 
@@ -193,10 +333,38 @@ export const workersDb = [
     verificationLevel: 'premium' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Gardening Workers
   { 
-    id: '14', 
+    id: '24', 
+    name: "Rekha Devi", 
+    category: "Cooking", 
+    skills: ["Event Cook", "Large Quantities", "Traditional Food"], 
+    rating: 4.6,
+    distance: "3.1km",
+    responseTime: "< 20min",
+    hourlyRate: 380,
+    isOnline: true,
+    completedJobs: 67,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '25', 
+    name: "Rajesh Cook", 
+    category: "Cooking", 
+    skills: ["Kitchen Helper", "Prep Cook", "Fast Food"], 
+    rating: 4.4,
+    distance: "2.8km",
+    responseTime: "< 12min",
+    hourlyRate: 320,
+    isOnline: true,
+    completedJobs: 38,
+    verificationLevel: 'basic' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Gardening Workers (Enhanced)
+  { 
+    id: '26', 
     name: "Amit Singh", 
     category: "Gardening", 
     skills: ["Landscaping", "Plant Care", "Irrigation"], 
@@ -210,7 +378,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '15', 
+    id: '27', 
     name: "Gopal Verma", 
     category: "Gardening", 
     skills: ["Garden Maintenance", "Tree Pruning", "Pest Control"], 
@@ -223,10 +391,38 @@ export const workersDb = [
     verificationLevel: 'verified' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Beauty Workers
   { 
-    id: '16', 
+    id: '28', 
+    name: "Suresh Mali", 
+    category: "Gardening", 
+    skills: ["Plant Care", "Organic Farming", "Soil Management"], 
+    rating: 4.7,
+    distance: "1.7km",
+    responseTime: "< 8min",
+    hourlyRate: 300,
+    isOnline: false,
+    completedJobs: 52,
+    verificationLevel: 'verified' as const,
+    profileImage: "/placeholder.svg"
+  },
+  { 
+    id: '29', 
+    name: "Krishna Pal", 
+    category: "Gardening", 
+    skills: ["Lawn Maintenance", "Grass Cutting", "Garden Design"], 
+    rating: 4.5,
+    distance: "2.6km",
+    responseTime: "< 15min",
+    hourlyRate: 290,
+    isOnline: true,
+    completedJobs: 29,
+    verificationLevel: 'basic' as const,
+    profileImage: "/placeholder.svg"
+  },
+
+  // Beauty Workers (Enhanced)
+  { 
+    id: '30', 
     name: "Sneha Patel", 
     category: "Beauty", 
     skills: ["Hair Stylist", "Hair Cutting", "Makeup"], 
@@ -240,7 +436,7 @@ export const workersDb = [
     profileImage: "/placeholder.svg"
   },
   { 
-    id: '17', 
+    id: '31', 
     name: "Meera Jain", 
     category: "Beauty", 
     skills: ["Makeup Artist", "Bridal Makeup", "Nail Art"], 
@@ -253,49 +449,31 @@ export const workersDb = [
     verificationLevel: 'verified' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Warehouse Workers
   { 
-    id: '18', 
-    name: "Rohit Mehta", 
-    category: "Warehouse", 
-    skills: ["Packing", "Loading", "Inventory Management"], 
-    rating: 4.5,
-    distance: "4.2km",
-    responseTime: "< 25min",
-    hourlyRate: 320,
+    id: '32', 
+    name: "Priya Beauty", 
+    category: "Beauty", 
+    skills: ["Nail Technician", "Manicure", "Pedicure"], 
+    rating: 4.6,
+    distance: "2.1km",
+    responseTime: "< 10min",
+    hourlyRate: 380,
     isOnline: true,
-    completedJobs: 45,
-    verificationLevel: 'basic' as const,
-    profileImage: "/placeholder.svg"
-  },
-  { 
-    id: '19', 
-    name: "Ajay Singh", 
-    category: "Warehouse", 
-    skills: ["Forklift Operator", "Quality Check", "Heavy Lifting"], 
-    rating: 4.7,
-    distance: "3.9km",
-    responseTime: "< 22min",
-    hourlyRate: 400,
-    isOnline: true,
-    completedJobs: 62,
+    completedJobs: 89,
     verificationLevel: 'verified' as const,
     profileImage: "/placeholder.svg"
   },
-
-  // Manufacturing Workers
   { 
-    id: '20', 
-    name: "Deepak Kumar", 
-    category: "Manufacturing", 
-    skills: ["Machine Operator", "Assembly Line", "Quality Control"], 
-    rating: 4.6,
-    distance: "5.1km",
-    responseTime: "< 30min",
-    hourlyRate: 380,
-    isOnline: false,
-    completedJobs: 78,
+    id: '33', 
+    name: "Sonia Spa", 
+    category: "Beauty", 
+    skills: ["Spa Therapist", "Massage", "Facial"], 
+    rating: 4.8,
+    distance: "1.4km",
+    responseTime: "< 7min",
+    hourlyRate: 420,
+    isOnline: true,
+    completedJobs: 76,
     verificationLevel: 'verified' as const,
     profileImage: "/placeholder.svg"
   }

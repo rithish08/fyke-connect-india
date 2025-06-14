@@ -33,16 +33,24 @@ const ProfileSetup = () => {
   }, [user, navigate]);
 
   const handleFinish = () => {
+    // Get subcategories from localStorage
+    const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
+    const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
+    
     updateProfile({
       category,
       categories: [category],
       primaryCategory: category,
+      subcategories: subcategories,
       vehicle: category === "Driver" ? vehicle : undefined,
       salaryExpectation: { min: Number(salary.amount), max: Number(salary.amount) },
       salaryPeriod: salary.period,
       availability,
       profileComplete: true,
     });
+    
+    // Clean up localStorage
+    localStorage.removeItem('fyke_selected_subcategories');
     navigate('/home');
   };
 

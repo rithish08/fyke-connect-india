@@ -14,6 +14,20 @@ const JobSeekerHome = () => {
     return <JobSeekerLoadingState />;
   }
 
+  // Show message if user hasn't completed profile
+  if (!user?.primaryCategory) {
+    return (
+      <div className="space-y-4 px-4">
+        <JobSeekerHomeHeader userPrimaryCategory={undefined} />
+        <div className="text-center py-8 text-gray-500">
+          <div className="text-4xl mb-4">⚙️</div>
+          <h3 className="text-lg font-semibold mb-2">Complete your profile</h3>
+          <p className="text-sm">Set up your category to see relevant jobs</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 px-4">
       <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />

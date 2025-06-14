@@ -95,6 +95,14 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
     });
   };
 
+  const handleNext = () => {
+    // Save subcategories to localStorage for later use in profile completion
+    if (selectedSubcategories.length > 0) {
+      localStorage.setItem('fyke_selected_subcategories', JSON.stringify(selectedSubcategories));
+    }
+    onNext();
+  };
+
   const canProceed = category && (category !== "Driver" || vehicle);
 
   return (
@@ -192,7 +200,7 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900 flex items-center">
                 <span className="text-2xl mr-2">{selectedCategoryData.icon}</span>
-                {selectedCategoryData.name} Skills
+                Choose Specializations
               </h3>
               <button
                 onClick={() => setShowSubcategories(false)}
@@ -203,7 +211,7 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
             </div>
             
             <p className="text-sm text-gray-500 mb-4">
-              Select up to 3 skills that match your expertise
+              Select up to 3 specializations that match your expertise
             </p>
             
             <div className="grid grid-cols-1 gap-2 mb-6">
@@ -232,7 +240,7 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
             </div>
 
             <div className="text-xs text-gray-500 mb-4 text-center">
-              {selectedSubcategories.length}/3 skills selected
+              {selectedSubcategories.length}/3 specializations selected
             </div>
 
             <Button
@@ -254,7 +262,7 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
               : "bg-gray-100 text-gray-400 cursor-not-allowed"
           }`}
           disabled={!canProceed}
-          onClick={onNext}
+          onClick={handleNext}
         >
           {category ? `Continue with ${category}` : 'Select a category to continue'}
         </Button>
