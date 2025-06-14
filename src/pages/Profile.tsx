@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Check, Star } from 'lucide-react';
 
+// Minimalist white card theme for profile page
 const Profile = () => {
   const { user, updateProfile, logout } = useAuth();
   const { toast } = useToast();
@@ -50,22 +51,22 @@ const Profile = () => {
   const completePercent = Math.round((fields.filter(Boolean).length / fields.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f4f8fc] to-white pb-24">
-      {/* Profile Header Modern Card */}
-      <div className="flex flex-col items-center pt-7 pb-2">
+    <div className="min-h-screen bg-white pb-24">
+      {/* Profile Header Card */}
+      <div className="flex flex-col items-center pt-8 pb-4">
         <ModernCard
-          variant="glass"
-          className="w-full max-w-xl mx-auto flex flex-col items-center p-8 pt-10 border-0 bg-white/70 shadow-xl rounded-2xl"
+          variant="default"
+          className="w-full max-w-xl mx-auto flex flex-col items-center p-8 pt-10 border border-gray-100 bg-white shadow-md rounded-2xl"
         >
           <div className="relative mb-2">
-            <div className="w-28 h-28 bg-white shadow-lg rounded-full flex items-center justify-center overflow-hidden ring-4 ring-white">
-              <span className="text-5xl font-bold text-[#264669] uppercase">
+            <div className="w-28 h-28 bg-white border border-gray-200 shadow rounded-full flex items-center justify-center overflow-hidden ring-2 ring-white">
+              <span className="text-5xl font-bold text-[#264669] uppercase select-none">
                 {profileData.name ? profileData.name[0] : user?.phone?.[0] || 'U'}
               </span>
-              {/* Replace above with user's photo if available */}
+              {/* If/when available, replace above with user's profile image */}
             </div>
             {user?.verified && (
-              <span className="absolute bottom-2 right-0 bg-white rounded-full shadow px-1.5 py-0.5">
+              <span className="absolute bottom-2 right-0 bg-white rounded-full border border-green-100 shadow px-1.5 py-0.5">
                 <Check className="w-5 h-5 text-green-500 inline" />
               </span>
             )}
@@ -80,16 +81,15 @@ const Profile = () => {
             <span className="text-sm text-gray-500 mt-1">{user?.phone}</span>
             <span className="text-xs text-gray-400 mt-0.5 capitalize">{user?.role}</span>
           </div>
-          {/* Profile Progress Ring & status below Avatar */}
+          {/* Profile Progress Ring */}
           <div className="flex flex-col items-center mt-2">
             <div className="relative w-20 h-20 flex items-center justify-center mb-1">
-              {/* Simple Circular Progress Bar */}
               <svg className="absolute top-0 left-0" width="80" height="80">
                 <circle
                   cx="40"
                   cy="40"
                   r="36"
-                  stroke="#EFF3F9"
+                  stroke="#F2F3F6"
                   strokeWidth="7"
                   fill="none"
                 />
@@ -120,24 +120,24 @@ const Profile = () => {
       {/* Main Profile Sections */}
       <div className="w-full max-w-xl mx-auto space-y-7 mt-6">
         {/* Personal Information */}
-        <ModernCard className="p-6 rounded-2xl shadow-md border-0 bg-white/70">
+        <ModernCard className="p-6 rounded-2xl shadow border border-gray-100 bg-white">
           <span className="text-base font-semibold text-gray-900 mb-4 block">
             Personal Information
           </span>
           <div className="space-y-5">
             <div>
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="mb-1 block">Full Name</Label>
               <Input
                 id="name"
                 value={profileData.name}
                 onChange={(e) => setProfileData({...profileData, name: e.target.value})}
                 disabled={!isEditing}
                 placeholder="Enter your full name"
-                className="rounded-2xl bg-[#f5f8fa] border-0 focus:ring-2 focus:ring-blue-200"
+                className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="mb-1 block">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -145,35 +145,35 @@ const Profile = () => {
                 onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                 disabled={!isEditing}
                 placeholder="Enter your email"
-                className="rounded-2xl bg-[#f5f8fa] border-0 focus:ring-2 focus:ring-blue-200"
+                className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location" className="mb-1 block">Location</Label>
               <Input
                 id="location"
                 value={profileData.location}
                 onChange={(e) => setProfileData({...profileData, location: e.target.value})}
                 disabled={!isEditing}
-                className="rounded-2xl bg-[#f5f8fa] border-0 focus:ring-2 focus:ring-blue-200"
+                className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             {user?.role === 'jobseeker' && (
               <div>
-                <Label htmlFor="experience">Experience</Label>
+                <Label htmlFor="experience" className="mb-1 block">Experience</Label>
                 <Input
                   id="experience"
                   value={profileData.experience}
                   onChange={(e) => setProfileData({...profileData, experience: e.target.value})}
                   disabled={!isEditing}
-                  className="rounded-2xl bg-[#f5f8fa] border-0 focus:ring-2 focus:ring-blue-200"
+                  className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
             )}
           </div>
           {isEditing && (
             <div className="flex space-x-2 mt-4">
-              <Button onClick={handleSave} className="flex-1 rounded-2xl text-base h-12 font-semibold">
+              <Button onClick={handleSave} className="flex-1 rounded-xl text-base h-12 font-semibold bg-blue-600 text-white">
                 Save Changes
               </Button>
             </div>
@@ -182,26 +182,26 @@ const Profile = () => {
 
         {/* Skills (Job Seekers) */}
         {user?.role === 'jobseeker' && (
-          <ModernCard className="p-6 rounded-2xl shadow-md border-0 bg-white/65">
+          <ModernCard className="p-6 rounded-2xl shadow border border-gray-100 bg-white">
             <span className="text-base font-semibold text-gray-900 mb-2 block">Skills</span>
             <div className="flex flex-wrap gap-2">
               {profileData.skills.map((skill, index) => (
                 <span
                   key={index}
-                  className="bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1 rounded-full shadow inline-flex items-center"
+                  className="bg-gray-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full shadow-none border border-gray-200"
                 >
                   {skill}
                 </span>
               ))}
-              <Button variant="outline" size="sm" disabled={!isEditing} className="rounded-full border-blue-100 bg-white/60 hover:bg-blue-50 text-blue-600 font-semibold text-xs">
+              <Button variant="outline" size="sm" disabled={!isEditing} className="rounded-full border-blue-100 bg-white hover:bg-blue-50 text-blue-700 font-semibold text-xs shadow-none">
                 + Add Skill
               </Button>
             </div>
           </ModernCard>
         )}
 
-        {/* Statistics (with icons) */}
-        <ModernCard className="p-6 rounded-2xl shadow-md border-0 bg-white/70 flex justify-between items-center">
+        {/* Statistics */}
+        <ModernCard className="p-6 rounded-2xl shadow border border-gray-100 bg-white flex justify-between items-center">
           <div className="flex flex-col items-center justify-center flex-1">
             <span className="flex items-center gap-1 text-blue-800 font-bold text-2xl">
               <Star className="w-6 h-6 text-blue-500 mr-1" /> 4.5
@@ -219,7 +219,7 @@ const Profile = () => {
         </ModernCard>
 
         {/* Verification Status */}
-        <ModernCard className="p-6 rounded-2xl shadow-md border-0 bg-white/70">
+        <ModernCard className="p-6 rounded-2xl shadow border border-gray-100 bg-white">
           <span className="text-base font-semibold text-gray-900 mb-2 block">
             Verification
           </span>
@@ -247,7 +247,7 @@ const Profile = () => {
                   <span className="block text-xs text-gray-500">Upload Aadhaar card</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="rounded-full border-blue-100 bg-white/60 hover:bg-blue-50 text-blue-600 font-semibold text-xs">
+              <Button variant="outline" size="sm" className="rounded-full border-blue-100 bg-white hover:bg-blue-50 text-blue-700 font-semibold text-xs shadow-none">
                 Verify Now
               </Button>
             </div>
@@ -255,7 +255,7 @@ const Profile = () => {
         </ModernCard>
 
         {/* Settings */}
-        <ModernCard className="p-6 rounded-2xl shadow-md border-0 bg-white/60">
+        <ModernCard className="p-6 rounded-2xl shadow border border-gray-100 bg-white">
           <span className="text-base font-semibold text-gray-900 mb-2 block">
             Settings
           </span>
@@ -276,15 +276,15 @@ const Profile = () => {
               <Switch defaultChecked />
             </div>
             <Separator />
-            <Button variant="outline" className="w-full rounded-2xl bg-white/70 hover:bg-blue-50 font-semibold">
+            <Button variant="outline" className="w-full rounded-xl bg-white hover:bg-blue-50 font-semibold">
               Privacy Settings
             </Button>
-            <Button variant="outline" className="w-full rounded-2xl bg-white/70 hover:bg-blue-50 font-semibold">
+            <Button variant="outline" className="w-full rounded-xl bg-white hover:bg-blue-50 font-semibold">
               Help & Support
             </Button>
             <Button
               variant="destructive"
-              className="w-full rounded-2xl font-semibold"
+              className="w-full rounded-xl font-semibold"
               onClick={handleLogout}
             >
               Logout
@@ -298,7 +298,7 @@ const Profile = () => {
         variant="ghost"
         size="lg"
         onClick={() => setIsEditing(!isEditing)}
-        className="fixed top-7 right-6 z-40 bg-white/70 shadow-lg rounded-full text-blue-700 hover:bg-blue-100 border-0"
+        className="fixed top-7 right-6 z-40 bg-white border border-gray-200 shadow rounded-full text-blue-700 hover:bg-blue-50"
       >
         {isEditing ? "Cancel" : "Edit"}
       </Button>
