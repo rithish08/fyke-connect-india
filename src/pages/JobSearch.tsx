@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ShimmerLoader from '@/components/ui/ShimmerLoader';
@@ -6,8 +7,10 @@ import WorkerCard from '@/components/search/WorkerCard';
 import QuickHireCard from '@/components/instant-hire/QuickHireCard';
 import SmartFilters from '@/components/filters/SmartFilters';
 import LocationPicker from '@/components/location/LocationPicker';
+import WorkerDetailModal from '@/components/worker/WorkerDetailModal';
+import QuickPostModal from '@/components/job/QuickPostModal';
 import BottomNavigation from '@/components/BottomNavigation';
-import { MapPin, Zap } from 'lucide-react';
+import { MapPin, Zap, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/modern-card';
 
@@ -72,6 +75,9 @@ const JobSearch = () => {
   const [results, setResults] = useState<null | any[]>(null);
   const [location, setLocation] = useState<any>(null);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<any>(null);
+  const [showWorkerModal, setShowWorkerModal] = useState(false);
+  const [showQuickPost, setShowQuickPost] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     distance: 10,
     minRating: 0,
@@ -104,12 +110,15 @@ const JobSearch = () => {
 
   const handleQuickHire = (workerId: string) => {
     console.log('Quick hiring worker:', workerId);
-    // Implement quick hire logic
   };
 
   const handleMessage = (workerId: string) => {
     console.log('Messaging worker:', workerId);
-    // Implement messaging logic
+  };
+
+  const handleWorkerClick = (worker: any) => {
+    setSelectedWorker(worker);
+    setShowWorkerModal(true);
   };
 
   if (!results) {
@@ -172,21 +181,35 @@ const JobSearch = () => {
           resultCount={results.length}
         />
 
-        {/* Urgent Jobs Toggle */}
-        {user?.role === 'employer' && (
-          <div className="flex items-center justify-between mb-4">
-            <span className="font-semibold text-gray-900">Available Workers</span>
-            <Button
-              variant={urgentOnly ? "default" : "outline"}
-              size="sm"
-              onClick={() => setUrgentOnly(!urgentOnly)}
-              className="flex items-center space-x-1"
-            >
-              <Zap className="w-4 h-4" />
-              <span>Online Only</span>
-            </Button>
-          </div>
-        )}
+        {/* Urgent Jobs Toggle / Quick Post Button */}
+        <div className="flex items-center justify-between mb-4">
+          {user?.role === 'employer' ? (
+            <>
+              <span className="font-semibold text-gray-900">Available Workers</span>
+              <div className="flex space-x-2">
+                <Button
+                  variant={urgentOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setUrgentOnly(!urgentOnly)}
+                  className="flex items-center space-x-1"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Online Only</span>
+                </Button>
+                <Button
+                  onClick={() => setShowQuickPost(true)}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 flex items-center space-x-1"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Quick Post</span>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <span className="font-semibold text-gray-900">Available Jobs</span>
+          )}
+        </div>
 
         {/* Results */}
         {results.length === 0 && (
@@ -196,14 +219,22 @@ const JobSearch = () => {
           </div>
         )}
 
-        <div role="list" className="space-y-4">
+        <div role="list" className="space-y-3">
           {results.map(res =>
             user?.role === 'employer' ? (
-              <QuickHireCard
+              <WorkerCard
                 key={res.id}
-                worker={res}
-                onHire={handleQuickHire}
-                onMessage={handleMessage}
+                name={res.name}
+                category={res.category}
+                skills={res.skills}
+                rating={res.rating}
+                completedJobs={res.completedJobs}
+                verificationLevel={res.verificationLevel}
+                responseTime={res.responseTime}
+                distance={res.distance}
+                hourlyRate={res.hourlyRate}
+                isOnline={res.isOnline}
+                onClick={() => handleWorkerClick(res)}
               />
             ) : (
               <JobCard
@@ -212,11 +243,28 @@ const JobSearch = () => {
                 category={res.category}
                 skills={res.skills || []}
                 salary={res.salary}
+                urgent={res.urgent}
               />
             )
           )}
         </div>
       </main>
+      
+      {/* Modals */}
+      {selectedWorker && (
+        <WorkerDetailModal
+          isOpen={showWorkerModal}
+          onClose={() => setShowWorkerModal(false)}
+          worker={selectedWorker}
+          onHire={handleQuickHire}
+        />
+      )}
+      
+      <QuickPostModal
+        isOpen={showQuickPost}
+        onClose={() => setShowQuickPost(false)}
+      />
+      
       <BottomNavigation />
     </div>
   );

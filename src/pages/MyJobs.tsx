@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BottomNavigation from '@/components/BottomNavigation';
+import CommunicationButtons from '@/components/communication/CommunicationButtons';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MyJobs = () => {
@@ -15,16 +16,17 @@ const MyJobs = () => {
       id: 1,
       title: 'Construction Worker',
       company: 'BuildPro Construction',
+      employerId: 'emp-1',
       location: 'Mumbai',
       salary: '₹500-700/day',
       status: 'Interview Scheduled',
-      appliedDate: '2 days ago',
-      interviewDate: 'Tomorrow 2:00 PM'
+      appliedDate: '2 days ago'
     },
     {
       id: 2,
       title: 'Delivery Executive',
       company: 'QuickDelivery',
+      employerId: 'emp-2',
       location: 'Pune',
       salary: '₹400-600/day',
       status: 'Under Review',
@@ -34,6 +36,7 @@ const MyJobs = () => {
       id: 3,
       title: 'Security Guard',
       company: 'SecureMax',
+      employerId: 'emp-3',
       location: 'Chennai',
       salary: '₹450-550/day',
       status: 'Rejected',
@@ -51,7 +54,11 @@ const MyJobs = () => {
       applications: 12,
       status: 'Active',
       postedDate: '2 days ago',
-      urgency: 'High'
+      urgency: 'High',
+      applicants: [
+        { id: 'worker-1', name: 'Raj Kumar' },
+        { id: 'worker-2', name: 'Amit Singh' }
+      ]
     },
     {
       id: 2,
@@ -60,7 +67,8 @@ const MyJobs = () => {
       salary: '₹300-400/day',
       applications: 8,
       status: 'Filled',
-      postedDate: '1 week ago'
+      postedDate: '1 week ago',
+      applicants: []
     }
   ];
 
@@ -111,17 +119,6 @@ const MyJobs = () => {
                 Applied {job.appliedDate}
               </div>
 
-              {job.interviewDate && (
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-green-600">📅</span>
-                    <span className="text-sm font-medium text-green-800">
-                      Interview: {job.interviewDate}
-                    </span>
-                  </div>
-                </div>
-              )}
-
               {job.rejectionReason && (
                 <div className="bg-red-50 p-3 rounded-lg">
                   <div className="flex items-center space-x-2">
@@ -137,9 +134,12 @@ const MyJobs = () => {
                 <Button variant="outline" size="sm">
                   View Details
                 </Button>
-                <Button variant="ghost" size="sm" className="text-blue-600">
-                  Message Employer
-                </Button>
+                <CommunicationButtons
+                  targetId={job.employerId}
+                  targetName={job.company}
+                  targetType="employer"
+                  size="sm"
+                />
               </div>
             </div>
           </Card>
@@ -199,6 +199,27 @@ const MyJobs = () => {
                 <span>Posted {job.postedDate}</span>
                 <span>{job.applications} applications</span>
               </div>
+
+              {/* Show recent applicants with communication options */}
+              {job.applicants.length > 0 && (
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">Recent Applicants</h4>
+                  <div className="space-y-2">
+                    {job.applicants.slice(0, 2).map((applicant) => (
+                      <div key={applicant.id} className="flex items-center justify-between">
+                        <span className="text-sm text-blue-800">{applicant.name}</span>
+                        <CommunicationButtons
+                          targetId={applicant.id}
+                          targetName={applicant.name}
+                          targetType="worker"
+                          size="sm"
+                          className="scale-90"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-between items-center pt-2 border-t">
                 <Button variant="outline" size="sm">

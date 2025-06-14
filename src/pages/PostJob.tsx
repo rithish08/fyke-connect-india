@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/modern-card';
 import BottomNavigation from '@/components/BottomNavigation';
+import CommunicationButtons from '@/components/communication/CommunicationButtons';
+import { Building2, User } from 'lucide-react';
 
 const PostJob = () => {
   const { user } = useAuth();
@@ -27,7 +28,8 @@ const PostJob = () => {
     jobType: 'full-time',
     urgency: false,
     contactPhone: '',
-    contactEmail: ''
+    contactEmail: '',
+    businessType: 'personal' as 'personal' | 'commercial'
   });
 
   const categories = [
@@ -38,7 +40,6 @@ const PostJob = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Job posted:', formData);
-    // Simulate job posting
     alert('Job posted successfully!');
     navigate('/my-jobs');
   };
@@ -71,6 +72,37 @@ const PostJob = () => {
 
       <div className="p-4 space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Business Type Selection */}
+          <ModernCard className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Business Type</h2>
+            <div className="flex space-x-3">
+              <Button
+                type="button"
+                variant={formData.businessType === 'personal' ? 'default' : 'outline'}
+                onClick={() => handleInputChange('businessType', 'personal')}
+                className="flex-1 flex items-center space-x-2 h-12"
+              >
+                <User className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-medium">Personal</div>
+                  <div className="text-xs opacity-70">Home repairs, personal tasks</div>
+                </div>
+              </Button>
+              <Button
+                type="button"
+                variant={formData.businessType === 'commercial' ? 'default' : 'outline'}
+                onClick={() => handleInputChange('businessType', 'commercial')}
+                className="flex-1 flex items-center space-x-2 h-12"
+              >
+                <Building2 className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-medium">Commercial</div>
+                  <div className="text-xs opacity-70">Business projects, contracts</div>
+                </div>
+              </Button>
+            </div>
+          </ModernCard>
+
           {/* Job Details */}
           <ModernCard className="p-6">
             <h2 className="text-lg font-semibold mb-4">Job Details</h2>
@@ -186,7 +218,7 @@ const PostJob = () => {
             </div>
           </ModernCard>
 
-          {/* Contact Information */}
+          {/* Contact Information with Communication Options */}
           <ModernCard className="p-6">
             <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
             <div className="space-y-4">
@@ -203,6 +235,19 @@ const PostJob = () => {
                 value={formData.contactEmail}
                 onChange={(e) => handleInputChange('contactEmail', e.target.value)}
               />
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">Communication Preferences</h3>
+                <p className="text-sm text-blue-700 mb-3">
+                  Workers will be able to contact you via:
+                </p>
+                <CommunicationButtons
+                  targetId={user.id || 'current-user'}
+                  targetName={user.name || 'You'}
+                  targetType="employer"
+                  size="sm"
+                />
+              </div>
             </div>
           </ModernCard>
 
