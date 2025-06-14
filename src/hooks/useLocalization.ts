@@ -2,7 +2,7 @@
 import { useTranslation } from './useTranslation';
 
 export const useLocalization = () => {
-  const { currentLanguage, translateText, translateCategory } = useTranslation();
+  const { language, translateText, translateCategory } = useTranslation();
 
   const getLocalizedJobCategories = () => {
     const categories = [
@@ -32,7 +32,7 @@ export const useLocalization = () => {
   };
 
   return {
-    currentLanguage,
+    currentLanguage: language,
     getLocalizedJobCategories,
     getLocalizedText,
     formatCurrency,
