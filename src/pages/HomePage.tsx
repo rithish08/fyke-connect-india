@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -7,26 +6,23 @@ import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import StickyHeader from '@/components/layout/StickyHeader';
 import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
-import { useScreenNavigation } from '@/hooks/useScreenNavigation';
+import { useUserFlow } from '@/hooks/useUserFlow';
+import { useState, useEffect } from 'react';
 
 const HomePage = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { t } = useLocalization();
-  const { goTo } = useScreenNavigation();
+  const { isFlowComplete } = useUserFlow();
   const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      goTo('/');
-    }
-  }, [isAuthenticated, goTo]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  if (!user) return null;
+  if (!user || !isFlowComplete) {
+    return null; // RouteGuard will handle redirects
+  }
 
   return (
     <div className="min-h-screen bg-white">

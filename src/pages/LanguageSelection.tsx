@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingSlides from '@/components/OnboardingSlides';
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Globe } from "lucide-react";
 import { useLocalization } from '@/contexts/LocalizationContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const languageList = [
   { code: 'en', name: 'English', native: 'English', color: 'bg-blue-500', icon: "🇬🇧" },
@@ -22,26 +21,41 @@ const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { setLanguage, t } = useLocalization();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const handleContinue = () => {
     setLanguage(selectedLanguage);
+    
+    // If user is already authenticated, go to appropriate screen
+    if (isAuthenticated && user) {
+      if (!user.role) {
+        navigate('/role-selection');
+      } else if (user.role === 'jobseeker' && !user.profileComplete) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/home');
+      }
+      return;
+    }
+
+    // For new users, show onboarding or go to role selection
     const hasSeenOnboarding = localStorage.getItem('fyke_onboarding_seen');
     if (!hasSeenOnboarding) {
       setShowOnboarding(true);
     } else {
-      navigate('/role-selection');
+      navigate('/login');
     }
   };
 
   const handleOnboardingComplete = () => {
     localStorage.setItem('fyke_onboarding_seen', 'true');
-    navigate('/role-selection');
+    navigate('/login');
   };
 
   const handleSkipOnboarding = () => {
     localStorage.setItem('fyke_onboarding_seen', 'true');
-    navigate('/role-selection');
+    navigate('/login');
   };
 
   if (showOnboarding) {
@@ -62,7 +76,8 @@ const LanguageSelection = () => {
           <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
           <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
         </div>
-        {/* Modern Language card selection */}
+        
+        {/* Language grid */}
         <div className="grid grid-cols-2 gap-4">
           {languageList.map((lang) => (
             <button
@@ -85,6 +100,7 @@ const LanguageSelection = () => {
             </button>
           ))}
         </div>
+        
         <Button
           onClick={handleContinue}
           className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-2xl shadow-lg mt-2 text-lg"

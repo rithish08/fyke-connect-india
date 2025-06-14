@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LocalizationProvider } from "./contexts/LocalizationContext";
+import RouteGuard from "./components/RouteGuard";
 import LanguageSelection from "./pages/LanguageSelection";
 import RoleSelection from "./pages/RoleSelection";
 import LoginScreen from "./pages/LoginScreen";
@@ -33,20 +34,66 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<LanguageSelection />} />
               <Route path="/role-selection" element={<RoleSelection />} />
               <Route path="/login" element={<LoginScreen />} />
               <Route path="/otp-verification" element={<OTPVerification />} />
-              <Route path="/profile-setup" element={<ProfileSetup />} />
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/search" element={<JobSearch />} />
-              <Route path="/job/:id" element={<JobDetails />} />
-              <Route path="/worker/:id" element={<WorkerProfile />} />
-              <Route path="/post-job" element={<PostJob />} />
-              <Route path="/my-jobs" element={<MyJobs />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/messages" element={<Messaging />} />
-              <Route path="/notifications" element={<Notifications />} />
+              
+              {/* Semi-protected routes */}
+              <Route path="/profile-setup" element={
+                <RouteGuard requireAuth={true} requireProfile={false}>
+                  <ProfileSetup />
+                </RouteGuard>
+              } />
+              
+              {/* Protected routes */}
+              <Route path="/home" element={
+                <RouteGuard>
+                  <HomePage />
+                </RouteGuard>
+              } />
+              <Route path="/search" element={
+                <RouteGuard>
+                  <JobSearch />
+                </RouteGuard>
+              } />
+              <Route path="/job/:id" element={
+                <RouteGuard>
+                  <JobDetails />
+                </RouteGuard>
+              } />
+              <Route path="/worker/:id" element={
+                <RouteGuard>
+                  <WorkerProfile />
+                </RouteGuard>
+              } />
+              <Route path="/post-job" element={
+                <RouteGuard>
+                  <PostJob />
+                </RouteGuard>
+              } />
+              <Route path="/my-jobs" element={
+                <RouteGuard>
+                  <MyJobs />
+                </RouteGuard>
+              } />
+              <Route path="/profile" element={
+                <RouteGuard>
+                  <Profile />
+                </RouteGuard>
+              } />
+              <Route path="/messages" element={
+                <RouteGuard>
+                  <Messaging />
+                </RouteGuard>
+              } />
+              <Route path="/notifications" element={
+                <RouteGuard>
+                  <Notifications />
+                </RouteGuard>
+              } />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

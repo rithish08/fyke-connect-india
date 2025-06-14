@@ -1,7 +1,9 @@
+
 import { useLocation } from 'react-router-dom';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
+import { useUserFlow } from '@/hooks/useUserFlow';
 import { Home, Search, ClipboardList, Mail, User as UserIcon, Users } from "lucide-react";
 
 const iconSize = 20;
@@ -27,6 +29,18 @@ const BottomNavigation = () => {
   const { goTo } = useScreenNavigation();
   const { user } = useAuth();
   const { t } = useLocalization();
+  const { isFlowComplete } = useUserFlow();
+
+  // Don't show navigation if flow is not complete
+  if (!isFlowComplete) {
+    return null;
+  }
+
+  // Don't show on setup/onboarding screens
+  const hiddenPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
+  if (hiddenPaths.includes(location.pathname)) {
+    return null;
+  }
 
   const navItems = user?.role === 'employer' ? EMPLOYER_NAV : JOBSEEKER_NAV;
 
