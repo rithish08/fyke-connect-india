@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSizing';
 import CategoryCard from './CategoryCard';
-import SubcategoryPopup from './SubcategoryPopup';
+import SubcategoryCardPopup from './SubcategoryCardPopup';
 import { categories } from '@/data/categories';
 
 interface EnhancedCategoryModalProps {
@@ -69,10 +70,10 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
           );
         })}
       </div>
-      {/* Subcategory Selection Popup (Sheet) */}
-      <SubcategoryPopup
+      {/* Subcategory Selection Popup (Card/Modal) */}
+      <SubcategoryCardPopup
         open={!!popupCategoryId}
-        closePopup={closePopup}
+        onClose={closePopup}
         popupCategoryId={popupCategoryId}
         tempSelectedSubcategories={tempSelectedSubcategories}
         setTempSelectedSubcategories={setTempSelectedSubcategories}
@@ -84,7 +85,6 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
         }
         translateCategory={translateCategory}
         translateText={translateText}
-        getResponsiveTextSize={getResponsiveTextSize}
       />
     </div>
   );
