@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/hooks/useLocalization';
@@ -9,6 +8,7 @@ import WorkerDetailModal from '@/components/worker/WorkerDetailModal';
 import QuickPostModal from '@/components/job/QuickPostModal';
 import BottomNavigation from '@/components/BottomNavigation';
 import { SkeletonGrid } from '@/components/ui/skeleton-cards';
+import JobSearchBreadcrumbs from './JobSearchBreadcrumbs';
 
 interface FilterState {
   distance: number;
@@ -63,6 +63,17 @@ const JobSearchResultsView = ({
   if (!results) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20" role="main" aria-label={getLocalizedText('search.loading', 'Loading search results')}>
+        <div className="max-w-2xl mx-auto">
+          <JobSearchBreadcrumbs
+            currentStep="results"
+            selectedCategory={selectedCategory}
+            selectedSubcategories={undefined}
+            onStepChange={(step) => {
+              if (step === "subcategory") onBackToSubcategory();
+              if (step === "category") onBackToSubcategory(); // Could add new prop for multi-jump if needed
+            }}
+          />
+        </div>
         <JobSearchHeader
           searchQuery=""
           setSearchQuery={() => {}}
@@ -83,6 +94,17 @@ const JobSearchResultsView = ({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20" role="main">
+      <div className="max-w-2xl mx-auto">
+        <JobSearchBreadcrumbs
+          currentStep="results"
+          selectedCategory={selectedCategory}
+          selectedSubcategories={results ? results.map(r => r.subcategory || '').filter(Boolean) : undefined}
+          onStepChange={(step) => {
+            if (step === "subcategory") onBackToSubcategory();
+            if (step === "category") onBackToSubcategory(); // Could add new prop for multi-jump if needed
+          }}
+        />
+      </div>
       <JobSearchHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

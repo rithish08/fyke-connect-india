@@ -4,6 +4,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
 import { Button } from '@/components/ui/button';
 import StickyActionButton from '@/components/ui/StickyActionButton';
+import JobSearchBreadcrumbs from './JobSearchBreadcrumbs';
 
 interface JobSearchCategoryViewProps {
   onSelectionComplete: (selectedCategories: { [catId: string]: string[] }) => void;
@@ -39,6 +40,12 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
+          <JobSearchBreadcrumbs
+            currentStep="category"
+            selectedCategory={null}
+            selectedSubcategories={undefined}
+            onStepChange={() => {}} // At first step, do nothing
+          />
           <h1 className="text-xl font-bold text-gray-900">
             Find Workers by Category
           </h1>

@@ -4,6 +4,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import { ArrowLeft } from 'lucide-react';
 import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
 import StickyActionButton from '@/components/ui/StickyActionButton';
+import JobSearchBreadcrumbs from './JobSearchBreadcrumbs';
 
 interface JobSearchSubcategoryViewProps {
   selectedCategory: {id: string, name: string};
@@ -34,10 +35,20 @@ const JobSearchSubcategoryView = ({
     // But let's focus on type fix for now
   };
 
+  // Handle clicking on category step (go back to category), subcategory step (noop/refresh)
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
+          <JobSearchBreadcrumbs
+            currentStep="subcategory"
+            selectedCategory={selectedCategory}
+            selectedSubcategories={selectedSubcategories}
+            onStepChange={(step) => {
+              if (step === "category") onBack();
+              // step "subcategory" is current - no action
+            }}
+          />
           <div className="flex items-center space-x-3">
             {user?.role === 'employer' && (
               <Button variant="ghost" size="sm" onClick={onBack} className="p-2">
