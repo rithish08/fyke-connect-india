@@ -7,7 +7,7 @@ import { SkeletonWorkerCard } from '@/components/ui/skeleton-cards';
 import TrustIndicators from './TrustIndicators';
 import AnimatedWrapper from './AnimatedWrapper';
 import CommunicationButtons from '@/components/communication/CommunicationButtons';
-import { Star, MapPin, Clock } from 'lucide-react';
+import { Star, MapPin, Clock, Users, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const EmployerHome = () => {
@@ -28,7 +28,8 @@ const EmployerHome = () => {
           distance: '2.1km',
           responseTime: '< 30min',
           isOnline: true,
-          verificationLevel: 'verified'
+          verificationLevel: 'verified',
+          profilePhoto: null
         },
         {
           id: 'worker-2',
@@ -41,7 +42,8 @@ const EmployerHome = () => {
           distance: '1.5km',
           responseTime: '< 1hr',
           isOnline: false,
-          verificationLevel: 'basic'
+          verificationLevel: 'basic',
+          profilePhoto: null
         }
       ]);
     }, 1000);
@@ -55,81 +57,65 @@ const EmployerHome = () => {
 
   return (
     <div className="space-y-6 px-0 md:px-4">
-      {/* Quick Stats */}
+      {/* Easy Redirect to Workers - Prominent Button */}
       <AnimatedWrapper variant="slide" direction="up" delay={100}>
-        <div className="grid grid-cols-2 gap-4">
-          <ModernCard className="bg-white border shadow rounded-2xl">
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-green-700">156</div>
-              <div className="text-sm text-gray-500">Workers Available</div>
-              <div className="flex items-center justify-center space-x-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-700">+12 online now</span>
+        <ModernCard 
+          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105"
+          onClick={() => navigate('/search')}
+        >
+          <div className="flex items-center justify-between p-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                <Users className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Find Workers</h3>
+                <p className="text-blue-100 text-sm">Browse by category & skills</p>
               </div>
             </div>
-          </ModernCard>
-          
-          <ModernCard className="bg-white border shadow rounded-2xl">
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-purple-700">8</div>
-              <div className="text-sm text-gray-500">Active Jobs</div>
-              <div className="text-xs text-gray-500">45 applications</div>
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl font-bold">156+</span>
+              <div className="text-xs">
+                <div>Available</div>
+                <div className="text-blue-200">Workers</div>
+              </div>
             </div>
-          </ModernCard>
-        </div>
+          </div>
+        </ModernCard>
       </AnimatedWrapper>
 
       {/* Primary Actions */}
       <AnimatedWrapper variant="slide" direction="up" delay={200}>
-        <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
           <ModernCard 
             className="bg-white border shadow rounded-2xl cursor-pointer hover:shadow-lg transition-transform duration-200"
             onClick={() => navigate('/post-job')}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">📝</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Post New Job</h3>
-                  <p className="text-gray-500 text-sm">Get workers in 2 hours</p>
-                </div>
+            <div className="text-center space-y-3 p-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-xl">📝</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Post Job</h4>
+                <p className="text-sm text-gray-400">Quick hire</p>
               </div>
             </div>
           </ModernCard>
           
-          <div className="grid grid-cols-2 gap-4">
-            <ModernCard 
-              className="bg-white border shadow rounded-2xl cursor-pointer hover:shadow-lg transition-transform duration-200"
-              onClick={() => navigate('/search')}
-            >
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl">👷</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Find Workers</h4>
-                  <p className="text-sm text-gray-400">156 available</p>
-                </div>
+          <ModernCard 
+            className="bg-white border shadow rounded-2xl cursor-pointer hover:shadow-lg transition-transform duration-200"
+            onClick={() => navigate('/my-jobs')}
+          >
+            <div className="text-center space-y-3 p-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-xl">📋</span>
               </div>
-            </ModernCard>
-            
-            <ModernCard 
-              className="bg-white border shadow rounded-2xl cursor-pointer hover:shadow-lg transition-transform duration-200"
-              onClick={() => navigate('/my-jobs')}
-            >
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl">📋</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">My Posts</h4>
-                  <p className="text-sm text-gray-400">8 active</p>
-                </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">My Posts</h4>
+                <p className="text-sm text-gray-400">8 active</p>
               </div>
-            </ModernCard>
-          </div>
+            </div>
+          </ModernCard>
         </div>
       </AnimatedWrapper>
 
@@ -156,10 +142,16 @@ const EmployerHome = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="relative">
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                            <span className="text-lg font-bold text-gray-700">
-                              {worker.name[0]}
-                            </span>
+                          <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
+                            {worker.profilePhoto ? (
+                              <img src={worker.profilePhoto} alt={worker.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                                <span className="text-lg font-bold text-gray-600">
+                                  {worker.name[0]}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           {worker.isOnline && (
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>

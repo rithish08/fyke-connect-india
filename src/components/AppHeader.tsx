@@ -33,9 +33,16 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
   return (
     <>
       <div className="relative bg-white p-0 shadow-none w-full">
-        {/* App Brand in top left */}
-        <div className="flex items-center h-14 px-4 border-b border-gray-100">
+        {/* App Brand with Bell Icon */}
+        <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
           <span className="font-black text-2xl text-gray-900 tracking-tight">fyke</span>
+          <button 
+            onClick={() => navigate('/notifications')}
+            className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <Bell className="w-5 h-5 text-gray-600" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
+          </button>
         </div>
         {/* Page Name below app name */}
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
@@ -54,19 +61,10 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
                 : t('home.employer_subtitle', 'Ready to hire?')}
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <button 
-              onClick={() => navigate('/notifications')}
-              className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-            >
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
-            </button>
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
-              <span className="text-lg font-bold text-gray-700 uppercase">
-                {user?.name ? user?.name[0] : user?.phone?.[0] || 'U'}
-              </span>
-            </div>
+          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
+            <span className="text-lg font-bold text-gray-700 uppercase">
+              {user?.name ? user?.name[0] : user?.phone?.[0] || 'U'}
+            </span>
           </div>
         </div>
       </div>
