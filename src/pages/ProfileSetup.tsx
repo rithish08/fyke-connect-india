@@ -5,13 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
-import SkillSelectionStep from '@/components/profile/SkillSelectionStep';
 import SalaryStep from '@/components/profile/SalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
 
-const STEPS = ["category", "skills", "salary", "availability"];
-const STEP_TITLES = ["Choose Category", "Select Skills", "Set Salary", "Availability"];
+const STEPS = ["category", "salary", "availability"];
+const STEP_TITLES = ["Choose Category", "Set Salary", "Availability"];
 
 const ProfileSetup = () => {
   const { user, updateProfile } = useAuth();
@@ -21,7 +20,6 @@ const ProfileSetup = () => {
   // Form state
   const [category, setCategory] = useState(user?.primaryCategory || '');
   const [vehicle, setVehicle] = useState('');
-  const [skills, setSkills] = useState<string[]>([]);
   const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
@@ -37,10 +35,9 @@ const ProfileSetup = () => {
   const handleFinish = () => {
     updateProfile({
       category,
-      categories: user?.categories,
+      categories: [category],
       primaryCategory: category,
       vehicle: category === "Driver" ? vehicle : undefined,
-      skills,
       salaryExpectation: { min: Number(salary.amount), max: Number(salary.amount) },
       salaryPeriod: salary.period,
       availability,
@@ -111,15 +108,6 @@ const ProfileSetup = () => {
             />
           )}
           {step === 1 && (
-            <SkillSelectionStep
-              skills={skills}
-              setSkills={setSkills}
-              category={category}
-              onNext={() => setStep(step + 1)}
-              onBack={() => setStep(step - 1)}
-            />
-          )}
-          {step === 2 && (
             <SalaryStep
               salary={salary}
               setSalary={setSalary}
@@ -127,7 +115,7 @@ const ProfileSetup = () => {
               onBack={() => setStep(step - 1)}
             />
           )}
-          {step === 3 && (
+          {step === 2 && (
             <AvailabilityStep
               availability={availability}
               setAvailability={setAvailability}

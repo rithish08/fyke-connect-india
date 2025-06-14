@@ -16,6 +16,7 @@ import { MapPin, Zap, Plus, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Input } from '@/components/ui/input';
+import { workersDb } from '@/data/workersDb';
 
 interface FilterState {
   distance: number;
@@ -27,55 +28,17 @@ interface FilterState {
 
 type ViewState = 'category' | 'subcategory' | 'results';
 
-const workersDb = [
-  { 
-    id: '1', 
-    name: "Raj Kumar", 
-    category: "Construction", 
-    skills: ["Manual Labor", "Masonry", "Painting"], 
-    rating: 4.8,
-    distance: "1.2km",
-    responseTime: "< 5min",
-    hourlyRate: 350,
-    isOnline: true,
-    completedJobs: 47,
-    verificationLevel: 'verified' as const,
-    profileImage: "/placeholder.svg"
-  },
-  { 
-    id: '2', 
-    name: "Amit Singh", 
-    category: "Gardening", 
-    skills: ["Landscaping", "Plant Care", "Irrigation"], 
-    rating: 4.4,
-    distance: "2.1km",
-    responseTime: "< 10min",
-    hourlyRate: 280,
-    isOnline: true,
-    completedJobs: 23,
-    verificationLevel: 'basic' as const,
-    profileImage: "/placeholder.svg"
-  },
-  { 
-    id: '3', 
-    name: "Devika Sharma", 
-    category: "Driver", 
-    skills: ["City Driving", "Tempo", "Night Shift"], 
-    rating: 4.9,
-    distance: "0.8km",
-    responseTime: "< 3min",
-    hourlyRate: 420,
-    isOnline: true,
-    completedJobs: 89,
-    verificationLevel: 'premium' as const,
-    profileImage: "/placeholder.svg"
-  },
-];
-
 const jobsDb = [
   { id: 1, title: "Construction Worker Needed Urgently", category: "Construction", skills: ["Manual Labor"], salary: "400", urgent: true },
   { id: 2, title: "Tempo Driver for Moving", category: "Driver", skills: ["Driving", "Tempo"], salary: "500", urgent: false },
   { id: 3, title: "Garden Maintenance Required", category: "Gardening", skills: ["Gardening"], salary: "300", urgent: false },
+  { id: 4, title: "House Cleaning Service", category: "Cleaning", skills: ["Deep Cleaning"], salary: "350", urgent: true },
+  { id: 5, title: "Security Guard Needed", category: "Security", skills: ["Night Shift"], salary: "400", urgent: false },
+  { id: 6, title: "Home Cook Required", category: "Cooking", skills: ["Indian Cuisine"], salary: "450", urgent: false },
+  { id: 7, title: "Hair Stylist for Salon", category: "Beauty", skills: ["Hair Cutting"], salary: "500", urgent: true },
+  { id: 8, title: "Warehouse Helper", category: "Warehouse", skills: ["Packing"], salary: "320", urgent: false },
+  { id: 9, title: "Factory Worker", category: "Manufacturing", skills: ["Assembly"], salary: "380", urgent: false },
+  { id: 10, title: "Food Delivery Partner", category: "Delivery", skills: ["Two Wheeler"], salary: "400", urgent: true },
 ];
 
 const JobSearch = () => {

@@ -6,7 +6,7 @@ import RecentActivitySection from '@/components/employer/RecentActivitySection';
 
 const EmployerHome = () => {
   return (
-    <div className="space-y-6 px-0 md:px-4">
+    <div className="space-y-4 px-0 md:px-4">
       <FindWorkersSection />
       <QuickActionsSection />
       <NearbyWorkersSection />

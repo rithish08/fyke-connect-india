@@ -79,17 +79,20 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
   const handleCategorySelect = (categoryName: string) => {
     setCategory(categoryName);
     const categoryData = categories.find(cat => cat.name === categoryName);
-    if (categoryData?.subcategories.length) {
+    if (categoryData?.subcategories.length && role === 'jobseeker') {
       setShowSubcategories(true);
     }
   };
 
   const handleSubcategoryToggle = (subcategory: string) => {
-    setSelectedSubcategories(prev => 
-      prev.includes(subcategory) 
+    setSelectedSubcategories(prev => {
+      const newSelection = prev.includes(subcategory) 
         ? prev.filter(s => s !== subcategory)
-        : [...prev, subcategory]
-    );
+        : prev.length < 3 
+          ? [...prev, subcategory]
+          : prev;
+      return newSelection;
+    });
   };
 
   const canProceed = category && (category !== "Driver" || vehicle);
@@ -126,6 +129,12 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
               <div className="text-xs text-gray-500 mb-2">
                 {cat.subcategories.length} specializations
               </div>
+              
+              {category === cat.name && selectedSubcategories.length > 0 && (
+                <div className="text-xs text-blue-600 font-medium">
+                  {selectedSubcategories.length} selected
+                </div>
+              )}
               
               {category === cat.name && (
                 <div className="absolute top-2 right-2">
@@ -194,7 +203,7 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
             </div>
             
             <p className="text-sm text-gray-500 mb-4">
-              Select the skills that match your expertise (optional)
+              Select up to 3 skills that match your expertise
             </p>
             
             <div className="grid grid-cols-1 gap-2 mb-6">
@@ -204,9 +213,12 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
                   className={`w-full p-3 rounded-xl border-2 text-left transition-all ${
                     selectedSubcategories.includes(sub)
                       ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : selectedSubcategories.length >= 3
+                      ? "border-gray-200 text-gray-400 cursor-not-allowed"
                       : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
                   }`}
                   onClick={() => handleSubcategoryToggle(sub)}
+                  disabled={!selectedSubcategories.includes(sub) && selectedSubcategories.length >= 3}
                   type="button"
                 >
                   <div className="flex items-center justify-between">
@@ -217,6 +229,10 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
                   </div>
                 </button>
               ))}
+            </div>
+
+            <div className="text-xs text-gray-500 mb-4 text-center">
+              {selectedSubcategories.length}/3 skills selected
             </div>
 
             <Button

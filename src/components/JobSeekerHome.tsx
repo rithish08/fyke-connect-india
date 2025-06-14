@@ -33,7 +33,7 @@ const JobSeekerHome = () => {
           id: 2, 
           title: "Delivery Executive", 
           company: "QuickDelivery Services",
-          category: "Driver", 
+          category: "Delivery", 
           salary: "₹400-600/day",
           location: "Pune",
           urgent: false,
@@ -53,9 +53,71 @@ const JobSeekerHome = () => {
           postedTime: "6h ago",
           skills: ["Night Shift", "CCTV"]
         },
+        { 
+          id: 4, 
+          title: "House Cleaning Service", 
+          company: "CleanMax Services",
+          category: "Cleaning", 
+          salary: "₹300-500/day",
+          location: "Bangalore",
+          urgent: true,
+          distance: "1.5km",
+          postedTime: "1h ago",
+          skills: ["Deep Cleaning", "House Cleaning"]
+        },
+        { 
+          id: 5, 
+          title: "Personal Driver Required", 
+          company: "Elite Transport",
+          category: "Driver", 
+          salary: "₹600-800/day",
+          location: "Delhi",
+          urgent: false,
+          distance: "3.8km",
+          postedTime: "5h ago",
+          skills: ["Personal Driver", "City Navigation"]
+        },
+        { 
+          id: 6, 
+          title: "Home Cook Needed", 
+          company: "Family Kitchen",
+          category: "Cooking", 
+          salary: "₹400-600/day",
+          location: "Hyderabad",
+          urgent: false,
+          distance: "2.2km",
+          postedTime: "3h ago",
+          skills: ["Home Cook", "Indian Cuisine"]
+        },
+        { 
+          id: 7, 
+          title: "Garden Maintenance", 
+          company: "Green Spaces",
+          category: "Gardening", 
+          salary: "₹350-450/day",
+          location: "Pune",
+          urgent: false,
+          distance: "4.1km",
+          postedTime: "7h ago",
+          skills: ["Plant Care", "Landscaping"]
+        },
+        { 
+          id: 8, 
+          title: "Hair Stylist Required", 
+          company: "Glamour Salon",
+          category: "Beauty", 
+          salary: "₹500-700/day",
+          location: "Mumbai",
+          urgent: true,
+          distance: "1.9km",
+          postedTime: "30min ago",
+          skills: ["Hair Styling", "Customer Service"]
+        },
       ];
-      if (user?.categories?.length) {
-        setJobs(allJobs.filter(j => user.categories.includes(j.category)));
+      
+      // Filter jobs based on user's selected category
+      if (user?.primaryCategory) {
+        setJobs(allJobs.filter(j => j.category === user.primaryCategory));
       } else {
         setJobs(allJobs);
       }
@@ -75,7 +137,9 @@ const JobSeekerHome = () => {
   return (
     <div className="space-y-4 px-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-900">Jobs for You</h2>
+        <h2 className="text-lg font-bold text-gray-900">
+          {user?.primaryCategory ? `${user.primaryCategory} Jobs` : 'Jobs for You'}
+        </h2>
         <Button variant="outline" size="sm" onClick={() => navigate('/search')}>
           View All
         </Button>
