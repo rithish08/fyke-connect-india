@@ -1,25 +1,32 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
-import SalaryStep from '@/components/profile/SalaryStep';
+import EnhancedCategoryStep from '@/components/profile/EnhancedCategoryStep';
+import EnhancedSalaryStep from '@/components/profile/EnhancedSalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
 
 const STEPS = ["category", "salary", "availability"];
-const STEP_TITLES = ["Choose Category", "Set Salary", "Availability"];
+const STEP_TITLES = ["Choose Categories", "Set Salary Rates", "Availability"];
+
+interface SalaryRates {
+  daily: string;
+  weekly: string;
+  monthly: string;
+}
 
 const ProfileSetup = () => {
   const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
-  // Form state
-  const [category, setCategory] = useState(user?.primaryCategory || '');
-  const [vehicle, setVehicle] = useState('');
-  const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
+  // Enhanced form state
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<{ [key: string]: string[] }>({});
+  const [salaryRates, setSalaryRates] = useState<SalaryRates>({ daily: '', weekly: '', monthly: '' });
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   useEffect(() => {
@@ -36,24 +43,22 @@ const ProfileSetup = () => {
   }, [user, navigate]);
 
   const handleFinish = () => {
-    // Get subcategories from localStorage
-    const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
-    const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
+    // Prepare subcategories array for storage
+    const allSubcategories = Object.values(selectedSubcategories).flat();
     
     updateProfile({
-      category,
-      categories: [category],
-      primaryCategory: category,
-      subcategories: subcategories,
-      vehicle: category === "Driver" ? vehicle : undefined,
-      salaryExpectation: { min: Number(salary.amount), max: Number(salary.amount) },
-      salaryPeriod: salary.period,
+      categories: selectedCategories,
+      primaryCategory: selectedCategories[0] || '',
+      subcategories: allSubcategories,
+      salaryRates: {
+        daily: salaryRates.daily ? Number(salaryRates.daily) : undefined,
+        weekly: salaryRates.weekly ? Number(salaryRates.weekly) : undefined,
+        monthly: salaryRates.monthly ? Number(salaryRates.monthly) : undefined,
+      },
       availability,
       profileComplete: true,
     });
     
-    // Clean up localStorage
-    localStorage.removeItem('fyke_selected_subcategories');
     navigate('/home');
   };
 
@@ -82,7 +87,7 @@ const ProfileSetup = () => {
             <BadgeCheck className="w-6 h-6 text-blue-500" />
             <span className="text-lg font-bold text-gray-900">Profile Setup</span>
           </div>
-          <div className="w-10 h-10"></div> {/* Spacer */}
+          <div className="w-10 h-10"></div>
         </div>
 
         {/* Progress Bar */}
@@ -109,19 +114,18 @@ const ProfileSetup = () => {
         {/* Step Content */}
         <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
           {step === 0 && (
-            <ProfileCategoryStep
-              category={category}
-              setCategory={setCategory}
-              vehicle={vehicle}
-              setVehicle={setVehicle}
-              role={user.role}
+            <EnhancedCategoryStep
+              selectedCategories={selectedCategories}
+              selectedSubcategories={selectedSubcategories}
+              setSelectedCategories={setSelectedCategories}
+              setSelectedSubcategories={setSelectedSubcategories}
               onNext={() => setStep(step + 1)}
             />
           )}
           {step === 1 && (
-            <SalaryStep
-              salary={salary}
-              setSalary={setSalary}
+            <EnhancedSalaryStep
+              salaryRates={salaryRates}
+              setSalaryRates={setSalaryRates}
               onNext={() => setStep(step + 1)}
               onBack={() => setStep(step - 1)}
             />
