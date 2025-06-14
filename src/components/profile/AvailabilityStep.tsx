@@ -2,8 +2,8 @@
 import { Button } from '@/components/ui/button';
 
 interface StepProps {
-  availability: string;
-  setAvailability: (v: string) => void;
+  availability: 'available' | 'busy' | 'offline';
+  setAvailability: (v: 'available' | 'busy' | 'offline') => void;
   onBack: () => void;
   onFinish: () => void;
 }
@@ -12,7 +12,7 @@ const AvailabilityStep = ({ availability, setAvailability, onBack, onFinish }: S
   <div>
     <h2 className="font-bold text-lg mb-3">Availability</h2>
     <div className="flex items-center gap-5 mb-5">
-      {["available", "busy", "offline"].map(status => (
+      {(["available", "busy", "offline"] as const).map(status => (
         <button
           key={status}
           className={`rounded-xl px-5 py-2 border-2 text-sm transition

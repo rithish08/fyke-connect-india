@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -13,6 +12,9 @@ interface User {
   availability?: 'available' | 'busy' | 'offline';
   skills?: string[];
   salaryExpectation?: { min: number; max: number };
+  category?: string;
+  vehicle?: string;
+  salaryPeriod?: 'daily' | 'weekly' | 'monthly';
 }
 
 interface AuthContextType {
