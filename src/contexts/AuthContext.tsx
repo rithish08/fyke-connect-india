@@ -36,6 +36,7 @@ interface AuthContextType {
   setRole: (role: 'jobseeker' | 'employer') => void;
   switchRole: () => void;
   updateProfile: (updates: Partial<User>) => void;
+  sendOTP: (phone: string, name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -68,6 +69,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }, []);
+
+  const sendOTP = async (phone: string, name: string) => {
+    try {
+      // Simulate API call to send OTP
+      console.log('Sending OTP to:', phone, 'for user:', name);
+      
+      // Store phone and name for later use during login
+      localStorage.setItem('fyke_phone', phone);
+      localStorage.setItem('fyke_name', name);
+      
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('OTP sent successfully');
+    } catch (error) {
+      console.error('Failed to send OTP:', error);
+      throw error;
+    }
+  };
 
   const login = async (phone: string, otp: string) => {
     try {
@@ -169,7 +189,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       setRole,
       switchRole,
-      updateProfile
+      updateProfile,
+      sendOTP
     }}>
       {children}
     </AuthContext.Provider>
