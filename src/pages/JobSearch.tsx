@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -81,34 +80,31 @@ const JobSearch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-sm p-4 border-b border-gray-100">
+      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <h1 className="text-xl font-bold text-gray-900 mb-4">
           {user?.role === 'employer' ? 'Find Workers' : 'Find Jobs'}
         </h1>
-        
-        {/* Search Bar */}
         <div className="space-y-3">
           <Input
             placeholder={user?.role === 'employer' ? 'Search for workers...' : 'Search for jobs...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-2xl border-gray-200 h-12"
+            className="w-full rounded-lg border border-gray-200 h-12 bg-gray-50"
           />
-          
           <div className="flex space-x-2">
             <Input
               placeholder="Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="flex-1 rounded-2xl border-gray-200"
+              className="flex-1 rounded-lg border border-gray-200 bg-gray-50"
             />
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-32 rounded-2xl border-gray-200">
+              <SelectTrigger className="w-32 rounded-lg border border-gray-200 bg-white">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl">
+              <SelectContent className="rounded-xl">
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat.toLowerCase()}>
                     {cat}
@@ -121,12 +117,12 @@ const JobSearch = () => {
       </div>
 
       {/* Filters and Sort */}
-      <div className="bg-white/60 backdrop-blur-sm border-b border-gray-100 p-4">
+      <div className="bg-white p-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Sort by:</span>
+            <span className="text-sm text-gray-500">Sort by:</span>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-32 rounded-xl border-gray-200">
+              <SelectTrigger className="w-32 rounded-lg border border-gray-200 bg-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -137,7 +133,7 @@ const JobSearch = () => {
               </SelectContent>
             </Select>
           </div>
-          <span className="text-sm text-gray-600">{jobs.length} results</span>
+          <span className="text-sm text-gray-400">{jobs.length} results</span>
         </div>
       </div>
 
@@ -146,8 +142,8 @@ const JobSearch = () => {
         {jobs.map((job) => (
           <ModernCard 
             key={job.id} 
-            variant="glass"
-            className="cursor-pointer hover:scale-[1.01] transition-all duration-200 relative overflow-hidden"
+            variant="default"
+            className="cursor-pointer hover:scale-[1.01] transition-all duration-200 relative overflow-hidden bg-white shadow border border-gray-100 rounded-2xl"
             onClick={() => handleJobClick(job.id)}
           >
             {job.urgent && (
@@ -155,7 +151,6 @@ const JobSearch = () => {
                 <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               </div>
             )}
-            
             <div className="space-y-4">
               {/* Job Header */}
               <div className="flex justify-between items-start">
@@ -168,16 +163,16 @@ const JobSearch = () => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 font-medium">{job.company}</p>
+                  <p className="text-sm text-gray-500 font-medium">{job.company}</p>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-green-600 text-lg">{job.salary}</div>
-                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{job.type}</div>
+                  <div className="font-bold text-green-700 text-lg">{job.salary}</div>
+                  <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">{job.type}</div>
                 </div>
               </div>
 
               {/* Location and Distance */}
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <div className="flex items-center space-x-4 text-sm text-gray-400">
                 <span className="flex items-center space-x-1">
                   <span>📍</span>
                   <span>{job.location}</span>
@@ -197,19 +192,18 @@ const JobSearch = () => {
 
               {/* Job Stats and Actions */}
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{job.applications} applications</span>
+                <div className="flex items-center space-x-4 text-xs text-gray-400">
+                  <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{job.applications} applications</span>
                   <span className="flex items-center space-x-1">
                     <span>⚡</span>
                     <span>Quick apply</span>
                   </span>
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm" className="text-xs rounded-xl border-gray-200">
                     💾 Save
                   </Button>
-                  <Button size="sm" className="text-xs bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl">
+                  <Button size="sm" className="text-xs bg-gray-900 hover:bg-gray-800 text-white rounded-xl">
                     {user?.role === 'employer' ? 'Contact' : 'Apply Now'}
                   </Button>
                 </div>
@@ -225,7 +219,6 @@ const JobSearch = () => {
           Load More Jobs
         </Button>
       </div>
-
       <BottomNavigation />
     </div>
   );

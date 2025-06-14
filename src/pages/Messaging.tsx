@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -211,13 +210,12 @@ const Messaging = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4">
+      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <h1 className="text-xl font-bold text-gray-900">Messages</h1>
-        <p className="text-sm text-gray-600">Connect with employers and job seekers</p>
+        <p className="text-sm text-gray-500">Connect with employers and job seekers</p>
       </div>
-
       <div className="h-[calc(100vh-8rem)]">
         {selectedChat ? (
           <ChatWindow />
@@ -228,13 +226,12 @@ const Messaging = () => {
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">💬</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Messages Yet</h3>
-                <p className="text-gray-600">Start applying to jobs or posting job requirements to begin conversations</p>
+                <p className="text-gray-500">Start applying to jobs or posting job requirements to begin conversations</p>
               </div>
             )}
           </div>
         )}
       </div>
-
       {!selectedChat && <BottomNavigation />}
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -72,24 +71,24 @@ const OTPVerification = () => {
   const phone = localStorage.getItem('fyke_phone');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl flex items-center justify-center mx-auto">
-            <span className="text-white text-xl font-bold">F</span>
+          <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
+            <span className="text-2xl font-bold text-gray-800">F</span>
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Verify Your Phone</h1>
-            <p className="text-gray-600">
+            <p className="text-gray-500">
               Enter the 6-digit code sent to<br />
-              <span className="font-semibold">+91 {phone}</span>
+              <span className="font-semibold text-gray-700">+91 {phone}</span>
             </p>
           </div>
         </div>
 
         {/* OTP Card */}
-        <Card className="p-6 shadow-xl border-0">
+        <Card className="p-6 shadow border-gray-100 bg-white">
           <div className="space-y-6">
             {/* Enhanced OTP Input */}
             <EnhancedOTPInput
@@ -98,7 +97,6 @@ const OTPVerification = () => {
               onComplete={handleOTPComplete}
             />
 
-            {/* Auto-verification note */}
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -106,19 +104,18 @@ const OTPVerification = () => {
               </div>
             </div>
 
-            {/* Timer Display */}
             <div className="text-center">
               {resendTimer > 0 ? (
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm text-gray-500">
+                  <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-400">
                     Resend in {resendTimer}s
                   </p>
                 </div>
               ) : (
                 <button
                   onClick={handleResend}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-sm text-gray-700 hover:text-gray-900 font-medium"
                 >
                   Resend OTP
                 </button>
@@ -133,7 +130,7 @@ const OTPVerification = () => {
             <span className="text-sm">🛡️</span>
             <span className="text-sm font-medium">Secure Verification</span>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             This helps us keep your account safe and secure
           </p>
         </div>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -127,20 +126,19 @@ const Notifications = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4">
+      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
-            <p className="text-sm text-gray-600">Stay updated with your job activities</p>
+            <p className="text-sm text-gray-500">Stay updated with your job activities</p>
           </div>
-          <Button variant="ghost" size="sm" className="text-blue-600">
+          <Button variant="ghost" size="sm" className="text-gray-700">
             Mark All Read
           </Button>
         </div>
       </div>
-
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
@@ -196,7 +194,6 @@ const Notifications = () => {
           </TabsContent>
         </Tabs>
       </div>
-
       <BottomNavigation />
     </div>
   );

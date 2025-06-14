@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -74,9 +73,9 @@ const JobDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4">
+      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
@@ -92,7 +91,7 @@ const JobDetails = () => {
 
       <div className="p-4 space-y-6">
         {/* Job Header Card */}
-        <Card className="p-6">
+        <Card className="p-6 shadow border border-gray-100 bg-white">
           <div className="space-y-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -120,15 +119,11 @@ const JobDetails = () => {
             </div>
           </div>
         </Card>
-
-        {/* Job Description */}
-        <Card className="p-6">
+        <Card className="p-6 shadow border border-gray-100 bg-white">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Job Description</h3>
           <p className="text-gray-700 leading-relaxed">{job.description}</p>
         </Card>
-
-        {/* Requirements */}
-        <Card className="p-6">
+        <Card className="p-6 shadow border border-gray-100 bg-white">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
           <ul className="space-y-2">
             {job.requirements.map((req, index) => (
@@ -139,9 +134,7 @@ const JobDetails = () => {
             ))}
           </ul>
         </Card>
-
-        {/* Benefits */}
-        <Card className="p-6">
+        <Card className="p-6 shadow border border-gray-100 bg-white">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h3>
           <ul className="space-y-2">
             {job.benefits.map((benefit, index) => (
@@ -152,9 +145,7 @@ const JobDetails = () => {
             ))}
           </ul>
         </Card>
-
-        {/* Work Schedule */}
-        <Card className="p-6">
+        <Card className="p-6 shadow border border-gray-100 bg-white">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Work Schedule</h3>
           <div className="space-y-2 text-gray-700">
             <div className="flex justify-between">
@@ -171,9 +162,7 @@ const JobDetails = () => {
             </div>
           </div>
         </Card>
-
-        {/* Employer Info */}
-        <Card className="p-6">
+        <Card className="p-6 shadow border border-gray-100 bg-white">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">About Employer</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -209,7 +198,7 @@ const JobDetails = () => {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-lg">
         <div className="flex space-x-3 max-w-md mx-auto">
           <Button
             variant="outline"
@@ -231,7 +220,7 @@ const JobDetails = () => {
           
           <Button
             onClick={handleApply}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-medium"
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-2xl"
           >
             {user?.role === 'employer' ? 'Contact Worker' : 'Apply Now'}
           </Button>

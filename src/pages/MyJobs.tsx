@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -238,13 +237,13 @@ const MyJobs = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4">
+      <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <h1 className="text-xl font-bold text-gray-900">
           {user?.role === 'employer' ? 'My Job Posts' : 'My Jobs'}
         </h1>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-500">
           {user?.role === 'employer' 
             ? 'Manage your job postings and applications' 
             : 'Track your applications and job history'
@@ -255,7 +254,6 @@ const MyJobs = () => {
       <div className="p-4">
         {user?.role === 'employer' ? <EmployerView /> : <JobSeekerView />}
       </div>
-
       <BottomNavigation />
     </div>
   );

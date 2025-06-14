@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -51,130 +50,83 @@ const RoleSelection = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-8">
         {/* Header */}
-        <AnimatedWrapper variant="slide" direction="down" delay={100}>
-          <div className="text-center space-y-4">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-green-600 rounded-3xl flex items-center justify-center mx-auto shadow-xl">
-              <span className="text-white text-2xl font-bold">F</span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Fyke</h1>
-              <p className="text-gray-600 text-lg">How would you like to use Fyke today?</p>
-            </div>
+        <div className="text-center space-y-4">
+          <div className="w-20 h-20 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
+            <span className="text-2xl font-bold text-gray-800">F</span>
           </div>
-        </AnimatedWrapper>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Fyke</h1>
+            <p className="text-gray-600 text-base">How would you like to use Fyke today?</p>
+          </div>
+        </div>
 
-        {/* Role Selection Cards */}
         <div className="space-y-6">
-          {roles.map((role, index) => (
-            <AnimatedWrapper key={role.type} variant="slide" direction="up" delay={300 + index * 200}>
-              <Card
-                className={`p-6 cursor-pointer transition-all duration-500 border-2 overflow-hidden relative group ${
-                  selectedRole === role.type
-                    ? `border-${role.color}-500 bg-${role.color}-50 shadow-2xl scale-105 ring-4 ring-${role.color}-200`
-                    : hoveredRole === role.type
-                    ? `border-${role.color}-300 shadow-xl scale-102`
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
-                }`}
-                onClick={() => setSelectedRole(role.type)}
-                onMouseEnter={() => setHoveredRole(role.type)}
-                onMouseLeave={() => setHoveredRole(null)}
-              >
-                {/* Background Pattern */}
-                <div className={`absolute top-0 right-0 text-6xl opacity-10 transform rotate-12 transition-transform duration-500 ${
-                  selectedRole === role.type ? 'scale-110' : ''
-                }`}>
-                  {role.bgImage}
-                </div>
-                
-                {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${role.gradient} opacity-0 transition-opacity duration-500 ${
-                  selectedRole === role.type ? 'opacity-10' : hoveredRole === role.type ? 'opacity-5' : ''
-                }`} />
-                
-                <div className="relative space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-16 h-16 bg-${role.color}-100 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                        selectedRole === role.type ? 'scale-110 shadow-lg' : ''
-                      }`}>
-                        <span className="text-3xl">{role.icon}</span>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900">{role.title}</h3>
-                        <p className={`text-sm font-semibold text-${role.color}-600`}>{role.subtitle}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Selection Indicator */}
-                    <div className={`w-6 h-6 rounded-full border-2 transition-all duration-300 ${
-                      selectedRole === role.type
-                        ? `bg-${role.color}-500 border-${role.color}-500 scale-110`
-                        : 'border-gray-300'
-                    }`}>
-                      {selectedRole === role.type && (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">✓</span>
-                        </div>
-                      )}
-                    </div>
+          {roles.map((role) => (
+            <Card
+              key={role.type}
+              className={`p-6 cursor-pointer border-2 transition-all duration-300 bg-white relative ${
+                selectedRole === role.type
+                  ? 'border-gray-700 shadow-xl scale-105'
+                  : hoveredRole === role.type
+                  ? 'border-gray-400 shadow'
+                  : 'border-gray-100 hover:border-gray-300'
+              }`}
+              onClick={() => setSelectedRole(role.type)}
+              onMouseEnter={() => setHoveredRole(role.type)}
+              onMouseLeave={() => setHoveredRole(null)}
+            >
+              <div className="absolute top-0 right-0 text-5xl opacity-10 pointer-events-none">
+                {role.bgImage}
+              </div>
+              <div className="relative space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gray-50">
+                    <span className="text-3xl">{role.icon}</span>
                   </div>
-                  
-                  <p className="text-gray-700 leading-relaxed">{role.description}</p>
-                  
-                  {/* Features */}
-                  <div className="flex flex-wrap gap-2">
-                    {role.features.map((feature, idx) => (
-                      <span
-                        key={idx}
-                        className={`px-3 py-1.5 bg-${role.color}-100 text-${role.color}-700 rounded-full text-sm font-medium transition-all duration-300 ${
-                          selectedRole === role.type ? 'scale-105' : ''
-                        }`}
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Stats */}
-                  <div className={`text-xs text-${role.color}-600 font-medium`}>
-                    📊 {role.stats}
-                  </div>
-                  
-                  {/* Success Story */}
-                  <div className={`bg-${role.color}-50 p-3 rounded-lg border border-${role.color}-100`}>
-                    <p className={`text-sm text-${role.color}-800 font-medium`}>
-                      ✨ {role.successStory}
-                    </p>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{role.title}</h3>
+                    <p className="text-sm font-semibold text-gray-600">{role.subtitle}</p>
                   </div>
                 </div>
-              </Card>
-            </AnimatedWrapper>
+                <p className="text-gray-700 leading-relaxed">{role.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {role.features.map((feature, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-900 rounded-full text-sm font-medium"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500 font-medium">📊 {role.stats}</div>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <p className="text-sm text-gray-700 font-medium">
+                    ✨ {role.successStory}
+                  </p>
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
 
-        <AnimatedWrapper variant="slide" direction="up" delay={800}>
-          <Button
-            onClick={handleContinue}
-            disabled={!selectedRole}
-            className={`w-full font-medium py-4 rounded-2xl shadow-lg transition-all duration-300 text-lg ${
-              selectedRole
-                ? 'bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 hover:scale-105 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {selectedRole ? 'Continue as ' + (selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer') : 'Select your role to continue'}
-          </Button>
-        </AnimatedWrapper>
-
-        <AnimatedWrapper variant="fade" delay={1000}>
-          <div className="text-center text-sm text-gray-500">
-            You can switch roles anytime later in the app
-          </div>
-        </AnimatedWrapper>
+        <Button
+          onClick={handleContinue}
+          disabled={!selectedRole}
+          className={`w-full font-medium py-4 rounded-2xl shadow transition-all duration-200 text-lg ${
+            selectedRole
+              ? 'bg-gray-900 hover:bg-gray-800 text-white'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          {selectedRole ? 'Continue as ' + (selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer') : 'Select your role to continue'}
+        </Button>
+        <div className="text-center text-xs text-gray-400 mt-2">
+          You can switch roles anytime later in the app
+        </div>
       </div>
     </div>
   );
