@@ -1,10 +1,9 @@
 
 import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { X, CheckCircle } from 'lucide-react';
-import { getResponsiveTextSize, getFlexibleContainerClass, getResponsivePadding } from '@/utils/textSizing';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SubcategoryCardPopupProps {
@@ -47,69 +46,63 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
     );
   };
 
-  // Calculate dynamic height based on number of subcategories
-  // On mobile: fixed min, max at 80vh, auto scroll with soft insets
-  // On desktop: minHeight 320, maxHeight 480-90vh
-  const subcategoryCount = category.subcategories.length;
-  const baseHeight = isMobile ? Math.min(128 + subcategoryCount * 48, window.innerHeight * 0.8) : Math.min(220 + subcategoryCount * 44, 520);
+  // Dynamic height based on content
+  const MIN_HEIGHT = isMobile ? 260 : 300;
+  const baseHeight = MIN_HEIGHT + Math.ceil(category.subcategories.length / (isMobile ? 2 : 3)) * 45;
+  const MAX_HEIGHT = isMobile ? window.innerHeight * 0.75 : 520;
 
-  // Responsive grid columns
-  const getColumns = () => {
-    if (subcategoryCount >= 10) return '1fr 1fr';
-    if (subcategoryCount >= 5 && !isMobile) return '1fr 1fr';
-    return '1fr';
-  };
-
-  // Reusable content
-  const RenderPopupContent = (
+  const PopupContent = (
     <div
+      className={`
+        bg-white w-full relative flex flex-col justify-between
+        rounded-2xl border
+        shadow-lg
+        ${isMobile ? 'px-3 pt-4 pb-3' : 'px-8 pt-7 pb-6'}
+        animate-fade-in
+        `}
       style={{
-        minWidth: isMobile ? '100%' : undefined,
-        minHeight: isMobile ? undefined : 320,
-        maxHeight: isMobile ? '80vh' : '90vh',
-        height: isMobile ? 'auto' : baseHeight,
-        boxShadow: isMobile
-          ? '0 -18px 50px 0px rgba(56,56,100,0.13)'
-          : '0px 14px 40px 0px rgba(38,54,106,0.14), 0 2px 8px 0 rgba(0,0,0,0.04)'
+        minHeight: MIN_HEIGHT,
+        maxHeight: MAX_HEIGHT,
+        height: Math.min(baseHeight, MAX_HEIGHT),
+        borderColor: '#cebbaa',
+        boxShadow: '0 4px 32px 0 rgba(79,60,61,0.1)'
       }}
-      className={`bg-white w-full relative p-0 flex flex-col justify-between rounded-t-3xl ${isMobile ? 'rounded-b-none animate-slide-in-right' : 'rounded-3xl animate-fade-in'} border border-blue-100 overflow-hidden shadow-2xl`}
     >
       {/* Header */}
-      <div className={`flex items-center justify-between px-6 pt-5 pb-2 ${isMobile ? 'pb-2 pt-4 px-4' : ''}`}>
-        <div className="flex items-center gap-2">
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center bg-gradient-to-r ${category.color} shadow-md`}>
-            <span className="text-white text-2xl">{category.icon}</span>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r ${category.color} shadow`}>
+            <span className="text-white text-lg">{category.icon}</span>
           </div>
-          <div className="ml-1">
-            <div className="font-bold text-lg text-gray-900">
+          <div>
+            <div className="font-semibold text-base text-gray-900">
               {translateCategory(category.name)}
             </div>
-            <div className="text-[0.81rem] text-gray-500">
+            <div className="text-xs text-gray-500">
               {translateText('category.specializations', 'Specializations')}
             </div>
           </div>
         </div>
         <button
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition"
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition"
           onClick={onClose}
           aria-label="Close"
           type="button"
           tabIndex={0}
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
       </div>
-      <div className={`px-6 pb-1 text-sm text-gray-500 text-center ${isMobile ? 'px-4' : ''}`}>
-        {translateText('category.select_up_to_three', 'Select up to 3 specializations')}
-      </div>
-      {/* Subcategory Flexible "Pills" */}
+      {/* Instruction */}
+      <div className="mb-2 text-xs text-gray-600">{translateText('category.select_up_to_three', 'Select up to 3 specializations')}</div>
+      {/* Pills List */}
       <div
-        className={`grid overflow-y-auto ${isMobile ? 'px-3 py-2 gap-2' : ''}`}
+        className={`
+          flex flex-wrap gap-2 w-full items-center justify-start
+          rounded-xl px-1 py-2
+        `}
         style={{
-          gridTemplateColumns: getColumns(),
-          gap: isMobile ? "0.55rem" : "0.85rem",
-          padding: isMobile ? undefined : "1.4rem 1.5rem 1.15rem 1.5rem",
-          maxHeight: isMobile ? '45vh' : (220 + Math.floor(subcategoryCount / 6) * 24)
+          minHeight: 46,
         }}
       >
         {category.subcategories.map((subcategory) => {
@@ -121,51 +114,46 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
               type="button"
               disabled={isDisabled}
               className={`
-                select-none rounded-full border transition
-                flex items-center gap-2 justify-between
-                font-medium
-                ${isMobile
-                  ? 'px-4 py-[0.8rem] text-base'
-                  : 'px-5 py-2'}
+                rounded-full border transition font-semibold flex items-center
+                px-4 py-2 mb-1
+                shadow-sm
                 ${isSelected
-                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-400 text-blue-700 font-semibold shadow-md'
+                  ? 'bg-neutral-900 text-white border-neutral-700'
                   : isDisabled
-                    ? 'bg-gray-100 border-gray-200 text-gray-400 opacity-60 cursor-not-allowed'
-                    : 'bg-gray-50 border-gray-200 hover:bg-blue-100'
+                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-200'
                 }
-                hover:scale-[1.05] focus:ring-2 focus:ring-blue-300
-              `}
+                ${isSelected ? 'scale-105' : ''}
+                `}
               style={{
-                minWidth: isMobile ? 110 : 120,
-                maxWidth: isMobile ? 230 : 260,
-                minHeight: isMobile ? 46 : 42,
-                fontSize: isMobile ? 'clamp(16px, 4vw, 19px)' : 'clamp(14px, 2.5vw, 17px)'
+                minWidth: 70,
+                maxWidth: 180,
+                fontSize: '1rem',
+                outline: isSelected ? '2px solid #453822' : 'none',
               }}
               onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
               tabIndex={0}
               aria-pressed={!!isSelected}
               aria-disabled={isDisabled}
             >
-              <span className="flex-1 break-words text-center">
-                {subcategory}
-              </span>
-              {isSelected && <CheckCircle className="w-5 h-5 text-blue-600" />}
+              <span className="mx-auto">{subcategory}</span>
             </button>
           );
         })}
       </div>
-      <div className={`w-full border-t bg-white flex items-center justify-between ${isMobile ? 'px-4 pb-4 pt-2' : 'px-6 pb-5 pt-3'} rounded-b-3xl`}>
+      {/* Actions */}
+      <div className="mt-4 w-full flex items-center justify-between gap-1">
         <div className="text-xs text-gray-500">
           {tempSelectedSubcategories.length}/3 {translateText('category.selected', 'selected')}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onClose} className="rounded-xl text-sm px-3 py-2">
+          <Button variant="outline" onClick={onClose} className="rounded-xl text-xs font-semibold px-3 py-1">
             {translateText('common.cancel', 'Cancel')}
           </Button>
           <Button
             onClick={onConfirm}
             className={`
-              rounded-xl text-sm px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-150
+              rounded-xl text-xs font-semibold px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white shadow
               ${tempSelectedSubcategories.length === 0 ? 'opacity-60 cursor-not-allowed' : ''}
             `}
             disabled={tempSelectedSubcategories.length === 0}
@@ -177,12 +165,11 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
     </div>
   );
 
-  // Choose Sheet for mobile, Dialog for desktop
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={val => !val && onClose()}>
         <SheetContent side="bottom" className="w-full max-w-full p-0 bg-transparent border-0">
-          {RenderPopupContent}
+          {PopupContent}
         </SheetContent>
       </Sheet>
     );
@@ -191,15 +178,15 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
   return (
     <Dialog open={open} onOpenChange={openVal => !openVal && onClose()}>
       <DialogContent
-        className="max-w-full w-auto rounded-3xl p-0 overflow-visible bg-white shadow-2xl flex flex-col border border-blue-100 animate-fade-in"
+        className="max-w-lg w-auto rounded-3xl p-0 bg-transparent shadow-2xl border-none animate-fade-in"
         style={{
           minWidth: 350,
-          minHeight: 320,
+          minHeight: MIN_HEIGHT,
           maxHeight: "90vh",
           boxShadow: "0px 14px 40px 0px rgba(38,54,106,0.14), 0 2px 8px 0 rgba(0,0,0,0.04)"
         }}
       >
-        {RenderPopupContent}
+        {PopupContent}
       </DialogContent>
     </Dialog>
   );
