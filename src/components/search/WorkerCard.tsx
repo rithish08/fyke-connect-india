@@ -72,7 +72,6 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
     setShowHireModal(true);
   };
 
-  // Get first two skills
   const displayedSkills = skills.slice(0, 2);
   const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
 
@@ -90,7 +89,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   return (
     <>
       <div
-        className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-blue-200 w-full max-w-2xl transition-all duration-200 cursor-pointer group flex items-start min-h-[120px]"
+        className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md w-full max-w-2xl transition-all duration-200 cursor-pointer"
         tabIndex={0}
         role="button"
         aria-label={`View profile of ${name}`}
@@ -99,115 +98,95 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
           if (e.key === "Enter") handleProfileClick();
         }}
       >
-        {/* Profile section - wider image */}
-        <div className="flex flex-col justify-start items-center pr-4 pt-1">
-          <div className="relative">
-            <Avatar className="h-20 w-20 rounded-xl border-2 border-gray-200 overflow-hidden shadow-sm">
-              <AvatarImage 
-                src={profileImage} 
-                alt={name} 
-                className="object-cover h-20 w-20 rounded-xl" 
-              />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-xl rounded-xl">
-                {name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            {isOnline && (
-              <span className="absolute bottom-1 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white z-10" />
-            )}
-            {verificationLevel !== "basic" && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-white flex items-center justify-center z-10">
-                <CheckCircle className="w-4 h-4 text-white" fill="currentColor" />
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Avatar className="h-12 w-12 rounded-full">
+                  <AvatarImage src={profileImage} alt={name} />
+                  <AvatarFallback className="bg-blue-500 text-white font-bold">
+                    {name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {isOnline && (
+                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+                )}
+                {verificationLevel !== "basic" && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                    <CheckCircle className="w-3 h-3 text-white" fill="currentColor" />
+                  </span>
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg">{name}</h3>
+                <p className="text-sm text-gray-600 mb-1">{category}</p>
+                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <Star className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" />
+                    <span>{rating}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    {distance}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-bold text-green-600 mb-2">₹{hourlyRate}/hr</div>
+              <Button
+                onClick={handleHireClick}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                tabIndex={-1}
+              >
+                Hire Now
+              </Button>
+            </div>
+          </div>
+
+          {/* Skills */}
+          <div className="flex flex-wrap gap-2">
+            {displayedSkills.map((skill, i) => (
+              <span
+                key={i}
+                className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-700"
+              >
+                {skill}
+              </span>
+            ))}
+            {moreSkills > 0 && (
+              <span className="text-xs text-gray-400">
+                +{moreSkills} more
               </span>
             )}
           </div>
-        </div>
 
-        {/* Main info section */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between gap-1">
-          <div>
-            {/* Name & main info */}
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-lg text-gray-900 truncate max-w-[200px]">
-                {name}
-              </span>
+          {/* Action buttons */}
+          <div className="flex justify-between items-center pt-2 border-t">
+            <span className="text-xs text-gray-500">{completedJobs} jobs completed</span>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCall}
+                tabIndex={-1}
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleChat}
+                tabIndex={-1}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
             </div>
-
-            {/* Category */}
-            <div className="mb-2">
-              <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-                {category}
-              </span>
-            </div>
-
-            {/* Rating + Distance */}
-            <div className="flex items-center gap-3 mb-2 text-gray-600 text-sm">
-              <div className="flex items-center">
-                <Star className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" />
-                <span className="font-medium">{rating}</span>
-              </div>
-              <span className="text-gray-300">|</span>
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                <span className="text-sm text-gray-500">{distance}</span>
-              </div>
-            </div>
-
-            {/* Skills */}
-            <div className="flex flex-row flex-wrap items-center gap-1 mb-1">
-              {displayedSkills.map((skill, i) => (
-                <span
-                  key={i}
-                  className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-700 font-medium"
-                >
-                  {skill}
-                </span>
-              ))}
-              {moreSkills > 0 && (
-                <span className="text-xs text-gray-400 ml-1">
-                  +{moreSkills} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right side actions */}
-        <div className="flex flex-col items-end justify-center pl-3 min-w-[90px]">
-          <Button
-            onClick={handleHireClick}
-            className="h-11 w-28 px-4 mb-3 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-150 border-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400"
-            tabIndex={-1}
-          >
-            ₹{hourlyRate}/Hire
-          </Button>
-          
-          <div className="flex space-x-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-12 px-0 rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
-              onClick={handleCall}
-              tabIndex={-1}
-              aria-label="Call worker"
-            >
-              <Phone className="w-3 h-3" />
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-12 px-0 rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300"
-              onClick={handleChat}
-              tabIndex={-1}
-              aria-label="Chat with worker"
-            >
-              <MessageCircle className="w-3 h-3" />
-            </Button>
           </div>
         </div>
       </div>
