@@ -6,18 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from "@/contexts/LocalizationContext";
-import { Phone, MessageSquare, User } from "lucide-react";
+import { Phone, MessageSquare, User, Users2, User2 } from "lucide-react";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer'>('jobseeker');
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
+  const [showRoleSelection, setShowRoleSelection] = useState(true);
   const { login, updateProfile } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
+
+  const handleRoleSelection = (role: 'jobseeker' | 'employer') => {
+    setSelectedRole(role);
+    setShowRoleSelection(false);
+  };
 
   const handleSendOTP = async () => {
     console.log('Sending OTP to:', phone);
@@ -28,26 +33,17 @@ const LoginScreen = () => {
 
   const handleVerifyOTP = async () => {
     try {
-      // Show role selection before completing login
-      setShowRoleSelection(true);
-    } catch (error) {
-      console.error('OTP Verification Failed:', error);
-    }
-  };
-
-  const handleRoleSelection = async (role: 'jobseeker' | 'employer') => {
-    try {
       await login(phone, otp);
       
       // Update user profile with name and role
       updateProfile({
         name: name,
-        role: role,
-        profileComplete: role === 'employer' ? true : false
+        role: selectedRole!,
+        profileComplete: selectedRole === 'employer' ? true : false
       });
       
       // Navigate based on role
-      if (role === 'employer') {
+      if (selectedRole === 'employer') {
         navigate('/home');
       } else {
         navigate('/profile-setup');
@@ -57,12 +53,16 @@ const LoginScreen = () => {
     }
   };
 
+  // Role Selection Screen
   if (showRoleSelection) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
         <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
           <CardContent className="p-8 space-y-6">
             <div className="text-center space-y-3">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                <span className="text-2xl font-bold text-white">f</span>
+              </div>
               <h1 className="text-2xl font-bold text-gray-900">Choose Your Role</h1>
               <p className="text-gray-500 text-sm">How would you like to use Fyke?</p>
             </div>
@@ -70,15 +70,17 @@ const LoginScreen = () => {
             <div className="space-y-3">
               <Button 
                 onClick={() => handleRoleSelection('jobseeker')}
-                className="w-full h-14 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-2xl shadow-lg"
+                className="w-full h-14 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-2xl shadow-lg flex items-center justify-center space-x-2"
               >
-                I'm Looking for Work
+                <User2 className="w-5 h-5" />
+                <span>I'm Looking for Work</span>
               </Button>
               <Button 
                 onClick={() => handleRoleSelection('employer')}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+                className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg flex items-center justify-center space-x-2"
               >
-                I Want to Hire Workers
+                <Users2 className="w-5 h-5" />
+                <span>I Want to Hire Workers</span>
               </Button>
             </div>
           </CardContent>
@@ -101,6 +103,11 @@ const LoginScreen = () => {
               <p className="text-gray-500 text-sm">
                 {otpSent ? 'Verify your number' : 'Enter your details to get started'}
               </p>
+              {selectedRole && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Signing up as {selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}
+                </p>
+              )}
             </div>
           </div>
 
