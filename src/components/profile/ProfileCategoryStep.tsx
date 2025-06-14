@@ -21,6 +21,10 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
 
   const handleCategorySelect = (categoryId: string, categoryName: string) => {
     setCategory(categoryName);
+    // Clear subcategories when category changes
+    if (categoryName !== category) {
+      setSelectedSubcategories([]);
+    }
   };
 
   const handleSubcategorySelect = (subcategories: string[]) => {

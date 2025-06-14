@@ -33,6 +33,11 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
   const handleCategoryClick = (category: any) => {
     onCategorySelect(category.name.toLowerCase(), category.name);
     setTempSelectedSubcategories([]);
+  };
+
+  const handleCategoryWithPopup = (category: any) => {
+    onCategorySelect(category.name.toLowerCase(), category.name);
+    setTempSelectedSubcategories([]);
     setIsOpen(true);
   };
 
@@ -40,7 +45,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
     setTempSelectedSubcategories(prev => 
       prev.includes(subcategory) 
         ? prev.filter(s => s !== subcategory)
-        : [...prev, subcategory]
+        : prev.length < 3 ? [...prev, subcategory] : prev
     );
   };
 
@@ -55,12 +60,19 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
     setTempSelectedSubcategories([]);
   };
 
+  const getCardHeight = () => {
+    const baseHeight = 'min-h-[120px]';
+    if (selectedSubcategories.length > 6) return 'min-h-[180px]';
+    if (selectedSubcategories.length > 3) return 'min-h-[150px]';
+    return baseHeight;
+  };
+
   return (
     <div className="space-y-4">
       {/* Selected Category Display */}
       {selectedCategory && selectedCategoryData && (
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className={`bg-white rounded-2xl p-4 border border-gray-200 shadow-sm ${getCardHeight()}`}>
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-3 flex-1">
               <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${selectedCategoryData.color} flex items-center justify-center shadow-md`}>
                 <span className="text-white text-xl">{selectedCategoryData.icon}</span>
@@ -80,7 +92,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="sm" className="flex items-center space-x-1">
-                    <span>{translateText('category.edit', 'Edit')}</span>
+                    <span>{selectedSubcategories.length > 0 ? translateText('category.edit', 'Edit') : translateText('category.select', 'Select')}</span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
                 </SheetTrigger>
@@ -92,20 +104,26 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
                       </div>
                       <span>{translateCategory(selectedCategoryData.name)} {translateText('category.specializations', 'Specializations')}</span>
                     </SheetTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {translateText('category.select_up_to_three', 'Select up to 3 specializations')}
+                    </p>
                   </SheetHeader>
                   
                   <div className="space-y-3 py-4 max-h-[50vh] overflow-y-auto">
                     {selectedCategoryData.subcategories.map((subcategory) => {
                       const isSelected = tempSelectedSubcategories.includes(subcategory);
+                      const isDisabled = !isSelected && tempSelectedSubcategories.length >= 3;
                       return (
                         <div
                           key={subcategory}
                           className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
                             isSelected 
                               ? 'bg-blue-50 border-blue-500 shadow-md' 
+                              : isDisabled
+                              ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
                               : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                           }`}
-                          onClick={() => handleSubcategoryToggle(subcategory)}
+                          onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
                         >
                           <div className="flex items-center justify-between">
                             <span className={`font-medium text-gray-900 ${getResponsiveTextSize(subcategory, { baseSize: 14, minSize: 12, maxSize: 16 })}`}>
@@ -122,7 +140,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
 
                   <div className="flex items-center justify-between pt-4 border-t bg-white">
                     <p className="text-sm text-gray-600">
-                      {tempSelectedSubcategories.length} {translateText('category.selected', 'selected')}
+                      {tempSelectedSubcategories.length}/3 {translateText('category.selected', 'selected')}
                     </p>
                     <div className="flex space-x-2">
                       <Button variant="outline" onClick={() => setIsOpen(false)}>
@@ -143,9 +161,9 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
           </div>
           
           {selectedSubcategories.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {selectedSubcategories.map(sub => (
-                <Badge key={sub} variant="secondary" className="bg-blue-100 text-blue-800 rounded-full">
+                <Badge key={sub} variant="secondary" className="bg-blue-100 text-blue-800 rounded-full text-xs px-2 py-1">
                   {sub}
                 </Badge>
               ))}
@@ -169,7 +187,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
               <div
                 key={category.name}
                 className="bg-white rounded-2xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
-                onClick={() => handleCategoryClick(category)}
+                onClick={() => handleCategoryWithPopup(category)}
               >
                 <div className="text-center space-y-3">
                   <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg text-2xl`}>

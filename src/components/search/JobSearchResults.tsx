@@ -34,16 +34,6 @@ const JobSearchResults = ({
     return <JobSearchEmptyState />;
   }
 
-  const handleJobViewDetails = (jobId: number) => {
-    console.log('Viewing job details for:', jobId);
-    // Navigate to job details page
-  };
-
-  const handleJobApply = (jobId: number) => {
-    console.log('Applying to job:', jobId);
-    // Handle job application
-  };
-
   return (
     <ErrorBoundary>
       <div className="max-w-2xl mx-auto px-4">
@@ -56,25 +46,14 @@ const JobSearchResults = ({
             userRole === 'employer' ? (
               <div key={res.id} role="listitem">
                 <WorkerCard
-                  id={res.id}
-                  name={res.name}
-                  category={res.category}
-                  skills={res.skills}
-                  rating={res.rating}
-                  completedJobs={res.completedJobs}
-                  hourlyRate={res.hourlyRate}
-                  isOnline={res.isOnline}
-                  profileImage={res.profileImage}
-                  distance={res.distance}
+                  worker={res}
+                  onHire={(worker) => console.log('Hire worker:', worker)}
+                  onMessage={(worker) => console.log('Message worker:', worker)}
                 />
               </div>
             ) : (
               <div key={res.id} role="listitem">
-                <JobSeekerJobCard
-                  job={res}
-                  onViewDetails={handleJobViewDetails}
-                  onApply={handleJobApply}
-                />
+                <JobSeekerJobCard job={res} />
               </div>
             )
           )}
