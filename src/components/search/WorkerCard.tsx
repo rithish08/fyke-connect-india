@@ -60,102 +60,129 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
     navigate('/messages', { state: { workerId: id, workerName: name } });
   };
 
-  // Card: 3 parts width : 1 part height, visually mostly wide, not tall.
-  // Left (75%): Profile + info. Right (25%): Rate Button (circle)
+  // Card aspect ratio 3:1, compact height
   return (
     <div
-      className="w-full max-w-2xl h-28 rounded-2xl flex bg-gradient-to-r from-white to-blue-50 border border-gray-200 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer relative group"
+      className="w-full max-w-2xl rounded-2xl flex bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer relative group"
       tabIndex={0}
       role="button"
       aria-label={`Open profile of ${name}`}
       onClick={handleProfileClick}
       onKeyDown={(e) => { if (e.key === "Enter") handleProfileClick(); }}
-      style={{ aspectRatio: "3/1", minHeight: "5.5rem" }} // 3:1 rectangle
+      style={{
+        aspectRatio: "3/1",
+        minHeight: "5.5rem",
+        height: "110px", // compact
+        maxHeight: "120px"
+      }}
     >
-      {/* Left Side: Profile Info (75%) */}
-      <div className="flex flex-col justify-between flex-[3] pl-5 py-3">
-        <div className="flex items-center gap-4">
-          {/* Avatar + Verification */}
-          <div className="relative">
-            <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
-              <AvatarImage src={profileImage} alt={name} className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-600 text-white font-bold text-lg">
-                {name.split(' ').map(n => n[0]).join('').toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            {verificationLevel !== 'basic' && (
-              <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-green-400 border-2 border-white flex items-center justify-center">
-                <CheckCircle className="w-3 h-3 text-white" fill="currentColor" />
-              </span>
-            )}
-            {isOnline && (
-              <span className="absolute -top-1 -left-1 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></span>
-            )}
-          </div>
-          {/* Main Info */}
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-base text-gray-900 truncate">{name}</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 ml-1 truncate">{category}</span>
-            </div>
-            {/* Rating and Distance */}
-            <div className="flex items-center gap-3 mt-1">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
-                <span className="font-medium text-sm text-gray-900">{rating}</span>
-              </div>
-              <span className="text-xs text-gray-500 px-2 flex items-center">
-                <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                {distance}
-              </span>
-            </div>
-            {/* Skills preview */}
-            <div className="flex flex-wrap gap-2 mt-1">
-              {skills.slice(0, 2).map((skill, i) => (
-                <span key={i} className="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium">
-                  {skill}
-                </span>
-              ))}
-              {skills.length > 2 && (
-                <span className="text-xs text-gray-400">+{skills.length - 2} more</span>
-              )}
-            </div>
-          </div>
-        </div>
-        {/* Call/Chat Rectangular Buttons */}
-        <div className="flex gap-2 mt-2">
-          <Button
-            variant="outline"
-            className="flex-1 h-8 rounded-lg border border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-300"
-            onClick={handleCall}
-            tabIndex={-1}
-          >
-            <Phone className="w-4 h-4 mr-1" />
-            Call
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 h-8 rounded-lg border border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-300"
-            onClick={handleChat}
-            tabIndex={-1}
-          >
-            <MessageCircle className="w-4 h-4 mr-1" />
-            Chat
-          </Button>
+      {/* Profile Image Column */}
+      <div className="flex flex-col justify-center items-center h-full pl-3 pr-2">
+        <div
+          className="rounded-xl overflow-hidden shadow-md border border-gray-100"
+          style={{
+            width: "60px",
+            height: "77px", // 70% of card height (110px)
+            minWidth: "60px",
+            minHeight: "77px",
+            background: "#f1f5f9",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          <Avatar className="w-full h-full rounded-xl">
+            <AvatarImage src={profileImage} alt={name} className="object-cover w-full h-full" />
+            <AvatarFallback className="bg-blue-300 text-white font-bold text-lg w-full h-full rounded-xl">
+              {name.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {/* Online Status Dot */}
+          {isOnline && (
+            <span className="absolute top-2 left-8 w-3 h-3 rounded-full bg-green-500 border-2 border-white z-40" />
+          )}
+          {/* Verification Badge */}
+          {verificationLevel !== 'basic' && (
+            <span className="absolute bottom-0 right-1 w-4 h-4 rounded-full bg-green-400 border-2 border-white flex items-center justify-center z-40">
+              <CheckCircle className="w-3 h-3 text-white" fill="currentColor" />
+            </span>
+          )}
         </div>
       </div>
-      {/* Right Side: Rate Button (circular, centered vertically w/ 25% top pad) */}
-      <div className="flex-[1] flex flex-col items-center justify-center relative">
+      {/* Main info column */}
+      <div className="flex flex-col justify-center flex-[2] min-w-0 pt-2 pb-2 pr-2">
+        {/* Name and Category+Rating+Distance */}
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1">
+            <span className="font-semibold text-base text-gray-900 truncate">{name}</span>
+            <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 ml-1 truncate">
+              {category}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 mt-1 mb-1">
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
+              <span className="font-medium">{rating}</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <MapPin className="w-4 h-4 mr-0.5 text-gray-400" />
+              <span>{distance}</span>
+            </div>
+          </div>
+        </div>
+        {/* Compact skill chips */}
+        <div className="flex flex-wrap gap-1 mb-1">
+          {skills.slice(0, 2).map((skill, i) => (
+            <span key={i} className="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-700 font-medium">
+              {skill}
+            </span>
+          ))}
+          {skills.length > 2 && (
+            <span className="text-xs text-gray-400">+{skills.length - 2} more</span>
+          )}
+        </div>
+        {/* Call and Chat Buttons */}
+        <div className="flex flex-col items-start gap-2 pt-1">
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              className="flex-1 h-7 px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 min-w-[60px]"
+              onClick={handleCall}
+              tabIndex={-1}
+            >
+              <Phone className="w-4 h-4 mr-1" />
+              Call
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-7 px-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-xs bg-white hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-300 min-w-[60px]"
+              onClick={handleChat}
+              tabIndex={-1}
+            >
+              <MessageCircle className="w-4 h-4 mr-1" />
+              Chat
+            </Button>
+          </div>
+        </div>
+      </div>
+      {/* Rate Button Square */}
+      <div className="flex flex-col items-center justify-center flex-[1] relative">
         <div
-          className="w-[64px] h-[64px] rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white text-lg font-bold flex flex-col items-center justify-center shadow-md absolute right-4"
-          style={{ top: "25%", transform: "translateY(-25%)" }}
+          className="absolute right-5 bg-gradient-to-tl from-blue-600 to-blue-400 text-white font-bold shadow-lg flex flex-col items-center justify-center select-none"
+          style={{
+            width: "55px",
+            height: "55px", // 50% of card height (110px)
+            borderRadius: "16px",
+            top: "25%", // visually aligns 25% down from top
+            zIndex: 10,
+            boxShadow: "0 2px 16px 0 #2563eb33"
+          }}
         >
-          <span className="font-bold text-xl tracking-tight">₹{hourlyRate}</span>
-          <span className="text-xs opacity-60 font-medium -mt-1">/hr</span>
+          <span className="font-bold text-lg tracking-tight">₹{hourlyRate}</span>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default WorkerCard;
