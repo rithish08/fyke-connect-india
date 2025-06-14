@@ -1,39 +1,25 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import EnhancedCategoryStep from '@/components/profile/EnhancedCategoryStep';
-import EnhancedSalaryStep from '@/components/profile/EnhancedSalaryStep';
+import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
+import SalaryStep from '@/components/profile/SalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
-import { useTranslation } from '@/hooks/useTranslation';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
 
 const STEPS = ["category", "salary", "availability"];
-
-interface SalaryRates {
-  daily: string;
-  weekly: string;
-  monthly: string;
-}
+const STEP_TITLES = ["Choose Category", "Set Salary", "Availability"];
 
 const ProfileSetup = () => {
   const { user, updateProfile } = useAuth();
-  const { translateText } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
-  const STEP_TITLES = [
-    translateText('profile.chooseCategories', 'Choose Categories'),
-    translateText('profile.setSalaryRates', 'Set Salary Rates'),
-    translateText('profile.availability', 'Availability')
-  ];
-
-  // Enhanced form state
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSubcategories, setSelectedSubcategories] = useState<{ [key: string]: string[] }>({});
-  const [salaryRates, setSalaryRates] = useState<SalaryRates>({ daily: '', weekly: '', monthly: '' });
+  // Form state
+  const [category, setCategory] = useState(user?.primaryCategory || '');
+  const [vehicle, setVehicle] = useState('');
+  const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   useEffect(() => {
@@ -50,22 +36,24 @@ const ProfileSetup = () => {
   }, [user, navigate]);
 
   const handleFinish = () => {
-    // Prepare subcategories array for storage
-    const allSubcategories = Object.values(selectedSubcategories).flat();
+    // Get subcategories from localStorage
+    const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
+    const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
     
     updateProfile({
-      categories: selectedCategories,
-      primaryCategory: selectedCategories[0] || '',
-      subcategories: allSubcategories,
-      salaryRates: {
-        daily: salaryRates.daily ? Number(salaryRates.daily) : undefined,
-        weekly: salaryRates.weekly ? Number(salaryRates.weekly) : undefined,
-        monthly: salaryRates.monthly ? Number(salaryRates.monthly) : undefined,
-      },
+      category,
+      categories: [category],
+      primaryCategory: category,
+      subcategories: subcategories,
+      vehicle: category === "Driver" ? vehicle : undefined,
+      salaryExpectation: { min: Number(salary.amount), max: Number(salary.amount) },
+      salaryPeriod: salary.period,
       availability,
       profileComplete: true,
     });
     
+    // Clean up localStorage
+    localStorage.removeItem('fyke_selected_subcategories');
     navigate('/home');
   };
 
@@ -92,18 +80,16 @@ const ProfileSetup = () => {
           </button>
           <div className="flex items-center space-x-2">
             <BadgeCheck className="w-6 h-6 text-blue-500" />
-            <span className="text-lg font-bold text-gray-900">
-              {translateText('profile.profileSetup', 'Profile Setup')}
-            </span>
+            <span className="text-lg font-bold text-gray-900">Profile Setup</span>
           </div>
-          <div className="w-10 h-10"></div>
+          <div className="w-10 h-10"></div> {/* Spacer */}
         </div>
 
         {/* Progress Bar */}
         <div className="bg-white rounded-2xl p-4 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-gray-600">
-              {translateText('common.step', 'Step')} {step + 1} {translateText('common.of', 'of')} {STEPS.length}
+              Step {step + 1} of {STEPS.length}
             </span>
             <span className="text-sm text-gray-500">
               {Math.round(((step + 1) / STEPS.length) * 100)}%
@@ -123,18 +109,19 @@ const ProfileSetup = () => {
         {/* Step Content */}
         <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
           {step === 0 && (
-            <EnhancedCategoryStep
-              selectedCategories={selectedCategories}
-              selectedSubcategories={selectedSubcategories}
-              setSelectedCategories={setSelectedCategories}
-              setSelectedSubcategories={setSelectedSubcategories}
+            <ProfileCategoryStep
+              category={category}
+              setCategory={setCategory}
+              vehicle={vehicle}
+              setVehicle={setVehicle}
+              role={user.role}
               onNext={() => setStep(step + 1)}
             />
           )}
           {step === 1 && (
-            <EnhancedSalaryStep
-              salaryRates={salaryRates}
-              setSalaryRates={setSalaryRates}
+            <SalaryStep
+              salary={salary}
+              setSalary={setSalary}
               onNext={() => setStep(step + 1)}
               onBack={() => setStep(step - 1)}
             />
@@ -151,7 +138,7 @@ const ProfileSetup = () => {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 px-4">
-          {translateText('profile.completeVerified', 'Complete your profile to get verified and access better job opportunities')}
+          Complete your profile to get verified and access better job opportunities
         </div>
       </div>
     </div>

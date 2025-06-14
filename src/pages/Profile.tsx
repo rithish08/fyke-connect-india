@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalization } from '@/hooks/useLocalization';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import EnhancedProfileInfo from '@/components/profile/EnhancedProfileInfo';
 import ProfileSkills from '@/components/profile/ProfileSkills';
@@ -13,14 +12,10 @@ import BannerAd from '@/components/BannerAd';
 import ProfileProgress from '@/components/ProfileProgress';
 import BottomNavigation from '@/components/BottomNavigation';
 import { SkeletonProfileCard } from '@/components/ui/skeleton-cards';
-import { ModernCard } from '@/components/ui/modern-card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Briefcase } from 'lucide-react';
 
 const Profile = () => {
   const { user, updateProfile, logout } = useAuth();
   const { toast } = useToast();
-  const { getLocalizedText } = useLocalization();
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -35,11 +30,12 @@ const Profile = () => {
   const handleProfileUpdate = async (updates: any) => {
     setIsLoading(true);
     try {
+      // Update user profile in context and localStorage
       updateProfile(updates);
       setProfileData(prev => ({ ...prev, ...updates }));
       
       toast({
-        title: getLocalizedText('profile.profileComplete', 'Profile Updated'),
+        title: "Profile Updated",
         description: "Your profile information has been saved successfully"
       });
     } catch (error) {
@@ -61,6 +57,7 @@ const Profile = () => {
     });
   };
 
+  // Show loading state
   if (!user || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-24">
@@ -79,101 +76,72 @@ const Profile = () => {
     );
   }
 
+  // Profile completeness calculation
+  const hasName = !!profileData.name;
+  const hasEmail = !!profileData.email;
+  const hasPhoto = true;
+  const hasSkills = profileData.skills && profileData.skills.length > 0;
+  const hasLocation = !!profileData.location;
+  const hasBio = !!profileData.bio;
+  const fields = [hasName, hasEmail, hasPhoto, hasSkills, hasLocation, hasBio];
+  const completePercent = Math.round((fields.filter(Boolean).length / fields.length) * 100);
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
       <ProfileProgress />
       
-      {/* Simple Profile Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-xl mx-auto px-4 py-6">
-          <div className="flex items-center space-x-4">
-            {/* Profile Picture */}
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-              {profileData.name?.charAt(0)?.toUpperCase() || user.phone?.charAt(0) || 'U'}
-            </div>
-            
-            {/* Profile Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-900 truncate">
-                  {profileData.name || user.phone}
-                </h1>
-                {user.verified && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                    Verified
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                <MapPin className="w-3 h-3" />
-                <span className="truncate">{profileData.location}</span>
-              </div>
-              {user.role === 'jobseeker' && (
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Briefcase className="w-3 h-3" />
-                  <span>{profileData.experience}</span>
-                </div>
-              )}
-            </div>
+      {/* Profile Header */}
+      <div className="flex flex-col items-center pt-8 pb-4 px-4">
+        <ProfileHeader
+          name={profileData.name}
+          phone={user.phone}
+          role={user.role}
+          verified={!!user.verified}
+        />
+        
+        {/* Profile Completion Ring */}
+        <div className="flex flex-col items-center mt-4">
+          <div className="relative w-20 h-20 flex items-center justify-center mb-2">
+            <svg className="absolute top-0 left-0" width="80" height="80">
+              <circle
+                cx="40"
+                cy="40"
+                r="36"
+                stroke="#F2F3F6"
+                strokeWidth="7"
+                fill="none"
+              />
+              <circle
+                cx="40"
+                cy="40"
+                r="36"
+                stroke="#254778"
+                strokeWidth="7"
+                fill="none"
+                strokeDasharray={2 * Math.PI * 36}
+                strokeDashoffset={2 * Math.PI * 36 * (1 - completePercent / 100)}
+                style={{ transition: 'stroke-dashoffset 0.7s' }}
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="text-lg font-medium z-10 text-[#254778]">
+              {completePercent}%
+            </span>
           </div>
-
-          {/* Categories */}
-          {user.categories && user.categories.length > 0 && (
-            <div className="mt-4">
-              <div className="flex flex-wrap gap-2">
-                {user.categories.slice(0, 3).map((category, index) => (
-                  <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                    {category}
-                  </Badge>
-                ))}
-                {user.categories.length > 3 && (
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs">
-                    +{user.categories.length - 3} more
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
+          <span className="text-xs text-gray-500">
+            {completePercent}% complete
+          </span>
         </div>
       </div>
 
       {/* Profile Sections */}
-      <div className="w-full max-w-xl mx-auto space-y-3 px-4 pt-4">
+      <div className="w-full max-w-xl mx-auto space-y-4 px-4">
         <EnhancedProfileInfo
           profileData={profileData}
           userRole={user.role}
           onUpdate={handleProfileUpdate}
         />
-
-        {/* Simple Salary Rates Card */}
-        {user.role === 'jobseeker' && user.salaryRates && (
-          <ModernCard className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">
-              {getLocalizedText('profile.salaryRates', 'Salary Rates')}
-            </h3>
-            <div className="grid grid-cols-3 gap-3">
-              {user.salaryRates.daily && (
-                <div className="text-center p-3 bg-blue-50 rounded-xl">
-                  <div className="text-lg font-bold text-blue-700">₹{user.salaryRates.daily}</div>
-                  <div className="text-xs text-blue-600">{getLocalizedText('profile.dailyRate', 'Daily')}</div>
-                </div>
-              )}
-              {user.salaryRates.weekly && (
-                <div className="text-center p-3 bg-blue-50 rounded-xl">
-                  <div className="text-lg font-bold text-blue-700">₹{user.salaryRates.weekly}</div>
-                  <div className="text-xs text-blue-600">{getLocalizedText('profile.weeklyRate', 'Weekly')}</div>
-                </div>
-              )}
-              {user.salaryRates.monthly && (
-                <div className="text-center p-3 bg-blue-50 rounded-xl">
-                  <div className="text-lg font-bold text-blue-700">₹{user.salaryRates.monthly}</div>
-                  <div className="text-xs text-blue-600">{getLocalizedText('profile.monthlyRate', 'Monthly')}</div>
-                </div>
-              )}
-            </div>
-          </ModernCard>
-        )}
         
         <ProfileSkills
           userRole={user.role}

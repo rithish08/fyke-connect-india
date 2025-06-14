@@ -21,11 +21,6 @@ interface User {
   categories?: string[];
   primaryCategory?: string;
   subcategories?: string[];
-  salaryRates?: {
-    daily?: number;
-    weekly?: number;
-    monthly?: number;
-  };
 }
 
 interface AuthContextType {
@@ -36,7 +31,6 @@ interface AuthContextType {
   setRole: (role: 'jobseeker' | 'employer') => void;
   switchRole: () => void;
   updateProfile: (updates: Partial<User>) => void;
-  sendOTP: (phone: string, name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,25 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const sendOTP = async (phone: string, name: string) => {
-    try {
-      // Simulate API call to send OTP
-      console.log('Sending OTP to:', phone, 'for user:', name);
-      
-      // Store phone and name for later use during login
-      localStorage.setItem('fyke_phone', phone);
-      localStorage.setItem('fyke_name', name);
-      
-      // Simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('OTP sent successfully');
-    } catch (error) {
-      console.error('Failed to send OTP:', error);
-      throw error;
-    }
-  };
-
   const login = async (phone: string, otp: string) => {
     try {
       // Simulate API call with basic validation
@@ -114,12 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         availability: 'available',
         skills: ['Construction', 'Manual Labor'],
         salaryExpectation: { min: 300, max: 600 },
-        location: 'Mumbai, Maharashtra',
-        salaryRates: {
-          daily: 0,
-          weekly: 0,
-          monthly: 0
-        }
+        location: 'Mumbai, Maharashtra'
       };
       
       setUser(mockUser);
@@ -133,23 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    console.log('Logging out user...');
     setUser(null);
     setIsAuthenticated(false);
-    
-    // Clear all stored data
     localStorage.removeItem('fyke_user');
     localStorage.removeItem('fyke_phone');
     localStorage.removeItem('fyke_name');
-    localStorage.removeItem('fyke_selected_subcategories');
-    localStorage.removeItem('fyke_onboarding_seen');
-    
-    // Force page reload to ensure clean state
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 100);
-    
-    console.log('User logged out successfully');
+    console.log('User logged out');
   };
 
   const setRole = (role: 'jobseeker' | 'employer') => {
@@ -189,8 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       setRole,
       switchRole,
-      updateProfile,
-      sendOTP
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>

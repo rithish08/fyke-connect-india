@@ -1,18 +1,17 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { User2, Users2, ArrowRight } from "lucide-react";
-import { useTranslation } from '@/hooks/useTranslation';
+import { useLocalization } from "@/contexts/LocalizationContext";
 import StickyActionButton from '@/components/ui/StickyActionButton';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
   const { setRole, updateProfile } = useAuth();
-  const { translateText } = useTranslation();
+  const { t } = useLocalization();
   const { goTo } = useScreenNavigation();
 
   const handleContinue = () => {
@@ -39,13 +38,9 @@ const RoleSelection = () => {
       type: 'jobseeker' as const,
       icon: <User2 className="w-8 h-8 text-white"/>,
       gradient: "from-blue-500 to-indigo-600",
-      title: translateText("role.jobseeker", "Find Work"),
-      subtitle: translateText("role.jobseeker_desc", "Browse jobs and earn money"),
-      features: [
-        translateText("role.quickApplications", "Quick applications"), 
-        translateText("role.dailyPayments", "Daily payments"), 
-        translateText("role.verifiedEmployers", "Verified employers")
-      ],
+      title: t("role.jobseeker", "Find Work"),
+      subtitle: t("role.jobseeker_desc", "Browse jobs and earn money"),
+      features: ["Quick applications", "Daily payments", "Verified employers"],
       bgGradient: "from-blue-50 to-indigo-50",
       iconBg: "bg-blue-500"
     },
@@ -53,13 +48,9 @@ const RoleSelection = () => {
       type: 'employer' as const,
       icon: <Users2 className="w-8 h-8 text-white"/>,
       gradient: "from-green-500 to-emerald-600",
-      title: translateText("role.employer", "Hire Workers"),
-      subtitle: translateText("role.employer_desc", "Find skilled people instantly"),
-      features: [
-        translateText("role.verifiedWorkers", "Verified workers"), 
-        translateText("role.quickHiring", "Quick hiring"), 
-        translateText("role.securePayments", "Secure payments")
-      ],
+      title: t("role.employer", "Hire Workers"),
+      subtitle: t("role.employer_desc", "Find skilled people instantly"),
+      features: ["Verified workers", "Quick hiring", "Secure payments"],
       bgGradient: "from-green-50 to-emerald-50",
       iconBg: "bg-green-500"
     }
@@ -74,12 +65,8 @@ const RoleSelection = () => {
             <span className="text-3xl font-bold text-white">f</span>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {translateText('role.title', 'Choose Your Role')}
-            </h1>
-            <p className="text-gray-500">
-              {translateText('role.subtitle', 'How do you want to use Fyke?')}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('role.title', 'Choose Your Role')}</h1>
+            <p className="text-gray-500">{t('role.subtitle', 'How do you want to use Fyke?')}</p>
           </div>
         </div>
 
@@ -128,14 +115,11 @@ const RoleSelection = () => {
           onClick={handleContinue}
           disabled={!selectedRole}
         >
-          {selectedRole ? 
-            `${translateText('common.continueAs', 'Continue as')} ${selectedRole === 'jobseeker' ? translateText('role.jobSeekerRole', 'Job Seeker') : translateText('role.employerRole', 'Employer')}` : 
-            translateText('role.selectYourRole', 'Select your role')
-          }
+          {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
         </StickyActionButton>
 
         <p className="text-center text-xs text-gray-400">
-          {translateText('role.switch_hint', 'You can switch roles anytime in the app')}
+          {t('role.switch_hint', 'You can switch roles anytime in the app')}
         </p>
       </div>
     </div>

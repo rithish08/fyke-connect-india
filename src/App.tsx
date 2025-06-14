@@ -34,28 +34,20 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Entry point - language selection */}
+              {/* Public routes */}
               <Route path="/" element={<LanguageSelection />} />
-              
-              {/* Authentication flow */}
+              <Route path="/role-selection" element={<RoleSelection />} />
               <Route path="/login" element={<LoginScreen />} />
               <Route path="/otp-verification" element={<OTPVerification />} />
               
-              {/* Role selection after auth */}
-              <Route path="/role-selection" element={
-                <RouteGuard requireAuth={true} requireProfile={false}>
-                  <RoleSelection />
-                </RouteGuard>
-              } />
-              
-              {/* Profile setup for job seekers */}
+              {/* Semi-protected routes */}
               <Route path="/profile-setup" element={
                 <RouteGuard requireAuth={true} requireProfile={false}>
                   <ProfileSetup />
                 </RouteGuard>
               } />
               
-              {/* Main app routes - fully protected */}
+              {/* Protected routes */}
               <Route path="/home" element={
                 <RouteGuard>
                   <HomePage />
@@ -102,7 +94,6 @@ const App = () => (
                 </RouteGuard>
               } />
               
-              {/* 404 page */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
