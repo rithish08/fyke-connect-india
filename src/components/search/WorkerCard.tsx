@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Star, MessageCircle, Phone, MapPin } from "lucide-react";
+import { Star, MessageCircle, Phone, MapPin, Shield, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -17,6 +17,8 @@ interface WorkerCardProps {
   hourlyRate?: number;
   isOnline?: boolean;
   profileImage?: string;
+  verificationLevel?: "basic" | "verified" | "premium";
+  responseTime?: string;
 }
 
 const WorkerCard: React.FC<WorkerCardProps> = ({
@@ -30,6 +32,8 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   hourlyRate = 350,
   isOnline = false,
   profileImage = "/placeholder.svg",
+  verificationLevel = "basic",
+  responseTime = "<30min"
 }) => {
   const { translateText, translateCategory } = useTranslation();
   const [showHireModal, setShowHireModal] = useState(false);
@@ -45,6 +49,15 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
     // Chat logic here
+  };
+
+  // Determine verification visual
+  const getVerificationColor = () => {
+    switch (verificationLevel) {
+      case "premium": return "text-purple-600 bg-purple-50 border-purple-200";
+      case "verified": return "text-green-600 bg-green-50 border-green-200";
+      default: return "text-blue-600 bg-blue-50 border-blue-200";
+    }
   };
 
   return (
@@ -74,12 +87,22 @@ const WorkerCard: React.FC<WorkerCardProps> = ({
               {translateCategory(category)}
             </span>
           </div>
-          <div className="flex items-center text-xs text-gray-500 gap-3 mt-1">
+          {/* Trust/verification display */}
+          <div className="flex flex-wrap gap-1 items-center mt-1 text-xs">
             <span className="flex items-center">
               <Star className="w-3 h-3 mr-0.5 text-yellow-400" fill="currentColor" />
               {rating}
             </span>
-            <span className="flex items-center"><MapPin className="w-3 h-3 mr-0.5" />{distance}</span>
+            <span className={`px-1.5 py-0.5 rounded-full border text-xs font-medium ${getVerificationColor()} flex items-center ml-2`}>
+              <Shield className="w-3 h-3 mr-0.5" />
+              {verificationLevel === "premium" ? translateText("trust.premium", "Premium") : verificationLevel === "verified" ? translateText("trust.verified", "Verified") : translateText("trust.basic", "Basic")}
+            </span>
+            <span className="ml-2 flex items-center text-gray-500">
+              <MapPin className="w-3 h-3 mr-0.5" />{distance}
+            </span>
+            <span className="ml-2 flex items-center text-gray-500">
+              <Clock className="w-3 h-3 mr-0.5" />{responseTime}
+            </span>
           </div>
           {/* Skill tags */}
           <div className="flex flex-wrap mt-1 gap-1">
