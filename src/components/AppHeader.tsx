@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import CompactRoleSwitcher from "@/components/CompactRoleSwitcher";
 import { useLocalization } from "@/contexts/LocalizationContext";
+import { Bell } from "lucide-react";
 
 const pageNames: Record<string, string> = {
   "/home": "Home",
@@ -54,11 +55,12 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <button onClick={() => navigate('/notifications')}
-              className="relative">
-              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100"><span className="text-xl">🔔</span>
-                <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
-              </span>
+            <button 
+              onClick={() => navigate('/notifications')}
+              className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <Bell className="w-5 h-5 text-gray-600" />
+              <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
             </button>
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
               <span className="text-lg font-bold text-gray-700 uppercase">

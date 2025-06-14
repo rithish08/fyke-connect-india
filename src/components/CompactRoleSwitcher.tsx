@@ -1,31 +1,50 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ArrowRightLeft } from "lucide-react"; // Minimum size per Lucide docs
+import { ArrowRightLeft, User, Users } from "lucide-react";
 
 const CompactRoleSwitcher = () => {
   const { user, switchRole } = useAuth();
 
   if (!user) return null;
 
-  const switchLabel = user.role === "jobseeker" ? "Employer" : "Jobseeker";
+  const isJobSeeker = user.role === "jobseeker";
+  const switchLabel = isJobSeeker ? "Employer" : "Job Seeker";
+  const currentIcon = isJobSeeker ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />;
+  const currentColor = isJobSeeker ? "text-blue-600 bg-blue-50" : "text-green-600 bg-green-50";
 
   return (
-    <div className="flex items-center justify-center mb-1 mt-0">
-      <Button
-        onClick={switchRole}
-        variant="ghost"
-        size="icon"
-        className="rounded-full p-0 border border-gray-200 bg-white shadow-none hover:bg-gray-100 w-7 h-7"
-        title="Switch Role"
-        aria-label={`Switch to ${switchLabel}`}
-        style={{ minWidth: 0, minHeight: 0 }}
-      >
-        <ArrowRightLeft className="w-3.5 h-3.5 text-gray-600" />
-        <span className="sr-only">{`Switch to ${switchLabel}`}</span>
-      </Button>
-      <span className="ml-1.5 text-[11px] font-medium text-gray-500">{switchLabel} mode</span>
+    <div className="flex items-center justify-center mb-2 mt-1">
+      <div className={`flex items-center space-x-3 px-4 py-2 rounded-full border ${
+        isJobSeeker ? 'border-blue-200 bg-blue-50' : 'border-green-200 bg-green-50'
+      } shadow-sm`}>
+        {/* Current Role Indicator */}
+        <div className="flex items-center space-x-2">
+          <div className={`flex items-center justify-center w-6 h-6 rounded-full ${currentColor}`}>
+            {currentIcon}
+          </div>
+          <span className={`text-sm font-medium ${
+            isJobSeeker ? 'text-blue-700' : 'text-green-700'
+          }`}>
+            {isJobSeeker ? 'Job Seeker' : 'Employer'}
+          </span>
+        </div>
+
+        {/* Switch Button */}
+        <Button
+          onClick={switchRole}
+          variant="ghost"
+          size="sm"
+          className="h-8 px-3 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 border"
+          title={`Switch to ${switchLabel}`}
+          aria-label={`Switch to ${switchLabel}`}
+        >
+          <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 text-gray-600" />
+          <span className="text-xs font-medium text-gray-700">Switch</span>
+        </Button>
+      </div>
     </div>
   );
 };
+
 export default CompactRoleSwitcher;

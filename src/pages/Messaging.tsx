@@ -1,4 +1,6 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +10,48 @@ import BottomNavigation from '@/components/BottomNavigation';
 const Messaging = () => {
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Handle direct chat navigation from other components
+  useEffect(() => {
+    const chatWith = searchParams.get('chatWith');
+    const name = searchParams.get('name');
+    const type = searchParams.get('type');
+    const context = searchParams.get('context');
+
+    if (chatWith && name) {
+      // Show loading state while opening specific chat
+      setIsLoading(true);
+      
+      // Simulate loading and then open the chat
+      setTimeout(() => {
+        // Find existing conversation or create new one
+        const existingChat = conversations.find(c => 
+          c.name === name || c.id.toString() === chatWith
+        );
+        
+        if (existingChat) {
+          setSelectedChat(existingChat.id);
+        } else {
+          // Create new conversation
+          const newConversation = {
+            id: Date.now(),
+            name: name,
+            role: type === 'worker' ? 'Job Seeker' : 'Employer',
+            lastMessage: context ? `About: ${context}` : 'New conversation',
+            time: 'now',
+            unread: 0,
+            avatar: type === 'worker' ? '👷' : '🏢',
+            online: true
+          };
+          conversations.unshift(newConversation);
+          setSelectedChat(newConversation.id);
+        }
+        setIsLoading(false);
+      }, 800);
+    }
+  }, [searchParams]);
 
   const conversations = [
     {
@@ -86,6 +130,27 @@ const Messaging = () => {
       setNewMessage('');
     }
   };
+
+  const ChatSkeleton = () => (
+    <div className="flex flex-col h-full">
+      <div className="bg-white border-b p-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="space-y-2">
+            <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+            <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 p-4 space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="flex justify-start">
+            <div className="w-48 h-16 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const ChatList = () => (
     <div className="space-y-2">
@@ -217,7 +282,9 @@ const Messaging = () => {
         <p className="text-sm text-gray-500">Connect with employers and job seekers</p>
       </div>
       <div className="h-[calc(100vh-8rem)]">
-        {selectedChat ? (
+        {isLoading ? (
+          <ChatSkeleton />
+        ) : selectedChat ? (
           <ChatWindow />
         ) : (
           <div className="p-4">

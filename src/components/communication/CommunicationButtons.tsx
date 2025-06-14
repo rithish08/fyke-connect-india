@@ -12,6 +12,7 @@ interface CommunicationButtonsProps {
   showCall?: boolean;
   showChat?: boolean;
   className?: string;
+  context?: string; // Additional context like job title
 }
 
 const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
@@ -21,12 +22,20 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
   size = 'md',
   showCall = true,
   showChat = true,
-  className = ''
+  className = '',
+  context
 }) => {
   const navigate = useNavigate();
 
   const handleChat = () => {
-    navigate(`/messages?user=${targetId}&name=${encodeURIComponent(targetName)}&type=${targetType}`);
+    // Navigate to specific chat with proper parameters
+    const params = new URLSearchParams({
+      chatWith: targetId,
+      name: targetName,
+      type: targetType,
+      ...(context && { context })
+    });
+    navigate(`/messages?${params.toString()}`);
   };
 
   const handleCall = () => {
