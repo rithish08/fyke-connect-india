@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { User2, Users2, ArrowRight } from "lucide-react";
 import { useLocalization } from "@/contexts/LocalizationContext";
+import StickyActionButton from '@/components/ui/StickyActionButton';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
@@ -110,17 +110,12 @@ const RoleSelection = () => {
         </div>
 
         {/* Continue Button */}
-        <Button
+        <StickyActionButton
           onClick={handleContinue}
           disabled={!selectedRole}
-          className={`w-full h-14 font-semibold text-lg rounded-2xl shadow-lg transition-all ${
-            selectedRole
-              ? 'bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-          }`}
         >
           {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
-        </Button>
+        </StickyActionButton>
 
         <p className="text-center text-xs text-gray-400">
           {t('role.switch_hint', 'You can switch roles anytime in the app')}

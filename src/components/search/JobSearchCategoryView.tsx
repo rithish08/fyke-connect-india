@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomNavigation from '@/components/BottomNavigation';
 import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
 import { Button } from '@/components/ui/button';
+import StickyActionButton from '@/components/ui/StickyActionButton';
 
 interface JobSearchCategoryViewProps {
   onSelectionComplete: (selectedCategories: { [catId: string]: string[] }) => void;
@@ -36,7 +36,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
   const hasSelected = Object.values(selectedCategories).some((arr) => arr.length > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-xl font-bold text-gray-900">
@@ -44,23 +44,20 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
           </h1>
         </div>
       </div>
-      <div className="max-w-2xl mx-auto px-4 pt-6">
+      <div className="max-w-2xl mx-auto px-4 pt-6 pb-6">
         <EnhancedCategoryModal
           selectedCategories={selectedCategories}
           onCategorySelect={handleCategorySelect}
           onSubcategorySelect={handleSubcategorySelect}
           onClear={handleClear}
         />
-        <div className="mt-6">
-          <Button
-            className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-            disabled={!hasSelected}
-            onClick={() => onSelectionComplete(selectedCategories)}
-          >
-            {user?.role === 'employer' ? 'Search Workers' : 'Search Jobs'}
-          </Button>
-        </div>
       </div>
+      <StickyActionButton
+        disabled={!hasSelected}
+        onClick={() => onSelectionComplete(selectedCategories)}
+      >
+        {user?.role === 'employer' ? 'Search Workers' : 'Search Jobs'}
+      </StickyActionButton>
       <BottomNavigation />
     </div>
   );

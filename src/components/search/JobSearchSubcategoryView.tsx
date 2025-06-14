@@ -1,9 +1,9 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import BottomNavigation from '@/components/BottomNavigation';
 import { ArrowLeft } from 'lucide-react';
 import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
+import StickyActionButton from '@/components/ui/StickyActionButton';
 
 interface JobSearchSubcategoryViewProps {
   selectedCategory: {id: string, name: string};
@@ -35,7 +35,7 @@ const JobSearchSubcategoryView = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center space-x-3">
@@ -51,7 +51,7 @@ const JobSearchSubcategoryView = ({
         </div>
       </div>
       
-      <div className="max-w-2xl mx-auto px-4 pt-6">
+      <div className="max-w-2xl mx-auto px-4 pt-6 pb-6">
         <EnhancedCategoryModal
           selectedCategories={selectedCategory ? { [selectedCategory.id]: selectedSubcategories } : {}}
           onCategorySelect={() => {}} // No-op, category already chosen
@@ -61,30 +61,27 @@ const JobSearchSubcategoryView = ({
             selectedSubcategories.forEach(sub => onSubcategorySelect(sub));
           }}
         />
+      </div>
 
-        {selectedSubcategories.length > 0 && (
-          <div className="mt-6">
-            <Button 
-              className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-              onClick={onSearchWithSubcategories}
-            >
-              Search {user?.role === 'employer' ? 'Workers' : 'Jobs'} ({selectedSubcategories.length} selected)
-            </Button>
-          </div>
-        )}
-        
-        {user?.role === 'jobseeker' && (
-          <div className="mt-4">
+      {selectedSubcategories.length > 0 && (
+        <StickyActionButton onClick={onSearchWithSubcategories}>
+          Search {user?.role === 'employer' ? 'Workers' : 'Jobs'} ({selectedSubcategories.length} selected)
+        </StickyActionButton>
+      )}
+      
+      {user?.role === 'jobseeker' && (
+        <div className="fixed left-0 right-0 bottom-0 w-full flex justify-center z-39 pointer-events-none">
+          <div className="w-full max-w-2xl mx-auto px-4 pb-[76px]">
             <Button 
               variant="outline"
-              className="w-full h-12 rounded-2xl border-2 border-gray-200 font-medium"
+              className="w-full h-12 rounded-2xl border-2 border-gray-200 font-medium pointer-events-auto"
               onClick={onSearchWithSubcategories}
             >
               View All {selectedCategory.name} Jobs
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <BottomNavigation />
     </div>
   );

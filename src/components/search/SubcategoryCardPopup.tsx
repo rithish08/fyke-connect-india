@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -64,22 +63,23 @@ const SubcategoryCardPopup: React.FC<SubcategoryCardPopupProps> = ({
           background: '#fff',
           border: 'none',
           boxShadow: '0 6px 32px 0 rgba(23,36,61,.13)',
-          margin: 0
+          margin: 0,
+          bottom: isMobile ? 'env(safe-area-inset-bottom,24px)' : undefined
         }}
       >
         {/* Card Container */}
         <div
-          className="
+          className={`
             rounded-2xl border border-gray-100 bg-white shadow-lg
             flex flex-col items-stretch
             transition-all w-full max-w-full
             relative
-          "
+          `}
           style={{
-            padding: isMobile ? '18px 14px 18px 14px' : '28px 24px 24px 24px',
-            minWidth: isMobile ? 250 : 340,
+            padding: isMobile ? '20px 10px 18px 10px' : '32px 26px 24px 26px',
+            minWidth: isMobile ? 246 : 340,
             minHeight: 180,
-            maxHeight: isMobile ? '78vh' : MAX_HEIGHT,
+            maxHeight: isMobile ? '78vh' : 400,
           }}
         >
           {/* Close Button */}
