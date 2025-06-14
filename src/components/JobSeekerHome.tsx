@@ -1,8 +1,6 @@
-
 import { useNavigate } from 'react-router-dom';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
-import EarningsPotential from './EarningsPotential';
 import ProfileProgress from './ProfileProgress';
 import AnimatedWrapper from './AnimatedWrapper';
 
@@ -18,7 +16,6 @@ const JobSeekerHome = () => {
 
   return (
     <div className="space-y-6 px-0 md:px-4">
-      <EarningsPotential />
       <ProfileProgress />
 
       <AnimatedWrapper variant="slide" direction="up" delay={200}>
