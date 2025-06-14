@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocalization } from '@/hooks/useLocalization';
 import JobSearchHeader from '@/components/search/JobSearchHeader';
 import JobSearchFilters from '@/components/search/JobSearchFilters';
 import JobSearchResults from '@/components/search/JobSearchResults';
@@ -45,6 +46,7 @@ const JobSearchResultsView = ({
   onBackToSubcategory
 }: JobSearchResultsViewProps) => {
   const { user } = useAuth();
+  const { getLocalizedText } = useLocalization();
   const [selectedWorker, setSelectedWorker] = useState<any>(null);
   const [showWorkerModal, setShowWorkerModal] = useState(false);
   const [showQuickPost, setShowQuickPost] = useState(false);
@@ -60,7 +62,7 @@ const JobSearchResultsView = ({
 
   if (!results) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen bg-gray-50 pb-20" role="main" aria-label={getLocalizedText('search.loading', 'Loading search results')}>
         <JobSearchHeader
           searchQuery=""
           setSearchQuery={() => {}}
@@ -80,7 +82,7 @@ const JobSearchResultsView = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20" role="main">
       <JobSearchHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -92,7 +94,7 @@ const JobSearchResultsView = ({
         onBackToSubcategory={onBackToSubcategory}
       />
 
-      <main aria-live="polite">
+      <main aria-live="polite" aria-label={getLocalizedText('search.results', 'Search Results')}>
         <JobSearchFilters
           filters={filters}
           onFiltersChange={setFilters}
