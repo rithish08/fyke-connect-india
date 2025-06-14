@@ -8,15 +8,18 @@ interface User {
   role: 'jobseeker' | 'employer';
   verified: boolean;
   profileComplete: boolean;
+  profilePhoto?: string;
+  location?: string;
+  availability?: 'available' | 'busy' | 'offline';
+  skills?: string[];
+  salaryExpectation?: { min: number; max: number };
 }
 
 interface AuthContextType {
   user: User | null;
-  language: string;
   isAuthenticated: boolean;
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => void;
-  setLanguage: (lang: string) => void;
   setRole: (role: 'jobseeker' | 'employer') => void;
   switchRole: () => void;
   updateProfile: (updates: Partial<User>) => void;
@@ -34,32 +37,30 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [language, setLanguageState] = useState('English');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // Check for stored auth data
     const storedUser = localStorage.getItem('fyke_user');
-    const storedLang = localStorage.getItem('fyke_language');
     
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
       setIsAuthenticated(true);
-    }
-    
-    if (storedLang) {
-      setLanguageState(storedLang);
     }
   }, []);
 
   const login = async (phone: string, otp: string) => {
-    // Simulate API call
+    // Simulate API call with enhanced user data
     const mockUser: User = {
-      id: '1',
+      id: Math.random().toString(36).substr(2, 9),
       phone,
       role: 'jobseeker',
-      verified: Math.random() > 0.5,
-      profileComplete: Math.random() > 0.5
+      verified: Math.random() > 0.3,
+      profileComplete: Math.random() > 0.4,
+      availability: 'available',
+      skills: ['Construction', 'Manual Labor'],
+      salaryExpectation: { min: 300, max: 600 }
     };
     
     setUser(mockUser);
@@ -71,11 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('fyke_user');
-  };
-
-  const setLanguage = (lang: string) => {
-    setLanguageState(lang);
-    localStorage.setItem('fyke_language', lang);
   };
 
   const setRole = (role: 'jobseeker' | 'employer') => {
@@ -104,11 +100,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user,
-      language,
       isAuthenticated,
       login,
       logout,
-      setLanguage,
       setRole,
       switchRole,
       updateProfile
