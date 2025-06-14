@@ -1,3 +1,4 @@
+
 import JobCard from '@/components/search/JobCard';
 import WorkerCard from '@/components/search/WorkerCard';
 import JobSearchEmptyState from './JobSearchEmptyState';
@@ -43,13 +44,10 @@ const JobSearchResults = ({
                 skills={res.skills}
                 rating={res.rating}
                 completedJobs={res.completedJobs}
-                verificationLevel={res.verificationLevel}
-                responseTime={res.responseTime}
-                distance={res.distance}
                 hourlyRate={res.hourlyRate}
                 isOnline={res.isOnline}
                 profileImage={res.profileImage}
-                // Removed onClick and any other non-prop attributes!
+                distance={res.distance}
               />
             ) : (
               <JobCard
@@ -60,7 +58,7 @@ const JobSearchResults = ({
                 skills={res.skills || []}
                 salary={res.salary}
                 urgent={res.urgent}
-                // All JobCard props are validated in JobCardProps, so nothing custom passed
+                distance={res.distance}
               />
             )
           )}
