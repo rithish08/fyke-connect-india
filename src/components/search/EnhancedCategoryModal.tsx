@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSizing';
@@ -27,6 +26,8 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
     const already = selectedCategories[categoryId] || [];
     setPopupCategoryId(categoryId);
     setTempSelectedSubcategories([...already]);
+    // Call category select so ProfileCategoryStep stays in sync
+    if (onCategorySelect) onCategorySelect(categoryId);
   };
 
   const closePopup = () => {

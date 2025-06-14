@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { categories } from '@/data/categories';
 import VehicleSelection from './VehicleSelection';
@@ -16,23 +16,34 @@ interface StepProps {
 const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role, onNext }: StepProps) => {
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
 
+  // This effect synchronizes selectedSubcategories if the parent resets category
+  useEffect(() => {
+    if (!category) setSelectedSubcategories([]);
+  }, [category]);
+
   const selectedCategory = category ? { id: category.toLowerCase(), name: category } : null;
 
-  // Now expects only a single categoryId (and can pick category name from id if needed)
+  // Set category but only if changing OR subcategories exist
   const handleCategorySelect = (categoryId: string) => {
     const found = categories.find(cat => cat.name.toLowerCase() === categoryId);
     const categoryName = found ? found.name : categoryId;
-    setCategory(categoryName);
-    // Clear subcategories when category changes
+    // Always reset subcategories on category change
     if (categoryName !== category) {
       setSelectedSubcategories([]);
     }
+    setCategory(categoryName);
   };
 
-  // Now expects both categoryId and subcategories
+  // Save subcategory selection, but only if category is set
   const handleSubcategorySelect = (categoryId: string, subcategories: string[]) => {
     setSelectedSubcategories(subcategories);
+    // Synchronize primary category just in case (for UX)
+    const found = categories.find(cat => cat.name.toLowerCase() === categoryId);
+    if (found && found.name !== category) setCategory(found.name);
   };
+
+  // Only allow moving to next step if a category AND at least 1 subcategory (and, for Driver, a vehicle) is selected
+  const canProceed = category && selectedSubcategories.length > 0 && (category !== "Driver" || vehicle);
 
   const handleNext = () => {
     if (selectedSubcategories.length > 0) {
@@ -40,8 +51,6 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
     }
     onNext();
   };
-
-  const canProceed = category && (category !== "Driver" || vehicle);
 
   return (
     <div className="space-y-6">
@@ -87,7 +96,12 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
           disabled={!canProceed}
           onClick={handleNext}
         >
-          {category ? `Continue with ${category}` : 'Select a category to continue'}
+          {category
+            ? selectedSubcategories.length > 0
+              ? `Continue with ${category}`
+              : 'Select at least 1 subcategory'
+            : 'Select a category to continue'
+          }
         </Button>
       </div>
 
