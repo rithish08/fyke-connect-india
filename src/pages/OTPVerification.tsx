@@ -52,7 +52,7 @@ const OTPVerification = () => {
   }, [resendTimer]);
 
   const handleOTPComplete = async (otpCode: string) => {
-    if (otpCode.length !== 6 || isVerifying.current) {
+    if (otpCode.length !== 6 || isVerifying.current || !phone) {
       return;
     }
 
@@ -61,7 +61,7 @@ const OTPVerification = () => {
     setErrorState(null);
 
     try {
-      const result = await verifyOTP(otpCode);
+      const result = await verifyOTP(phone, otpCode);
       if (result.success) {
         toast({
           title: "Phone Verified!",
@@ -69,7 +69,7 @@ const OTPVerification = () => {
         });
         // Navigation will happen automatically from useEffect above
       } else {
-        setErrorState(result.error || "OTP verification failed. Please try again.");
+        setErrorState(result.error?.message || "OTP verification failed. Please try again.");
         setOtp(['', '', '', '', '', '']);
       }
     } catch (error: any) {

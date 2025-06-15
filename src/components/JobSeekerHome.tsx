@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, MapPin, Clock, TrendingUp, Zap, Star } from 'lucide-react';
 
 const JobSeekerHome = () => {
-  const { userProfile } = useAuth();
+  const { userProfile, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>(
     (userProfile?.availability as 'available' | 'busy' | 'offline') || 'available'
@@ -20,6 +20,15 @@ const JobSeekerHome = () => {
     { value: 'busy' as const, label: 'Busy', color: 'bg-yellow-500', textColor: 'text-yellow-700' },
     { value: 'offline' as const, label: 'Offline', color: 'bg-gray-500', textColor: 'text-gray-700' }
   ];
+
+  const handleAvailabilityChange = async (newAvailability: 'available' | 'busy' | 'offline') => {
+    setAvailability(newAvailability);
+    try {
+      await updateUserProfile({ availability: newAvailability });
+    } catch (error) {
+      console.error('Failed to update availability:', error);
+    }
+  };
 
   const currentAvailability = availabilityOptions.find(opt => opt.value === availability);
 
@@ -73,7 +82,7 @@ const JobSeekerHome = () => {
               key={option.value}
               variant={availability === option.value ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setAvailability(option.value)}
+              onClick={() => handleAvailabilityChange(option.value)}
               className={`rounded-xl transition-all duration-200 ${
                 availability === option.value 
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 

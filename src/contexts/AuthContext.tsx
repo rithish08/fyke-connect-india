@@ -14,7 +14,7 @@ interface UserProfile {
   phone?: string;
   email?: string;
   avatar_url?: string;
-  availability?: string;
+  availability?: 'available' | 'busy' | 'offline';
   location?: string;
   bio?: string;
   primary_category?: string;
@@ -32,7 +32,7 @@ interface AuthContextProps {
   signUp: (phone: string, additionalData?: any) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
   verifyOTP: (phone: string, token: string) => Promise<{ error: any; data: any; success?: boolean }>;
-  sendOTP: (phone: string) => Promise<{ error: any; data: any }>;
+  sendOTP: (phone: string) => Promise<{ error: any; data: any; success?: boolean }>;
   updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
   updateProfile: (profile: Partial<UserProfile>) => Promise<{ error: any }>;
   switchRole: () => Promise<void>;
@@ -64,7 +64,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return null;
       }
 
-      return data as UserProfile;
+      // Map database fields to our interface
+      const profile: UserProfile = {
+        id: data.id,
+        user_id: data.id,
+        role: data.role,
+        profile_complete: data.profile_complete,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        avatar_url: data.profile_photo,
+        availability: data.availability as 'available' | 'busy' | 'offline',
+        location: data.location,
+        bio: data.bio,
+        primary_category: data.primary_category,
+        subcategories: data.subcategories,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+
+      return profile;
     } catch (error) {
       console.error('Exception fetching user profile:', error);
       return null;
@@ -102,24 +123,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (phone: string) => {
-    return await supabase.auth.signInWithOtp({
+    const result = await supabase.auth.signInWithOtp({
       phone,
     });
+    return {
+      ...result,
+      success: !result.error
+    };
   };
 
   const signUp = async (phone: string, additionalData?: any) => {
-    return await supabase.auth.signInWithOtp({
+    const result = await supabase.auth.signInWithOtp({
       phone,
       options: {
         data: additionalData
       }
     });
+    return {
+      ...result,
+      success: !result.error
+    };
   };
 
   const sendOTP = async (phone: string) => {
-    return await supabase.auth.signInWithOtp({
+    const result = await supabase.auth.signInWithOtp({
       phone,
     });
+    return {
+      ...result,
+      success: !result.error
+    };
   };
 
   const verifyOTP = async (phone: string, token: string) => {
@@ -156,17 +189,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw fetchError;
       }
 
+      // Map our interface to database fields
+      const dbProfile: any = {
+        user_id: user.id,
+      };
+
+      if (profile.role) dbProfile.role = profile.role;
+      if (profile.profile_complete !== undefined) dbProfile.profile_complete = profile.profile_complete;
+      if (profile.name) dbProfile.name = profile.name;
+      if (profile.phone) dbProfile.phone = profile.phone;
+      if (profile.email) dbProfile.email = profile.email;
+      if (profile.availability) dbProfile.availability = profile.availability;
+      if (profile.location) dbProfile.location = profile.location;
+      if (profile.bio) dbProfile.bio = profile.bio;
+      if (profile.primary_category) dbProfile.primary_category = profile.primary_category;
+      if (profile.subcategories) dbProfile.subcategories = profile.subcategories;
+
       let result;
 
       if (!existingProfile) {
-        result = await supabase.from('profiles').insert({
-          user_id: user.id,
-          ...profile,
-        });
+        result = await supabase.from('profiles').insert(dbProfile);
       } else {
         result = await supabase
           .from('profiles')
-          .update(profile)
+          .update(dbProfile)
           .eq('user_id', user.id);
       }
 
