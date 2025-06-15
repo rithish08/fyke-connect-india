@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Clock, MapPin, DollarSign, Star, User, MessageCircle, Phone } from 'lucide-react';
+import { Clock, MapPin, DollarSign, Star, User, MessageCircle, Phone, ToggleLeft, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AestheticCard } from '@/components/ui/aesthetic-card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 
 interface Job {
@@ -25,6 +26,8 @@ interface UnifiedJobCardProps {
   onViewDetails?: () => void;
   compact?: boolean;
   showCommunication?: boolean;
+  showAvailabilitySwitch?: boolean;
+  showRateSettings?: boolean;
 }
 
 const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({ 
@@ -32,10 +35,13 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
   onApply, 
   onViewDetails,
   compact = false,
-  showCommunication = true
+  showCommunication = true,
+  showAvailabilitySwitch = false,
+  showRateSettings = false
 }) => {
   const { toast } = useToast();
   const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');
+  const [isAvailable, setIsAvailable] = useState(true);
 
   const handleApply = () => {
     setApplicationState('requested');
@@ -50,6 +56,13 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
     toast({
       title: `${type === 'chat' ? 'Chat' : 'Call'} feature coming soon!`,
       description: `${type === 'chat' ? 'Messaging' : 'Calling'} ${job.company} will be available soon.`
+    });
+  };
+
+  const handleRateSettings = () => {
+    toast({
+      title: 'Rate Settings',
+      description: 'Rate configuration feature coming soon!'
     });
   };
 
@@ -105,6 +118,38 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
         {/* Description */}
         {job.description && !compact && (
           <p className="text-gray-600 text-sm line-clamp-2">{job.description}</p>
+        )}
+
+        {/* Availability Switch */}
+        {showAvailabilitySwitch && (
+          <div className="flex items-center justify-between py-2 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <ToggleLeft className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Available for work</span>
+            </div>
+            <Switch
+              checked={isAvailable}
+              onCheckedChange={setIsAvailable}
+            />
+          </div>
+        )}
+
+        {/* Rate Settings */}
+        {showRateSettings && (
+          <div className="flex items-center justify-between py-2 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Rate Settings</span>
+            </div>
+            <Button
+              onClick={handleRateSettings}
+              variant="outline"
+              size="sm"
+              className="h-8 px-3"
+            >
+              Configure
+            </Button>
+          </div>
         )}
 
         {/* Actions */}

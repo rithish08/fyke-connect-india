@@ -21,7 +21,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
   const isEmployer = user?.role === 'employer';
   const pageTitle = isEmployer ? 'Find Workers by Category' : 'Find Jobs by Category';
   const searchButtonText = isEmployer ? 'Find Workers' : 'Search Jobs';
-  const iconComponent = isEmployer ? Users : Briefcase;
+  const IconComponent = isEmployer ? Users : Briefcase;
 
   const handleCategorySelect = (categoryId: string) => {
     const category = categories.find(cat => cat.name.toLowerCase() === categoryId);
@@ -43,7 +43,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
   };
 
   const handleSearch = () => {
-    // Allow search even with empty selection for employers to see all workers
+    // Allow search with multiple categories or empty for employers
     if (Object.keys(selectedCategories).length > 0 || isEmployer) {
       onSelectionComplete(selectedCategories);
     }
@@ -59,7 +59,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 p-4">
         <div className="flex items-center space-x-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <iconComponent className="w-6 h-6 text-white" />
+            <IconComponent className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-xl font-bold text-gray-900">{pageTitle}</h1>
         </div>
