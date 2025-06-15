@@ -84,9 +84,21 @@ export const useProfileSetupForm = () => {
           )
         : data.salaryBySubcategory;
 
+      // Convert salary data to match User interface
+      const convertedSalaryData = filteredSalaryData ? 
+        Object.fromEntries(
+          Object.entries(filteredSalaryData).map(([key, value]) => [
+            key,
+            {
+              amount: value.amount || '',
+              period: value.period || 'daily'
+            }
+          ])
+        ) : undefined;
+
       const profileData = {
         ...data,
-        salaryBySubcategory: shouldSkipWages ? undefined : filteredSalaryData,
+        salaryBySubcategory: shouldSkipWages ? undefined : convertedSalaryData,
         profileComplete: true
       };
 

@@ -26,7 +26,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (phone: string) => Promise<void>;
+  login: (phone: string, otp?: string) => Promise<void>;
   verifyOTP: (otp: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -79,23 +79,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (phone: string) => {
+  const login = async (phone: string, otp?: string) => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Store phone for OTP verification
-      localStorage.setItem('fyke_pending_phone', phone);
-      
-      toast({
-        title: "OTP Sent",
-        description: "Please check your phone for the verification code",
-      });
+      if (otp) {
+        // Handle OTP verification during login
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const newUser: User = {
+          id: `user_${Date.now()}`,
+          phone,
+          verified: true,
+          profileComplete: false
+        };
+        
+        persistUser(newUser);
+        localStorage.removeItem('fyke_pending_phone');
+        
+        toast({
+          title: "Login Successful!",
+          description: "Welcome to Fyke Connect"
+        });
+      } else {
+        // Handle sending OTP
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        localStorage.setItem('fyke_pending_phone', phone);
+        
+        toast({
+          title: "OTP Sent",
+          description: "Please check your phone for the verification code",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to send OTP. Please try again.",
+        description: otp ? "Invalid OTP. Please try again." : "Failed to send OTP. Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -186,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user?.role) return;
     
     // For now, users can only have one role, but this enables future dual-role functionality
-    const newActiveRole = user.activeRole === 'jobseeker' ? 'employer' : 'jobseeker';
+    const newActiveRole: 'jobseeker' | 'employer' = user.activeRole === 'jobseeker' ? 'employer' : 'jobseeker';
     
     // Only switch if user actually has this role
     if (user.role === newActiveRole || user.role === 'employer') {
