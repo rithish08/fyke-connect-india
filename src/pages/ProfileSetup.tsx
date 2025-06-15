@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -24,35 +25,45 @@ const ProfileSetup = () => {
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   useEffect(() => {
-    console.log('[ProfileSetup] user:', user, 'loading:', loading);
-    if (loading) return;
+    console.log('[ProfileSetup][useEffect] user:', user, 'loading:', loading);
+
+    if (loading) {
+      console.log('[ProfileSetup][useEffect] Still loading...');
+      return;
+    }
+
     if (!user) {
       // If done loading and no user, redirect to login after short delay for UX
-      console.log('[ProfileSetup] No user found, will redirect to /login...');
+      console.log('[ProfileSetup][useEffect] No user found, will redirect to /login...');
       setTimeout(() => {
         navigate('/login');
       }, 400);
       return;
     }
+
     if (user.role === 'employer') {
-      console.log('[ProfileSetup] Detected employer. Redirecting to /home...');
+      console.log('[ProfileSetup][useEffect] Detected employer. Redirecting to /home...');
       navigate('/home');
       return;
     }
+
     if (!user.role) {
-      console.log('[ProfileSetup] No role set. Redirecting to /role-selection...');
+      console.log('[ProfileSetup][useEffect] No role set. Redirecting to /role-selection...');
       navigate('/role-selection');
       return;
     }
+
     if (user.profileComplete) {
-      console.log('[ProfileSetup] Profile already complete. Redirecting to /home...');
+      console.log('[ProfileSetup][useEffect] Profile already complete. Redirecting to /home...');
       navigate('/home');
       return;
     }
-  }, [user, navigate, loading]);
+    // If we made it here, we should show the form!
+    console.log('[ProfileSetup][useEffect] Showing stepper form. Step:', step);
+
+  }, [user, navigate, loading, step]);
 
   const handleFinish = () => {
-    // Defensive: don't allow finishing if not ready
     if (!category) return;
     console.log('Finishing profile setup with data:', {
       category,
@@ -77,7 +88,6 @@ const ProfileSetup = () => {
       profileComplete: true,
     });
 
-    // Clean up localStorage
     localStorage.removeItem('fyke_selected_subcategories');
     navigate('/home');
   };
@@ -92,7 +102,7 @@ const ProfileSetup = () => {
 
   // Show loading shimmer while auth still loading (first mount) or user data is loading
   if (loading) {
-    console.log('[ProfileSetup] Still loading...');
+    console.log('[ProfileSetup][render] Still loading...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <ShimmerLoader height={60} width="200px" />
@@ -100,8 +110,9 @@ const ProfileSetup = () => {
     );
   }
 
+  // If user missing, show fallback loader UI
   if (!user) {
-    console.log('[ProfileSetup] No user after loading. Render fallback.');
+    console.log('[ProfileSetup][render] No user after loading. Render fallback.');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
@@ -113,8 +124,9 @@ const ProfileSetup = () => {
     );
   }
 
-  // Prevent blank screens as a last resort
+  // Extra blank screen guard
   if (!user.role || (user.role === 'jobseeker' && !user.profileComplete && step < 0)) {
+    console.log('[ProfileSetup][render] Unexpected edge case – preparing profile setup.');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div>
@@ -124,6 +136,8 @@ const ProfileSetup = () => {
     );
   }
 
+  // --- Main UI ---
+  console.log('[ProfileSetup][render] Showing main stepper form!');
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
       <div className="w-full max-w-lg mx-auto space-y-6">
@@ -139,7 +153,7 @@ const ProfileSetup = () => {
             <BadgeCheck className="w-6 h-6 text-blue-500" />
             <span className="text-lg font-bold text-gray-900">Profile Setup</span>
           </div>
-          <div className="w-10 h-10"></div> {/* Spacer */}
+          <div className="w-10 h-10"></div>
         </div>
 
         {/* Progress Bar */}
@@ -203,3 +217,4 @@ const ProfileSetup = () => {
 };
 
 export default ProfileSetup;
+
