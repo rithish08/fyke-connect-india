@@ -6,8 +6,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 import { categories } from '@/data/categories';
 import { Badge } from '@/components/ui/badge';
-import { AestheticCard } from '@/components/ui/aesthetic-card';
-import { CheckCircle, X } from 'lucide-react';
+import { FloatingCard } from '@/components/ui/floating-card';
+import { CheckCircle, X, Sparkles } from 'lucide-react';
 
 interface ModernCategoryStepProps {
   form: UseFormReturn<ProfileSetupFormData>;
@@ -50,34 +50,39 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
   };
 
   return (
-    <div className="space-y-7">
-      {/* Welcome user's name */}
-      <div className="text-center mb-3">
-        <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
-          {userName ? `Welcome, ${userName}!` : "Welcome!"}
-        </h2>
-        <div className="text-gray-700 text-base mb-3 font-medium">
-          Select your work category type
+    <div className="space-y-6">
+      {/* Welcome Header */}
+      <div className="text-center mb-6">
+        <div className="flex items-center justify-center mb-3">
+          <Sparkles className="w-6 h-6 text-violet-500 mr-2" />
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+            {userName ? `Welcome, ${userName}!` : "Welcome!"}
+          </h2>
         </div>
+        <p className="text-gray-600 text-base">
+          Choose your work specializations to get started
+        </p>
       </div>
+
+      {/* Selected Items Preview */}
       {selectedSubcategories.length > 0 && (
-        <AestheticCard variant="glass" className="p-4 bg-blue-50 border-blue-200">
+        <FloatingCard variant="minimal" size="sm" className="bg-gradient-to-r from-violet-50 to-blue-50 border-violet-200/50">
           <div>
-            <div className="font-semibold text-blue-900 text-sm mb-2">
-              Selected Specializations ({selectedSubcategories.length}/3)
+            <div className="font-semibold text-violet-900 text-sm mb-3 flex items-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Selected ({selectedSubcategories.length}/3)
             </div>
             <div className="flex flex-wrap gap-2">
               {selectedSubcategories.map(sub => (
                 <Badge 
                   key={sub} 
-                  variant="secondary" 
-                  className="bg-blue-100 text-blue-800 flex items-center gap-1 pr-1"
+                  className="bg-gradient-to-r from-violet-100 to-blue-100 text-violet-800 border-violet-200/50 flex items-center gap-1 pr-1 hover:from-violet-200 hover:to-blue-200 transition-all"
                 >
                   {sub}
                   <button
                     type="button"
                     onClick={() => removeSubcategory(sub)}
-                    className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                    className="ml-1 hover:bg-violet-300 rounded-full p-0.5 transition-colors"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -85,9 +90,10 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
               ))}
             </div>
           </div>
-        </AestheticCard>
+        </FloatingCard>
       )}
-      {/* Categories & subcategories */}
+
+      {/* Categories Grid */}
       <FormField
         control={form.control}
         name="subcategories"
@@ -95,21 +101,28 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
           <FormItem>
             <FormLabel className="sr-only">Specializations</FormLabel>
             <FormControl>
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-4">
                 {categories.map((category) => (
-                  <AestheticCard
+                  <FloatingCard
                     key={category.name}
                     variant="elevated"
-                    className="p-4 border-2 border-transparent hover:border-blue-200"
+                    size="sm"
+                    className="hover:border-violet-200 transition-all duration-300 group"
                   >
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3 mb-1">
-                        <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg`}>
-                          <span className="text-white text-xl">{category.icon}</span>
+                    <div className="space-y-4">
+                      {/* Category Header */}
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                          <span className="text-white text-2xl">{category.icon}</span>
                         </div>
-                        <h3 className="font-bold text-gray-900">{category.name}</h3>
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-lg">{category.name}</h3>
+                          <p className="text-sm text-gray-500">{category.subcategories.length} options available</p>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 gap-2">
+                      
+                      {/* Subcategories Grid */}
+                      <div className="grid grid-cols-2 gap-2">
                         {category.subcategories.map((subcategory) => {
                           const isSelected = selectedSubcategories.includes(subcategory);
                           const isDisabled = !isSelected && selectedSubcategories.length >= 3;
@@ -119,24 +132,28 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
                               type="button"
                               onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
                               disabled={isDisabled}
-                              className={`p-3 rounded-lg text-left transition-all duration-200 border flex items-center justify-between ${
+                              className={`p-3 rounded-xl text-left transition-all duration-200 border-2 flex items-center justify-between text-sm font-medium ${
                                 isSelected
-                                  ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500'
+                                  ? 'bg-gradient-to-r from-violet-50 to-blue-50 border-violet-300 ring-2 ring-violet-400/30 scale-105'
                                   : isDisabled
-                                    ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
-                                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                                    ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                                    : 'bg-white border-gray-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:border-blue-300 hover:scale-105'
                               }`}
                             >
-                              <span className={`font-medium ${isSelected ? 'text-blue-900' : isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
+                              <span className={isSelected ? 'text-violet-900' : isDisabled ? 'text-gray-400' : 'text-gray-900'}>
                                 {subcategory}
                               </span>
-                              {isSelected && <CheckCircle className="w-5 h-5 text-blue-600" />}
+                              {isSelected && (
+                                <div className="w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center">
+                                  <CheckCircle className="w-3 h-3 text-white" />
+                                </div>
+                              )}
                             </button>
                           );
                         })}
                       </div>
                     </div>
-                  </AestheticCard>
+                  </FloatingCard>
                 ))}
               </div>
             </FormControl>
@@ -144,15 +161,17 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
           </FormItem>
         )}
       />
+
+      {/* Continue Button */}
       <Button
         type="button"
         onClick={handleNext}
         disabled={selectedSubcategories.length === 0}
-        className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold shadow-xl"
+        className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-lg"
       >
         {selectedSubcategories.length === 0
           ? 'Select at least 1 specialization'
-          : `Continue with ${selectedSubcategories.length} specialization${selectedSubcategories.length !== 1 ? 's' : ''}`
+          : `Continue with ${selectedSubcategories.length} specialization${selectedSubcategories.length !== 1 ? 's' : ''} ✨`
         }
       </Button>
     </div>
