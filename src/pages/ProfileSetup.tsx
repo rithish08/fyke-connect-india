@@ -17,7 +17,16 @@ import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
   const navigate = useNavigate();
-  const { form, currentStep, isSubmitting, nextStep, prevStep, submitProfile, isVehicleOwner } = useProfileSetupForm();
+  const { 
+    form, 
+    currentStep, 
+    isSubmitting, 
+    nextStep, 
+    prevStep, 
+    submitProfile, 
+    shouldSkipWages,
+    shouldShowPartialWages 
+  } = useProfileSetupForm();
   const [nameStep, setNameStep] = useState(0);
 
   useEffect(() => {
@@ -45,8 +54,7 @@ const ProfileSetup = () => {
 
   const handleBack = () => {
     if (currentStep > 0) {
-      // For vehicle owners, handle the skip between steps
-      if (currentStep === 2 && isVehicleOwner) {
+      if (currentStep === 2 && shouldSkipWages) {
         prevStep(); // This will go to step 0
       } else {
         prevStep();
@@ -120,7 +128,7 @@ const ProfileSetup = () => {
                 userName={user?.name || ""}
               />
             )}
-            {currentStep === 1 && !isVehicleOwner && (
+            {currentStep === 1 && (shouldShowPartialWages || !shouldSkipWages) && (
               <ModernMultiSalaryStep
                 form={form}
                 onNext={nextStep}

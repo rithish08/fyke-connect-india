@@ -28,6 +28,7 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
   const { user, isAuthenticated } = useAuth();
   const { showSuccess, showError } = useGlobalToast();
   const { goTo } = useScreenNavigation();
+  const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');
 
   const handleApply = () => {
     if (!isAuthenticated) {
@@ -43,12 +44,17 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
       return;
     }
 
-    // Simulate application
+    // Apply for job
+    setApplicationState('requested');
     showSuccess(`Applied to ${job.title} successfully!`);
   };
 
   const handleViewDetails = () => {
     goTo(`/job/${job.id}`);
+  };
+
+  const handleCommunication = (type: 'chat' | 'call') => {
+    showSuccess(`${type === 'chat' ? 'Chat' : 'Call'} feature coming soon!`);
   };
 
   return (
@@ -104,9 +110,14 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
         <div className="flex gap-2 pt-2">
           <Button
             onClick={handleApply}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-11 rounded-xl font-medium"
+            disabled={applicationState === 'requested'}
+            className={`flex-1 h-11 rounded-xl font-medium transition-all ${
+              applicationState === 'requested'
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
-            Apply Now
+            {applicationState === 'requested' ? 'Requested' : 'Apply Now'}
           </Button>
           <Button
             onClick={handleViewDetails}
@@ -114,6 +125,28 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
             className="px-6 h-11 rounded-xl border-gray-200"
           >
             Details
+          </Button>
+        </div>
+
+        {/* Communication Buttons */}
+        <div className="flex gap-2 pt-2 border-t border-gray-100">
+          <Button
+            onClick={() => handleCommunication('chat')}
+            variant="outline"
+            size="sm"
+            className="flex-1 h-9 rounded-lg"
+          >
+            <MessageCircle className="w-4 h-4 mr-1" />
+            Chat
+          </Button>
+          <Button
+            onClick={() => handleCommunication('call')}
+            variant="outline"
+            size="sm"
+            className="flex-1 h-9 rounded-lg"
+          >
+            <Phone className="w-4 h-4 mr-1" />
+            Call
           </Button>
         </div>
       </div>
