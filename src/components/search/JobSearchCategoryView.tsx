@@ -26,16 +26,25 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
   const handleCategorySelect = (categoryId: string) => {
     const category = categories.find(cat => cat.name.toLowerCase() === categoryId);
     if (category) {
-      const allSubcategories = category.subcategories;
-      setSelectedCategories(prev => ({
-        ...prev,
-        [categoryId]: allSubcategories
-      }));
+      setSelectedCategories(prev => {
+        const newSelected = { ...prev };
+        
+        if (categoryId in newSelected) {
+          // Remove category if already selected
+          delete newSelected[categoryId];
+        } else {
+          // Add category with all subcategories
+          newSelected[categoryId] = category.subcategories;
+        }
+        
+        return newSelected;
+      });
     }
   };
 
   const handleSearch = () => {
-    if (Object.keys(selectedCategories).length > 0) {
+    // Allow search even with empty selection for employers to see all workers
+    if (Object.keys(selectedCategories).length > 0 || isEmployer) {
       onSelectionComplete(selectedCategories);
     }
   };
@@ -50,7 +59,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 p-4">
         <div className="flex items-center space-x-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            {React.createElement(iconComponent, { className: "w-6 h-6 text-white" })}
+            <iconComponent className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-xl font-bold text-gray-900">{pageTitle}</h1>
         </div>
@@ -109,7 +118,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-semibold text-green-900 text-sm">
-                  {getTotalSelections()} specializations selected
+                  {Object.keys(selectedCategories).length} categories, {getTotalSelections()} specializations selected
                 </div>
                 <div className="text-green-700 text-xs">
                   Ready to {isEmployer ? 'find workers' : 'search jobs'}
@@ -121,8 +130,8 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
         )}
       </div>
 
-      {/* Search Button */}
-      {getTotalSelections() > 0 && (
+      {/* Search Button - Always show for employers, show for job seekers only when categories selected */}
+      {(getTotalSelections() > 0 || isEmployer) && (
         <div className="fixed bottom-20 left-0 right-0 z-50 p-4">
           <div className="w-full max-w-lg mx-auto">
             <Button

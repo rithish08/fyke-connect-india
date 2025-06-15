@@ -6,7 +6,7 @@ export const profileSetupSchema = z.object({
   category: z.string().optional(),
   subcategories: z.array(z.string()).min(1, 'Please select at least one specialization').max(3, 'You can select up to 3 specializations'),
   vehicle: z.string().optional(),
-  // Removed the old salary object, now using salaryBySubcategory:
+  // Make salary optional for vehicle owners
   salaryBySubcategory: z.record(
     z.string(),
     z.object({
@@ -16,7 +16,7 @@ export const profileSetupSchema = z.object({
       ),
       period: z.enum(['daily', 'weekly', 'monthly'])
     })
-  ),
+  ).optional(),
   availability: z.enum(['available', 'busy', 'offline'])
 }).refine((data) => {
   const hasDriverSubcategory = data.subcategories.some(sub =>

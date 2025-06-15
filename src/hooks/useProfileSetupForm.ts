@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,44 +36,72 @@ export const useProfileSetupForm = () => {
     localStorage.setItem('fyke_profile_setup_draft', JSON.stringify(updatedData));
   }, [form]);
 
+  const isVehicleOwner = useCallback(() => {
+    const category = form.getValues('category');
+    return category === 'Vehicle Owners';
+  }, [form]);
+
   const nextStep = useCallback(async () => {
     const currentData = form.getValues();
     saveDraft(currentData);
     let isValid = false;
+    
     if (currentStep === 0) {
       isValid = await form.trigger(['category', 'subcategories', 'vehicle']);
-    } else if (currentStep === 1) {
+    } else if (currentStep === 1 && !isVehicleOwner()) {
       isValid = await form.trigger(['salaryBySubcategory']);
+    } else if (currentStep === 1 && isVehicleOwner()) {
+      // Skip salary step for vehicle owners
+      isValid = true;
     }
+    
     if (isValid) {
-      setCurrentStep(prev => Math.min(prev + 1, 2));
+      // For vehicle owners, skip from step 0 to step 2 (availability)
+      if (currentStep === 0 && isVehicleOwner()) {
+        setCurrentStep(2);
+      } else {
+        setCurrentStep(prev => Math.min(prev + 1, 2));
+      }
     }
     return isValid;
-  }, [currentStep, form, saveDraft]);
+  }, [currentStep, form, saveDraft, isVehicleOwner]);
 
   const prevStep = useCallback(() => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
-  }, []);
+    // For vehicle owners going back from availability (step 2), go to category (step 0)
+    if (currentStep === 2 && isVehicleOwner()) {
+      setCurrentStep(0);
+    } else {
+      setCurrentStep(prev => Math.max(prev - 1, 0));
+    }
+  }, [currentStep, isVehicleOwner]);
 
   const submitProfile = useCallback(async (data: ProfileSetupFormData) => {
     setIsSubmitting(true);
     try {
-      const salaries = Object.values(data.salaryBySubcategory || {});
-      const min = Math.min(...salaries.map(s => Number(s.amount)));
-      const max = Math.max(...salaries.map(s => Number(s.amount)));
-      await updateProfile({
+      let profileUpdate: any = {
         primaryCategory: data.category,
         categories: [data.category],
         subcategories: data.subcategories,
         vehicle: data.subcategories.some(sub =>
           ['Taxi Driver', 'Delivery Driver', 'Personal Driver', 'Tour Guide'].includes(sub)
         ) ? data.vehicle : undefined,
-        salaryExpectation: { min, max },
-        salaryPeriod: salaries[0]?.period,
         availability: data.availability,
         name: data.name,
         profileComplete: true
-      });
+      };
+
+      // Only set salary for non-vehicle owners
+      if (!isVehicleOwner()) {
+        const salaries = Object.values(data.salaryBySubcategory || {});
+        if (salaries.length > 0) {
+          const min = Math.min(...salaries.map(s => Number(s.amount)));
+          const max = Math.max(...salaries.map(s => Number(s.amount)));
+          profileUpdate.salaryExpectation = { min, max };
+          profileUpdate.salaryPeriod = salaries[0]?.period;
+        }
+      }
+
+      await updateProfile(profileUpdate);
       localStorage.removeItem('fyke_profile_setup_draft');
       localStorage.removeItem('fyke_selected_subcategories');
       return true;
@@ -82,7 +111,7 @@ export const useProfileSetupForm = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [updateProfile]);
+  }, [updateProfile, isVehicleOwner]);
 
   return {
     form,
@@ -91,6 +120,7 @@ export const useProfileSetupForm = () => {
     nextStep,
     prevStep,
     submitProfile,
-    saveDraft
+    saveDraft,
+    isVehicleOwner: isVehicleOwner()
   };
 };

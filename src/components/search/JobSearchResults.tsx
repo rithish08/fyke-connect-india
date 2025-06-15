@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useLocalization } from '@/hooks/useLocalization';
 import { mockWorkers, mockJobs } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface JobSearchResultsProps {
   results: any[];
@@ -14,6 +15,7 @@ interface JobSearchResultsProps {
   onWorkerClick: (worker: any) => void;
   isLoading?: boolean;
   category?: string;
+  selectedCategories?: { [catId: string]: string[] };
 }
 
 const JobSearchResults = ({ 
@@ -21,12 +23,14 @@ const JobSearchResults = ({
   userRole, 
   onWorkerClick,
   isLoading = false,
-  category 
+  category,
+  selectedCategories = {}
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // Enhanced mock data integration with consistent results
+  // Enhanced mock data integration with user-specific filtering
   let displayResults = results;
   
   if (userRole === 'employer') {
@@ -36,20 +40,48 @@ const JobSearchResults = ({
       displayResults = categoryKey in mockWorkers 
         ? mockWorkers[categoryKey as keyof typeof mockWorkers] 
         : Object.values(mockWorkers).flat().slice(0, 6);
+    } else if (Object.keys(selectedCategories).length > 0) {
+      // Show workers from selected categories
+      displayResults = [];
+      Object.keys(selectedCategories).forEach(catKey => {
+        if (catKey in mockWorkers) {
+          displayResults = [...displayResults, ...mockWorkers[catKey as keyof typeof mockWorkers]];
+        }
+      });
+      displayResults = displayResults.slice(0, 10);
     } else {
-      // Show comprehensive mixed results from all categories
       displayResults = Object.values(mockWorkers).flat().slice(0, 10);
     }
   } else {
-    // Show jobs - prioritize category-specific results
+    // For job seekers, only show jobs from their selected categories or primary category
+    const userCategories = user?.categories || (user?.primaryCategory ? [user.primaryCategory] : []);
+    
     if (category) {
       const categoryKey = category.toLowerCase();
       displayResults = categoryKey in mockJobs 
         ? mockJobs[categoryKey as keyof typeof mockJobs] 
-        : Object.values(mockJobs).flat().slice(0, 6);
+        : [];
+    } else if (Object.keys(selectedCategories).length > 0) {
+      // Show jobs from selected categories
+      displayResults = [];
+      Object.keys(selectedCategories).forEach(catKey => {
+        if (catKey in mockJobs) {
+          displayResults = [...displayResults, ...mockJobs[catKey as keyof typeof mockJobs]];
+        }
+      });
+    } else if (userCategories.length > 0) {
+      // Show jobs only from user's categories
+      displayResults = [];
+      userCategories.forEach(userCat => {
+        const categoryKey = userCat.toLowerCase();
+        if (categoryKey in mockJobs) {
+          displayResults = [...displayResults, ...mockJobs[categoryKey as keyof typeof mockJobs]];
+        }
+      });
+      displayResults = displayResults.slice(0, 10);
     } else {
-      // Show comprehensive mixed results from all categories
-      displayResults = Object.values(mockJobs).flat().slice(0, 10);
+      // If user has no categories, show empty results
+      displayResults = [];
     }
   }
 
@@ -108,6 +140,8 @@ const JobSearchResults = ({
                   onApply={() => handleJobApply(res)}
                   onViewDetails={() => handleJobViewDetails(res)}
                   showCommunication={true}
+                  showAvailabilitySwitch={true}
+                  showRateSettings={true}
                 />
               </div>
             )

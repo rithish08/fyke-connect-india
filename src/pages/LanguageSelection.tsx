@@ -42,45 +42,53 @@ const LanguageSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-6">
-      <div className="w-full max-w-lg mx-auto space-y-7">
-        {/* Brand + Welcome */}
-        <div className="flex flex-col items-center gap-4">
-          <span className="flex rounded-full bg-gray-900 text-white w-14 h-14 justify-center items-center text-2xl font-bold shadow border-2 border-gray-100">fyke</span>
-          <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
-          <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 pb-32">
+        <div className="w-full max-w-lg mx-auto space-y-7">
+          {/* Brand + Welcome */}
+          <div className="flex flex-col items-center gap-4">
+            <span className="flex rounded-full bg-gray-900 text-white w-14 h-14 justify-center items-center text-2xl font-bold shadow border-2 border-gray-100">fyke</span>
+            <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
+            <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
+          </div>
+          
+          {/* Language grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {languageList.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setSelectedLanguage(lang.code)}
+                className={`group transition-all duration-150 rounded-xl flex flex-col items-center p-5 shadow hover:shadow-lg border-2 ${
+                  selectedLanguage === lang.code
+                    ? "border-gray-700 bg-gray-50 scale-105"
+                    : "border-gray-100 bg-white hover:border-gray-300"
+                }`}
+              >
+                <span className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 ${lang.color} text-white shadow-lg`}>
+                  {lang.icon}
+                </span>
+                <span className="text-xl font-bold text-gray-900">{lang.native}</span>
+                <span className="text-xs text-gray-400 mt-1">{lang.name}</span>
+                {selectedLanguage === lang.code && (
+                  <span className="mt-2 text-xs text-green-600 font-medium">✔ Selected</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-        
-        {/* Language grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {languageList.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => setSelectedLanguage(lang.code)}
-              className={`group transition-all duration-150 rounded-xl flex flex-col items-center p-5 shadow hover:shadow-lg border-2 ${
-                selectedLanguage === lang.code
-                  ? "border-gray-700 bg-gray-50 scale-105"
-                  : "border-gray-100 bg-white hover:border-gray-300"
-              }`}
-            >
-              <span className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 ${lang.color} text-white shadow-lg`}>
-                {lang.icon}
-              </span>
-              <span className="text-xl font-bold text-gray-900">{lang.native}</span>
-              <span className="text-xs text-gray-400 mt-1">{lang.name}</span>
-              {selectedLanguage === lang.code && (
-                <span className="mt-2 text-xs text-green-600 font-medium">✔ Selected</span>
-              )}
-            </button>
-          ))}
+      </div>
+
+      {/* Fixed Footer Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div className="w-full max-w-lg mx-auto">
+          <Button
+            onClick={handleContinue}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 rounded-2xl shadow-lg text-lg h-14"
+          >
+            {t('common.continue', 'Continue')}
+          </Button>
         </div>
-        
-        <Button
-          onClick={handleContinue}
-          className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-2xl shadow-lg mt-2 text-lg"
-        >
-          {t('common.continue', 'Continue')}
-        </Button>
       </div>
     </div>
   );
