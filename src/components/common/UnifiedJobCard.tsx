@@ -32,7 +32,7 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
   onApply, 
   onViewDetails,
   compact = false,
-  showCommunication = false
+  showCommunication = true
 }) => {
   const { toast } = useToast();
   const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');

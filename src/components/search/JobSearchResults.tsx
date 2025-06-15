@@ -24,29 +24,30 @@ const JobSearchResults = ({
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
 
-  // Always use mock data for demonstration
+  // Always use comprehensive mock data for demonstration
   let displayResults = results;
-  if (category) {
-    const categoryKey = category.toLowerCase();
-    if (userRole === 'employer') {
-      // Get workers from all categories and filter by category if specified
-      const allWorkers = Object.values(mockWorkers).flat();
+  
+  if (userRole === 'employer') {
+    // Show workers - use category-specific or mixed results
+    if (category) {
+      const categoryKey = category.toLowerCase();
       displayResults = categoryKey in mockWorkers 
         ? mockWorkers[categoryKey as keyof typeof mockWorkers] 
-        : allWorkers.slice(0, 3);
+        : Object.values(mockWorkers).flat().slice(0, 5);
     } else {
-      // Get jobs from all categories and filter by category if specified
-      const allJobs = Object.values(mockJobs).flat();
-      displayResults = categoryKey in mockJobs 
-        ? mockJobs[categoryKey as keyof typeof mockJobs] 
-        : allJobs.slice(0, 3);
+      // Show mixed results from all categories for better demonstration
+      displayResults = Object.values(mockWorkers).flat().slice(0, 8);
     }
   } else {
-    // If no category specified, show mixed results from all categories
-    if (userRole === 'employer') {
-      displayResults = Object.values(mockWorkers).flat().slice(0, 5);
+    // Show jobs - use category-specific or mixed results
+    if (category) {
+      const categoryKey = category.toLowerCase();
+      displayResults = categoryKey in mockJobs 
+        ? mockJobs[categoryKey as keyof typeof mockJobs] 
+        : Object.values(mockJobs).flat().slice(0, 5);
     } else {
-      displayResults = Object.values(mockJobs).flat().slice(0, 5);
+      // Show mixed results from all categories for better demonstration
+      displayResults = Object.values(mockJobs).flat().slice(0, 8);
     }
   }
 
