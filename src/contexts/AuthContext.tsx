@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('[AuthContext] Error fetching user profile:', error);
         return null;
       }
 
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return profile;
     } catch (error) {
-      console.error('Exception fetching user profile:', error);
+      console.error('[AuthContext] Exception fetching user profile:', error);
       return null;
     }
   };
@@ -50,7 +50,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('[AuthContext] Setting up auth state listener');
     
-    // Get initial session first
+    let initialSessionChecked = false;
+
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
+        
+        if (session?.user) {
+          setUser(session.user);
+          // Fetch profile after setting user
+          try {
+            const profile = await fetchUserProfile(session.user.id);
+            setUserProfile(profile);
+          } catch (error) {
+            console.error('[AuthContext] Error fetching profile on auth change:', error);
+            setUserProfile(null);
+          }
+        } else {
+          setUser(null);
+          setUserProfile(null);
+        }
+        
+        // Set loading to false after handling auth change
+        if (!initialSessionChecked) {
+          setLoading(false);
+          initialSessionChecked = true;
+        }
+      }
+    );
+
+    // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -60,48 +90,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session.user);
           const profile = await fetchUserProfile(session.user.id);
           setUserProfile(profile);
-        } else {
-          setUser(null);
-          setUserProfile(null);
         }
       } catch (error) {
         console.error('[AuthContext] Error getting initial session:', error);
-        setUser(null);
-        setUserProfile(null);
       } finally {
-        setLoading(false);
+        if (!initialSessionChecked) {
+          setLoading(false);
+          initialSessionChecked = true;
+        }
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
-        
-        if (session?.user) {
-          setUser(session.user);
-          // Fetch profile in background to avoid blocking
-          setTimeout(async () => {
-            try {
-              const profile = await fetchUserProfile(session.user.id);
-              setUserProfile(profile);
-            } catch (error) {
-              console.error('[AuthContext] Error fetching profile on auth change:', error);
-            }
-          }, 0);
-        } else {
-          setUser(null);
-          setUserProfile(null);
-        }
-        
-        // Only set loading to false after initial load
-        if (loading) {
-          setLoading(false);
-        }
-      }
-    );
-
-    // Get initial session
     getInitialSession();
 
     return () => {
@@ -109,19 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signIn = async (phone: string) => {
-    const result = await supabase.auth.signInWithOtp({ phone });
-    return { ...result, success: !result.error };
-  };
-
-  const signUp = async (phone: string, additionalData?: any) => {
-    const result = await supabase.auth.signInWithOtp({
-      phone,
-      options: { data: additionalData }
-    });
-    return { ...result, success: !result.error };
-  };
-
+  // Phone/OTP based authentication only
   const sendOTP = async (phone: string) => {
     const result = await supabase.auth.signInWithOtp({ phone });
     return { ...result, success: !result.error };
@@ -153,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error checking for existing profile:', fetchError);
+        console.error('[AuthContext] Error checking for existing profile:', fetchError);
         throw fetchError;
       }
 
@@ -179,24 +166,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedProfile = await fetchUserProfile(user.id);
       setUserProfile(updatedProfile);
     } catch (error) {
-      console.error('Exception in updateUserProfile:', error);
+      console.error('[AuthContext] Exception in updateUserProfile:', error);
       throw error;
     }
-  };
-
-  const updateProfile = async (profile: Partial<UserProfile>) => {
-    try {
-      await updateUserProfile(profile);
-      return { error: null };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const switchRole = async () => {
-    if (!userProfile) return;
-    const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
-    await updateUserProfile({ role: newRole });
   };
 
   const setRole = async (role: 'jobseeker' | 'employer') => {
@@ -212,14 +184,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userProfile,
     loading,
     isAuthenticated: !!user,
-    signIn,
-    signUp,
+    signIn: sendOTP, // Keep compatibility but use OTP
+    signUp: sendOTP, // Keep compatibility but use OTP
     signOut,
     verifyOTP,
     sendOTP,
     updateUserProfile,
-    updateProfile,
-    switchRole,
+    updateProfile: async (profile: Partial<UserProfile>) => {
+      try {
+        await updateUserProfile(profile);
+        return { error: null };
+      } catch (error) {
+        return { error };
+      }
+    },
+    switchRole: async () => {
+      if (!userProfile) return;
+      const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
+      await updateUserProfile({ role: newRole });
+    },
     setRole,
     completeProfileSetup,
   };

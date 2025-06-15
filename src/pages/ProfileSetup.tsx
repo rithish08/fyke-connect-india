@@ -22,7 +22,7 @@ const ProfileSetup = () => {
   const [category, setCategory] = useState('');
   const [vehicle, setVehicle] = useState('');
 
-  const { userProfile, completeProfileSetup } = useAuth();
+  const { userProfile, completeProfileSetup, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,21 +39,27 @@ const ProfileSetup = () => {
   });
 
   useEffect(() => {
+    console.log('[ProfileSetup] Current userProfile:', userProfile);
+    
     if (!userProfile) {
+      console.log('[ProfileSetup] No profile, redirecting to role selection');
       navigate('/role-selection');
       return;
     }
     
     if (userProfile.role !== 'jobseeker') {
+      console.log('[ProfileSetup] Not a jobseeker, redirecting to home');
       navigate('/home');
       return;
     }
     
     if (userProfile.profile_complete) {
+      console.log('[ProfileSetup] Profile already complete, redirecting to home');
       navigate('/home');
       return;
     }
 
+    // Pre-populate existing data
     if (userProfile.name) setName(userProfile.name);
     if (userProfile.location) setLocation(userProfile.location);
     if (userProfile.bio) setBio(userProfile.bio);
@@ -78,6 +84,7 @@ const ProfileSetup = () => {
       
       form.setValue('subcategories', subcategories);
       
+      // Vehicle owner subcategories that skip salary step
       const vehicleOwnerSubs = [
         'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
         'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
@@ -89,9 +96,9 @@ const ProfileSetup = () => {
         subcategories.every((sub: string) => vehicleOwnerSubs.includes(sub));
       
       if (hasOnlyVehicleCategories) {
-        setCurrentStep(3);
+        setCurrentStep(3); // Skip salary step
       } else {
-        setCurrentStep(2);
+        setCurrentStep(2); // Go to salary step
       }
     } else if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
@@ -101,6 +108,8 @@ const ProfileSetup = () => {
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    } else {
+      navigate('/role-selection');
     }
   };
 
@@ -120,8 +129,17 @@ const ProfileSetup = () => {
 
     setLoading(true);
     try {
+      // Update profile with personal details
+      await updateUserProfile({
+        name: name.trim(),
+        location: location.trim(),
+        bio: bio.trim() || undefined
+      });
+
+      // Mark profile as complete
       await completeProfileSetup();
       
+      // Clean up localStorage
       localStorage.removeItem('fyke_selected_subcategories');
       localStorage.removeItem('fyke_profile_category');
       localStorage.removeItem('fyke_profile_subcategories');
@@ -134,7 +152,7 @@ const ProfileSetup = () => {
       
       navigate('/home');
     } catch (error: any) {
-      console.error('Profile setup error:', error);
+      console.error('[ProfileSetup] Profile setup error:', error);
       toast({
         title: "Setup Failed",
         description: error.message || "Failed to complete profile setup",
@@ -202,18 +220,24 @@ const ProfileSetup = () => {
     }
   };
 
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
       <div className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        {currentStep > 1 && (
-          <button
-            onClick={handleBack}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-        )}
+        <button
+          onClick={handleBack}
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </button>
         <div className="flex-1 text-center">
           <span className="text-sm text-gray-500">Step {currentStep} of 3</span>
         </div>

@@ -11,36 +11,65 @@ import { Phone } from "lucide-react";
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { t } = useLocalization();
-  const { sendOTP, userProfile, isAuthenticated } = useAuth();
+  const { sendOTP, userProfile, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated && userProfile) {
-      if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
-        navigate('/profile-setup');
-      } else if (userProfile.role) {
-        navigate('/home');
-      } else {
+    console.log('[LoginScreen] Auth state check:', { isAuthenticated, user: !!user, userProfile });
+    
+    if (isAuthenticated && user && userProfile) {
+      console.log('[LoginScreen] User already authenticated, determining redirect');
+      
+      if (!userProfile.role) {
+        console.log('[LoginScreen] No role, redirecting to role selection');
         navigate('/role-selection');
+      } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+        console.log('[LoginScreen] Incomplete jobseeker profile, redirecting to setup');
+        navigate('/profile-setup');
+      } else {
+        console.log('[LoginScreen] Complete profile, redirecting to home');
+        navigate('/home');
       }
     }
-  }, [isAuthenticated, userProfile, navigate]);
+  }, [isAuthenticated, user, userProfile, navigate]);
 
   const handleSendOTP = async () => {
     if (phone.length !== 10) {
+      setError("Please enter a valid 10-digit phone number");
       return;
     }
+    
     setLoading(true);
+    setError(null);
+    
     try {
+      console.log('[LoginScreen] Sending OTP to:', phone);
       localStorage.setItem('fyke_phone', phone);
       const result = await sendOTP(phone);
+      
       if (result.success) {
+        console.log('[LoginScreen] OTP sent successfully');
         navigate('/otp-verification');
+      } else {
+        console.error('[LoginScreen] Failed to send OTP:', result.error);
+        setError(result.error?.message || "Failed to send OTP. Please try again.");
+        localStorage.removeItem('fyke_phone');
       }
+    } catch (error: any) {
+      console.error('[LoginScreen] Exception sending OTP:', error);
+      setError("Something went wrong. Please try again.");
+      localStorage.removeItem('fyke_phone');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setPhone(value);
+    if (error) setError(null); // Clear error when user starts typing
   };
 
   return (
@@ -70,10 +99,15 @@ const LoginScreen = () => {
                 type="tel" 
                 placeholder="Enter your phone number" 
                 value={phone} 
-                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
+                onChange={handlePhoneChange}
                 className="pl-14 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" 
+                disabled={loading}
               />
             </div>
+            
+            {error && (
+              <div className="text-sm text-red-500 text-center">{error}</div>
+            )}
             
             <Button 
               onClick={handleSendOTP} 

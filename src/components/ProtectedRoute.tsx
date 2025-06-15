@@ -30,7 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     requireProfileComplete
   });
 
-  // Show loading only for a reasonable time
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
@@ -39,17 +39,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             <span className="text-3xl font-bold text-white">F</span>
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 font-medium">Loading your experience...</p>
-          
-          {/* Add a fallback after some time */}
-          <div className="mt-4">
-            <button 
-              onClick={() => window.location.href = '/login'}
-              className="text-blue-600 hover:text-blue-800 text-sm underline"
-            >
-              Having trouble? Click here to login
-            </button>
-          </div>
+          <p className="text-gray-600 font-medium">Loading...</p>
         </div>
       </div>
     );
@@ -84,25 +74,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/role-selection" replace />;
   }
 
-  // Profile completion checks for specific routes that require it
-  if (requireProfileComplete) {
-    // Jobseekers need complete profile for most features
-    if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
-      console.log('[ProtectedRoute] Jobseeker profile incomplete, redirecting to setup');
-      return <Navigate to="/profile-setup" replace />;
-    }
-  }
-
-  // Prevent access to setup pages if not needed
-  if (location.pathname === '/profile-setup') {
-    if (userProfile.role === 'employer' || 
-        (userProfile.role === 'jobseeker' && userProfile.profile_complete)) {
-      console.log('[ProtectedRoute] Profile setup not needed, redirecting to home');
-      return <Navigate to="/home" replace />;
-    }
-  }
-
-  // Prevent access to role selection if role already set
+  // Handle specific routes that shouldn't be accessible if not needed
   if (location.pathname === '/role-selection' && userProfile.role) {
     if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
       console.log('[ProtectedRoute] Redirecting from role selection to profile setup');
@@ -110,6 +82,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     } else {
       console.log('[ProtectedRoute] Redirecting from role selection to home');
       return <Navigate to="/home" replace />;
+    }
+  }
+
+  if (location.pathname === '/profile-setup') {
+    if (userProfile.role !== 'jobseeker' || userProfile.profile_complete) {
+      console.log('[ProtectedRoute] Profile setup not needed, redirecting to home');
+      return <Navigate to="/home" replace />;
+    }
+  }
+
+  // Profile completion checks for specific routes that require it
+  if (requireProfileComplete) {
+    // Jobseekers need complete profile for most features
+    if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+      console.log('[ProtectedRoute] Jobseeker profile incomplete, redirecting to setup');
+      return <Navigate to="/profile-setup" replace />;
     }
   }
 

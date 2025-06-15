@@ -20,10 +20,13 @@ const OTPVerification = () => {
 
   const phone = localStorage.getItem('fyke_phone');
 
-  // Main navigation logic
+  // Navigation logic based on auth state
   useEffect(() => {
+    console.log('[OTPVerification] Auth state:', { isAuthenticated, user: !!user, userProfile });
+    
     // No phone, go back to login
     if (!phone) {
+      console.log('[OTPVerification] No phone found, redirecting to login');
       navigate('/login');
       return;
     }
@@ -33,17 +36,22 @@ const OTPVerification = () => {
       didAutoNavigate.current = true;
       localStorage.removeItem('fyke_phone');
       
+      console.log('[OTPVerification] Authenticated with profile, determining next route');
+      
       if (!userProfile.role) {
+        console.log('[OTPVerification] No role, going to role selection');
         navigate('/role-selection');
       } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+        console.log('[OTPVerification] Jobseeker with incomplete profile, going to profile setup');
         navigate('/profile-setup');
       } else {
+        console.log('[OTPVerification] Complete profile, going to home');
         navigate('/home');
       }
     }
   }, [isAuthenticated, user, userProfile, navigate, phone]);
 
-  // Timer logic for resend OTP
+  // Resend timer
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
@@ -61,18 +69,23 @@ const OTPVerification = () => {
     setErrorState(null);
 
     try {
+      console.log('[OTPVerification] Verifying OTP for phone:', phone);
       const result = await verifyOTP(phone, otpCode);
+      
       if (result.success) {
+        console.log('[OTPVerification] OTP verification successful');
         toast({
           title: "Phone Verified!",
           description: "Successfully authenticated"
         });
         // Navigation will happen automatically from useEffect above
       } else {
+        console.error('[OTPVerification] OTP verification failed:', result.error);
         setErrorState(result.error?.message || "OTP verification failed. Please try again.");
         setOtp(['', '', '', '', '', '']);
       }
     } catch (error: any) {
+      console.error('[OTPVerification] Exception during OTP verification:', error);
       setErrorState(error?.message || "Failed to verify OTP, please try again.");
       setOtp(['', '', '', '', '', '']);
     } finally {
@@ -91,6 +104,7 @@ const OTPVerification = () => {
     setErrorState(null);
     
     try {
+      console.log('[OTPVerification] Resending OTP to:', phone);
       await sendOTP(phone);
       setResendTimer(60);
       toast({
@@ -98,10 +112,16 @@ const OTPVerification = () => {
         description: "New verification code sent to your phone"
       });
     } catch (error: any) {
+      console.error('[OTPVerification] Error resending OTP:', error);
       setErrorState("Failed to resend OTP. Try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBackToLogin = () => {
+    localStorage.removeItem('fyke_phone');
+    navigate('/login');
   };
 
   return (
@@ -142,7 +162,7 @@ const OTPVerification = () => {
               </div>
             </div>
             
-            {(errorState || !phone) && (
+            {errorState && (
               <div className="text-center text-sm text-red-500">{errorState}</div>
             )}
             
@@ -169,10 +189,7 @@ const OTPVerification = () => {
             <div className="flex flex-col space-y-2 pt-4">
               <Button
                 variant="outline"
-                onClick={() => {
-                  localStorage.removeItem('fyke_phone');
-                  navigate('/login');
-                }}
+                onClick={handleBackToLogin}
                 className="w-full"
                 disabled={loading}
               >
