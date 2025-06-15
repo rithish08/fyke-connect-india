@@ -30,6 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     requireProfileComplete
   });
 
+  // Show loading only for a reasonable time
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
@@ -39,6 +40,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-gray-600 font-medium">Loading your experience...</p>
+          
+          {/* Add a fallback after some time */}
+          <div className="mt-4">
+            <button 
+              onClick={() => window.location.href = '/login'}
+              className="text-blue-600 hover:text-blue-800 text-sm underline"
+            >
+              Having trouble? Click here to login
+            </button>
+          </div>
         </div>
       </div>
     );

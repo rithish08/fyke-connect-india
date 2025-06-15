@@ -50,27 +50,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('[AuthContext] Setting up auth state listener');
     
+    // Get initial session first
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('[AuthContext] Initial session check:', session?.user?.id, error);
+        
+        if (session?.user) {
+          setUser(session.user);
+          const profile = await fetchUserProfile(session.user.id);
+          setUserProfile(profile);
+        } else {
+          setUser(null);
+          setUserProfile(null);
+        }
+      } catch (error) {
+        console.error('[AuthContext] Error getting initial session:', error);
+        setUser(null);
+        setUserProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
         
         if (session?.user) {
           setUser(session.user);
-          try {
-            const profile = await fetchUserProfile(session.user.id);
-            setUserProfile(profile);
-          } catch (error) {
-            console.error('[AuthContext] Error fetching profile:', error);
-            setUserProfile(null);
-          }
+          // Fetch profile in background to avoid blocking
+          setTimeout(async () => {
+            try {
+              const profile = await fetchUserProfile(session.user.id);
+              setUserProfile(profile);
+            } catch (error) {
+              console.error('[AuthContext] Error fetching profile on auth change:', error);
+            }
+          }, 0);
         } else {
           setUser(null);
           setUserProfile(null);
         }
         
-        setLoading(false);
+        // Only set loading to false after initial load
+        if (loading) {
+          setLoading(false);
+        }
       }
     );
+
+    // Get initial session
+    getInitialSession();
 
     return () => {
       subscription.unsubscribe();
