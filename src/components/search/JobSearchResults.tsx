@@ -24,14 +24,29 @@ const JobSearchResults = ({
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
 
-  // Use mock data if no results and category is provided
+  // Always use mock data for demonstration
   let displayResults = results;
-  if (results.length === 0 && category) {
+  if (category) {
     const categoryKey = category.toLowerCase();
     if (userRole === 'employer') {
-      displayResults = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
+      // Get workers from all categories and filter by category if specified
+      const allWorkers = Object.values(mockWorkers).flat();
+      displayResults = categoryKey in mockWorkers 
+        ? mockWorkers[categoryKey as keyof typeof mockWorkers] 
+        : allWorkers.slice(0, 3);
     } else {
-      displayResults = mockJobs[categoryKey as keyof typeof mockJobs] || [];
+      // Get jobs from all categories and filter by category if specified
+      const allJobs = Object.values(mockJobs).flat();
+      displayResults = categoryKey in mockJobs 
+        ? mockJobs[categoryKey as keyof typeof mockJobs] 
+        : allJobs.slice(0, 3);
+    }
+  } else {
+    // If no category specified, show mixed results from all categories
+    if (userRole === 'employer') {
+      displayResults = Object.values(mockWorkers).flat().slice(0, 5);
+    } else {
+      displayResults = Object.values(mockJobs).flat().slice(0, 5);
     }
   }
 
@@ -71,6 +86,7 @@ const JobSearchResults = ({
                   job={res} 
                   onApply={() => console.log('Apply to job:', res)}
                   onViewDetails={() => console.log('View job details:', res)}
+                  showCommunication={true}
                 />
               </div>
             )

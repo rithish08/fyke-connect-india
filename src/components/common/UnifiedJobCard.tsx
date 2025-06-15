@@ -1,9 +1,10 @@
 
-import React from 'react';
-import { Clock, MapPin, DollarSign, Star, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, MapPin, DollarSign, Star, User, MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AestheticCard } from '@/components/ui/aesthetic-card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface Job {
   id: string;
@@ -23,18 +24,39 @@ interface UnifiedJobCardProps {
   onApply?: () => void;
   onViewDetails?: () => void;
   compact?: boolean;
+  showCommunication?: boolean;
 }
 
 const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({ 
   job, 
   onApply, 
   onViewDetails,
-  compact = false 
+  compact = false,
+  showCommunication = false
 }) => {
+  const { toast } = useToast();
+  const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');
+
+  const handleApply = () => {
+    setApplicationState('requested');
+    toast({
+      title: 'Application Submitted!',
+      description: `Your application for ${job.title} has been submitted.`,
+    });
+    onApply?.();
+  };
+
+  const handleCommunication = (type: 'chat' | 'call') => {
+    toast({
+      title: `${type === 'chat' ? 'Chat' : 'Call'} feature coming soon!`,
+      description: `${type === 'chat' ? 'Messaging' : 'Calling'} ${job.company} will be available soon.`
+    });
+  };
+
   return (
     <AestheticCard 
       variant="elevated" 
-      className={`transition-all duration-200 ${compact ? 'p-4' : 'p-6'}`}
+      className={`transition-all duration-200 hover:shadow-lg ${compact ? 'p-4' : 'p-6'}`}
     >
       <div className="space-y-4">
         {/* Header */}
@@ -88,10 +110,15 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
         {/* Actions */}
         <div className="flex gap-3 pt-2">
           <Button
-            onClick={onApply}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-11 rounded-xl font-medium"
+            onClick={handleApply}
+            disabled={applicationState === 'requested'}
+            className={`flex-1 h-11 rounded-xl font-medium transition-all ${
+              applicationState === 'requested'
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
-            Apply Now
+            {applicationState === 'requested' ? 'Requested' : 'Apply Now'}
           </Button>
           <Button
             onClick={onViewDetails}
@@ -101,6 +128,30 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
             Details
           </Button>
         </div>
+
+        {/* Communication Buttons */}
+        {showCommunication && (
+          <div className="flex gap-2 pt-2 border-t border-gray-100">
+            <Button
+              onClick={() => handleCommunication('chat')}
+              variant="outline"
+              size="sm"
+              className="flex-1 h-9 rounded-lg"
+            >
+              <MessageCircle className="w-4 h-4 mr-1" />
+              Chat
+            </Button>
+            <Button
+              onClick={() => handleCommunication('call')}
+              variant="outline"
+              size="sm"
+              className="flex-1 h-9 rounded-lg"
+            >
+              <Phone className="w-4 h-4 mr-1" />
+              Call
+            </Button>
+          </div>
+        )}
       </div>
     </AestheticCard>
   );

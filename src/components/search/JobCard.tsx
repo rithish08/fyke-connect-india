@@ -13,6 +13,8 @@ interface JobCardProps {
   postedTime?: string;
   company?: string;
   description?: string;
+  showCommunication?: boolean;
+  employerId?: string;
 }
 
 const JobCard: React.FC<JobCardProps> = (props) => {

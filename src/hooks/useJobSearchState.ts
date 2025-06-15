@@ -35,9 +35,16 @@ export const useJobSearchState = () => {
   const loadResults = () => {
     setTimeout(() => {
       if (user?.role === 'employer') {
-        // Get workers for selected category
+        // Get workers for selected category or all workers
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
-        const categoryWorkers = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
+        let categoryWorkers: any[] = [];
+        
+        if (categoryKey && categoryKey in mockWorkers) {
+          categoryWorkers = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
+        } else {
+          // If no specific category or category not found, show workers from all categories
+          categoryWorkers = Object.values(mockWorkers).flat();
+        }
         
         // Apply filters
         const filteredWorkers = categoryWorkers.filter(worker => {
@@ -46,11 +53,18 @@ export const useJobSearchState = () => {
           return ratingMatch && urgentMatch;
         });
         
-        setResults(filteredWorkers);
+        setResults(filteredWorkers.length > 0 ? filteredWorkers : Object.values(mockWorkers).flat().slice(0, 5));
       } else {
-        // Get jobs for selected category
+        // Get jobs for selected category or all jobs
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
-        const categoryJobs = mockJobs[categoryKey as keyof typeof mockJobs] || [];
+        let categoryJobs: any[] = [];
+        
+        if (categoryKey && categoryKey in mockJobs) {
+          categoryJobs = mockJobs[categoryKey as keyof typeof mockJobs] || [];
+        } else {
+          // If no specific category or category not found, show jobs from all categories
+          categoryJobs = Object.values(mockJobs).flat();
+        }
         
         // Apply filters
         const filteredJobs = categoryJobs.filter(job => {
@@ -61,7 +75,7 @@ export const useJobSearchState = () => {
           return urgentMatch && queryMatch;
         });
         
-        setResults(filteredJobs);
+        setResults(filteredJobs.length > 0 ? filteredJobs : Object.values(mockJobs).flat().slice(0, 5));
       }
     }, 500);
   };
