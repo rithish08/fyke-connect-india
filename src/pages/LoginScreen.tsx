@@ -4,15 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { useAuth } from '@/contexts/AuthContext';
-import { Phone } from "lucide-react";
+import { Phone, Mail } from "lucide-react";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const { t } = useLocalization();
-  const { sendOTP, userProfile, isAuthenticated } = useAuth();
+  const { sendOTP, signInWithGoogle, userProfile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +55,22 @@ const LoginScreen = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      console.log('[LoginScreen] Starting Google sign in');
+      const result = await signInWithGoogle();
+      if (result.success) {
+        console.log('[LoginScreen] Google sign in successful');
+        // Navigation will be handled by the auth state change
+      }
+    } catch (error) {
+      console.error('Error with Google sign in:', error);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       {/* Hidden recaptcha container for Firebase */}
@@ -68,8 +86,29 @@ const LoginScreen = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{t('login.title', 'Welcome to Fyke')}</h1>
               <p className="text-gray-500 text-sm">
-                Enter your phone number to get started
+                Sign in to continue to your account
               </p>
+            </div>
+          </div>
+
+          {/* Google Sign In */}
+          <div className="space-y-4">
+            <Button 
+              onClick={handleGoogleSignIn} 
+              disabled={googleLoading} 
+              variant="outline"
+              className="w-full h-14 border-gray-200 rounded-2xl hover:bg-gray-50 flex items-center justify-center gap-3"
+            >
+              <Mail className="w-5 h-5 text-gray-600" />
+              {googleLoading ? 'Signing in...' : 'Continue with Google'}
+            </Button>
+          </div>
+
+          {/* Divider */}
+          <div className="relative">
+            <Separator />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="bg-white px-2 text-xs text-gray-500">or</span>
             </div>
           </div>
 

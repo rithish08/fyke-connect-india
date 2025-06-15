@@ -69,8 +69,10 @@ export class FirebaseAuthService {
         throw new Error('No phone number found in Firebase user');
       }
 
-      // Create a simple email from phone number for Supabase
-      const email = `${phoneNumber.replace('+', '')}@temp.local`;
+      // Create a proper email from phone number for Supabase
+      // Remove '+' and use a valid domain
+      const cleanPhone = phoneNumber.replace('+', '');
+      const email = `${cleanPhone}@fyke.app`;
       const password = firebaseUser.uid; // Use Firebase UID as password
       
       console.log('Attempting Supabase authentication with email:', email);
@@ -91,7 +93,8 @@ export class FirebaseAuthService {
           options: {
             data: {
               phone: phoneNumber,
-              firebase_uid: firebaseUser.uid
+              firebase_uid: firebaseUser.uid,
+              name: null
             }
           }
         });

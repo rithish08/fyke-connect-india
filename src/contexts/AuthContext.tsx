@@ -28,6 +28,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   sendOTP: (phoneNumber: string) => Promise<{ success: boolean; error?: string }>;
   verifyOTP: (otpCode: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -161,6 +162,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('[AuthContext] Verify OTP error:', errorMessage);
       toast({
         title: "Verification Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      console.log('[AuthContext] Starting Google sign in');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        }
+      });
+
+      if (error) {
+        console.error('Google sign in error:', error);
+        toast({
+          title: "Google Sign In Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return { success: false, error: error.message };
+      }
+
+      console.log('[AuthContext] Google sign in initiated');
+      return { success: true };
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to sign in with Google";
+      console.error('[AuthContext] Google sign in error:', errorMessage);
+      toast({
+        title: "Google Sign In Failed",
         description: errorMessage,
         variant: "destructive"
       });
@@ -390,6 +425,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isAuthenticated,
     sendOTP,
     verifyOTP,
+    signInWithGoogle,
     login,
     logout,
     signOut,
