@@ -1,60 +1,81 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { firebaseAuthService } from '@/services/firebaseAuthService';
+import { useToast } from '@/hooks/use-toast';
+
+interface UserProfile {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  role: 'jobseeker' | 'employer' | 'admin';
+  verified: boolean;
+  profile_complete: boolean;
+  location: string | null;
+  bio: string | null;
+  availability: 'available' | 'busy' | 'offline';
+  primary_category?: string;
+  subcategories?: string[];
+  salaryBySubcategory?: { [key: string]: { amount: string; period: string } };
+}
 
 interface AuthContextType {
   user: User | null;
+  userProfile: UserProfile | null;
   session: Session | null;
-  userProfile: any | null;
   loading: boolean;
   isAuthenticated: boolean;
-  signUp: (email: string, password: string, phone?: string, name?: string, role?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
+  sendOTP: (phoneNumber: string) => Promise<{ success: boolean; error?: string }>;
+  verifyOTP: (otpCode: string) => Promise<{ success: boolean; error?: string }>;
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (data: any) => Promise<{ error: any }>;
-  switchRole: () => Promise<void>;
-  setRole: (role: string) => Promise<void>;
-  isAdmin: boolean;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  signUp: (email: string, password: string, phone: string, name: string, role: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userProfile, setUserProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const isAuthenticated = !!user && !!session;
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            await fetchUserProfile(session.user.id);
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
           }, 0);
         } else {
           setUserProfile(null);
@@ -68,177 +89,167 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         fetchUserProfile(session.user.id);
       }
+      
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const sendOTP = async (phoneNumber: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-        return;
+      const result = await firebaseAuthService.sendOTP(phoneNumber);
+      if (result.success) {
+        toast({
+          title: "OTP Sent",
+          description: `Verification code sent to +91 ${phoneNumber}`
+        });
+        return { success: true };
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to send OTP",
+          variant: "destructive"
+        });
+        return { success: false, error: result.error };
       }
-
-      setUserProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
-  const signUp = async (email: string, password: string, phone?: string, name?: string, role?: string) => {
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            phone: phone || '',
-            name: name || '',
-            role: role || 'jobseeker'
-          }
-        }
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to send OTP";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
       });
-
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
-
-      toast.success('Account created successfully! Please check your email to verify your account.');
-      return { error: null };
-    } catch (error: any) {
-      toast.error('An unexpected error occurred');
-      return { error };
+      return { success: false, error: errorMessage };
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const verifyOTP = async (otpCode: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      const result = await firebaseAuthService.verifyOTP(otpCode);
+      if (result.success) {
+        // Firebase auth successful, user should now be authenticated in Supabase too
+        toast({
+          title: "Phone Verified!",
+          description: "Successfully authenticated"
+        });
+        return { success: true };
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: result.error || "Invalid OTP",
+          variant: "destructive"
+        });
+        return { success: false, error: result.error };
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to verify OTP";
+      toast({
+        title: "Verification Failed",
+        description: errorMessage,
+        variant: "destructive"
       });
-
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
-
-      toast.success('Signed in successfully!');
-      return { error: null };
-    } catch (error: any) {
-      toast.error('An unexpected error occurred');
-      return { error };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      
-      setUser(null);
-      setSession(null);
-      setUserProfile(null);
-      toast.success('Signed out successfully!');
-      navigate('/');
-    } catch (error: any) {
-      toast.error('Error signing out');
+      return { success: false, error: errorMessage };
     }
   };
 
   const login = async (phone: string, otp: string) => {
-    // For demo purposes, simulate OTP login
-    try {
-      // In production, you'd verify the OTP here
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: `${phone}@phone.fyke`,
-        password: otp
-      });
-
-      if (error) {
-        throw new Error('Invalid OTP');
-      }
-
-      toast.success('Login successful!');
-    } catch (error: any) {
-      throw error;
+    const result = await verifyOTP(otp);
+    if (!result.success) {
+      throw new Error(result.error || 'OTP verification failed');
     }
   };
 
   const logout = async () => {
-    await signOut();
-  };
-
-  const updateProfile = async (data: any) => {
     try {
-      if (!user) return { error: 'No user logged in' };
-
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({ id: user.id, ...data })
-        .select();
-
-      if (error) {
-        toast.error('Error updating profile');
-        return { error };
-      }
-
-      await fetchUserProfile(user.id);
-      toast.success('Profile updated successfully!');
-      return { error: null };
+      firebaseAuthService.cleanup();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out"
+      });
     } catch (error: any) {
-      toast.error('Error updating profile');
-      return { error };
+      toast({
+        title: "Error",
+        description: error.message || "Failed to logout",
+        variant: "destructive"
+      });
     }
   };
 
-  const switchRole = async () => {
-    if (!userProfile) return;
-    
-    const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
-    await updateProfile({ role: newRole });
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setUserProfile(prev => prev ? { ...prev, ...updates } : null);
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive"
+      });
+    }
   };
 
-  const setRole = async (role: string) => {
-    await updateProfile({ role });
+  // Keep email/password methods for admin access
+  const signUp = async (email: string, password: string, phone: string, name: string, role: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          phone,
+          role
+        }
+      }
+    });
+    return { error };
   };
 
-  const isAuthenticated = !!user;
-  const isAdmin = userProfile?.role === 'admin';
+  const signIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    return { error };
+  };
 
   const value: AuthContextType = {
     user,
-    session,
     userProfile,
+    session,
     loading,
     isAuthenticated,
-    signUp,
-    signIn,
-    signOut,
+    sendOTP,
+    verifyOTP,
     login,
     logout,
     updateProfile,
-    switchRole,
-    setRole,
-    isAdmin
+    signUp,
+    signIn
   };
 
   return (
@@ -246,4 +257,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

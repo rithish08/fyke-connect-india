@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const supabaseService = {
@@ -17,6 +16,22 @@ export const supabaseService = {
     const { data, error } = await supabase
       .from('profiles')
       .upsert({ id: userId, ...updates })
+      .select();
+    
+    return { data, error };
+  },
+
+  async createProfileFromPhone(userId: string, phoneNumber: string, role: 'jobseeker' | 'employer' = 'jobseeker') {
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        phone: phoneNumber,
+        role: role,
+        profile_complete: false,
+        verified: false,
+        availability: 'available'
+      })
       .select();
     
     return { data, error };

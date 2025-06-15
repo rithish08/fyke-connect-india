@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { Phone, MessageSquare } from "lucide-react";
+import { Phone } from "lucide-react";
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const LoginScreen = () => {
@@ -17,8 +16,7 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
-  const { login } = useAuth();
-  const { toast } = useToast();
+  const { sendOTP, verifyOTP } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,32 +28,21 @@ const LoginScreen = () => {
 
   const handleSendOTP = async () => {
     if (phone.length !== 10) {
-      toast({
-        title: "Invalid Input",
-        description: "Please enter a valid 10-digit phone number",
-        variant: "destructive"
-      });
       return;
     }
+    
     setLoading(true);
     try {
       // Store phone for later use
       localStorage.setItem('fyke_phone', phone);
 
-      // Simulate sending OTP
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setShowOTP(true);
-      setResendTimer(60);
-      toast({
-        title: "OTP Sent",
-        description: `Verification code sent to +91 ${phone}`
-      });
+      const result = await sendOTP(phone);
+      if (result.success) {
+        setShowOTP(true);
+        setResendTimer(60);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send OTP. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error sending OTP:', error);
     } finally {
       setLoading(false);
     }
@@ -63,41 +50,37 @@ const LoginScreen = () => {
 
   const handleOTPComplete = async (otpCode: string) => {
     if (otpCode.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the complete 6-digit code",
-        variant: "destructive"
-      });
       return;
     }
+    
     setLoading(true);
     try {
-      await login(phone, otpCode);
-      toast({
-        title: "Login Successful!",
-        description: "Welcome to Fyke Connect"
-      });
-
-      // Navigate to role selection after successful login
-      navigate('/role-selection');
+      const result = await verifyOTP(otpCode);
+      if (result.success) {
+        navigate('/role-selection');
+      } else {
+        setOtp(['', '', '', '', '', '']);
+      }
     } catch (error) {
-      toast({
-        title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error verifying OTP:', error);
       setOtp(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResend = () => {
-    setResendTimer(60);
-    toast({
-      title: "OTP Resent",
-      description: "New verification code sent to your phone"
-    });
+  const handleResend = async () => {
+    setLoading(true);
+    try {
+      const result = await sendOTP(phone);
+      if (result.success) {
+        setResendTimer(60);
+      }
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -108,6 +91,9 @@ const LoginScreen = () => {
   if (showOTP) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        {/* Hidden recaptcha container for Firebase */}
+        <div id="recaptcha-container"></div>
+        
         <div className="w-full max-w-md space-y-8">
           {/* Header */}
           <div className="text-center space-y-4">
@@ -146,7 +132,11 @@ const LoginScreen = () => {
                     Resend in {resendTimer}s
                   </p>
                 ) : (
-                  <button onClick={handleResend} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                  <button 
+                    onClick={handleResend} 
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    disabled={loading}
+                  >
                     Resend OTP
                   </button>
                 )}
@@ -171,6 +161,9 @@ const LoginScreen = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      {/* Hidden recaptcha container for Firebase */}
+      <div id="recaptcha-container"></div>
+      
       <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
         <CardContent className="p-8 space-y-6">
           {/* Header */}

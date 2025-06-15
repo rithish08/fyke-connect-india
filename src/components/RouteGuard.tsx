@@ -8,12 +8,14 @@ interface RouteGuardProps {
   children: React.ReactNode;
   requireAuth?: boolean;
   requireProfile?: boolean;
+  requireAdmin?: boolean;
 }
 
 const RouteGuard = ({ 
   children, 
   requireAuth = true, 
-  requireProfile = true 
+  requireProfile = true,
+  requireAdmin = false 
 }: RouteGuardProps) => {
   const { userProfile, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ const RouteGuard = ({
       isAuthenticated, 
       requireAuth, 
       requireProfile,
+      requireAdmin,
       role: userProfile?.role,
       profileComplete: userProfile?.profile_complete
     });
@@ -51,6 +54,13 @@ const RouteGuard = ({
     if (requireAuth && !isAuthenticated) {
       console.log('[RouteGuard] Auth required but not authenticated, redirecting to language selection');
       navigate('/');
+      return;
+    }
+
+    // Check admin requirement
+    if (requireAdmin && (!userProfile || userProfile.role !== 'admin')) {
+      console.log('[RouteGuard] Admin access required but user is not admin, redirecting to home');
+      navigate('/home');
       return;
     }
 
@@ -97,7 +107,7 @@ const RouteGuard = ({
     }
 
     console.log('[RouteGuard] All checks passed, showing content');
-  }, [userProfile, isAuthenticated, loading, requireAuth, requireProfile, navigate, location.pathname]);
+  }, [userProfile, isAuthenticated, loading, requireAuth, requireProfile, requireAdmin, navigate, location.pathname]);
 
   // Show loading while checking authentication or during initial load
   if (loading || !hasChecked) {
