@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockWorkers, mockJobs } from '@/data/mockData';
@@ -40,47 +41,54 @@ export const useJobSearchState = () => {
   const loadResults = () => {
     setTimeout(() => {
       if (user?.role === 'employer') {
-        // Get workers for selected category or all workers
+        // Enhanced worker data loading with better filtering
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
         let categoryWorkers: any[] = [];
         
         if (categoryKey && categoryKey in mockWorkers) {
           categoryWorkers = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
         } else {
-          // If no specific category or category not found, show workers from all categories
+          // Show workers from all categories with better variety
           categoryWorkers = Object.values(mockWorkers).flat();
         }
         
-        // Apply filters
+        // Apply comprehensive filters
         const filteredWorkers = categoryWorkers.filter(worker => {
           const ratingMatch = worker.rating >= filters.minRating;
           const urgentMatch = urgentOnly ? worker.isOnline : true;
-          return ratingMatch && urgentMatch;
+          const priceMatch = worker.hourlyRate >= filters.priceRange[0] && worker.hourlyRate <= filters.priceRange[1];
+          const availabilityMatch = filters.availability === 'all' || 
+            (filters.availability === 'online' && worker.isOnline) ||
+            (filters.availability === 'verified' && worker.verificationLevel !== 'basic');
+          
+          return ratingMatch && urgentMatch && priceMatch && availabilityMatch;
         });
         
-        setResults(filteredWorkers.length > 0 ? filteredWorkers : Object.values(mockWorkers).flat().slice(0, 5));
+        setResults(filteredWorkers.length > 0 ? filteredWorkers : Object.values(mockWorkers).flat().slice(0, 8));
       } else {
-        // Get jobs for selected category or all jobs
+        // Enhanced job data loading with better filtering
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
         let categoryJobs: any[] = [];
         
         if (categoryKey && categoryKey in mockJobs) {
           categoryJobs = mockJobs[categoryKey as keyof typeof mockJobs] || [];
         } else {
-          // If no specific category or category not found, show jobs from all categories
+          // Show jobs from all categories with better variety
           categoryJobs = Object.values(mockJobs).flat();
         }
         
-        // Apply filters
+        // Apply comprehensive filters
         const filteredJobs = categoryJobs.filter(job => {
           const urgentMatch = urgentOnly ? job.urgent : true;
           const queryMatch = searchQuery ? 
             job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            job.company.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+            job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            job.description?.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+          
           return urgentMatch && queryMatch;
         });
         
-        setResults(filteredJobs.length > 0 ? filteredJobs : Object.values(mockJobs).flat().slice(0, 5));
+        setResults(filteredJobs.length > 0 ? filteredJobs : Object.values(mockJobs).flat().slice(0, 8));
       }
     }, 500);
   };

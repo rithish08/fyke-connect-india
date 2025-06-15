@@ -1,6 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
-import { ModernCard } from '@/components/ui/modern-card';
+import { AestheticCard } from '@/components/ui/aesthetic-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SkeletonWorkerCard } from '@/components/ui/skeleton-cards';
@@ -8,6 +8,7 @@ import AnimatedWrapper from '@/components/AnimatedWrapper';
 import CommunicationButtons from '@/components/communication/CommunicationButtons';
 import { Star, MapPin, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { mockWorkers } from '@/data/mockData';
 
 interface Worker {
   id: string;
@@ -30,36 +31,13 @@ const NearbyWorkersSection = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      setWorkers([
-        {
-          id: 'worker-1',
-          name: 'Raj Kumar',
-          category: 'Construction',
-          skills: ['Cement Work', 'Painting', 'Plumbing'],
-          rating: 4.8,
-          completedJobs: 45,
-          hourlyRate: 500,
-          distance: '2.1km',
-          responseTime: '< 30min',
-          isOnline: true,
-          verificationLevel: 'verified',
-          profilePhoto: null
-        },
-        {
-          id: 'worker-2',
-          name: 'Amit Singh',
-          category: 'Delivery',
-          skills: ['Two Wheeler', 'Navigation', 'Fast Delivery'],
-          rating: 4.6,
-          completedJobs: 32,
-          hourlyRate: 400,
-          distance: '1.5km',
-          responseTime: '< 1hr',
-          isOnline: false,
-          verificationLevel: 'basic',
-          profilePhoto: null
-        }
-      ]);
+      // Get workers from all categories and mix them for nearby display
+      const allWorkers = Object.values(mockWorkers).flat();
+      const nearbyWorkers = allWorkers.slice(0, 3).map(worker => ({
+        ...worker,
+        profilePhoto: null
+      }));
+      setWorkers(nearbyWorkers);
     }, 1000);
   }, []);
 
@@ -81,21 +59,15 @@ const NearbyWorkersSection = () => {
         ) : (
           <div className="space-y-3">
             {workers.map((worker) => (
-              <ModernCard key={worker.id} className="p-4 hover:shadow-lg transition-shadow">
+              <AestheticCard key={worker.id} variant="elevated" className="p-4 hover:shadow-lg transition-shadow">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="relative">
-                        <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
-                          {worker.profilePhoto ? (
-                            <img src={worker.profilePhoto} alt={worker.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-lg font-bold text-gray-600">
-                                {worker.name[0]}
-                              </span>
-                            </div>
-                          )}
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full overflow-hidden flex items-center justify-center">
+                          <span className="text-lg font-bold text-white">
+                            {worker.name[0]}
+                          </span>
                         </div>
                         {worker.isOnline && (
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -154,7 +126,7 @@ const NearbyWorkersSection = () => {
                     />
                   </div>
                 </div>
-              </ModernCard>
+              </AestheticCard>
             ))}
           </div>
         )}

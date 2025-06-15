@@ -24,30 +24,30 @@ const JobSearchResults = ({
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
 
-  // Always use comprehensive mock data for demonstration
+  // Enhanced mock data integration with consistent results
   let displayResults = results;
   
   if (userRole === 'employer') {
-    // Show workers - use category-specific or mixed results
+    // Show workers - prioritize category-specific results
     if (category) {
       const categoryKey = category.toLowerCase();
       displayResults = categoryKey in mockWorkers 
         ? mockWorkers[categoryKey as keyof typeof mockWorkers] 
-        : Object.values(mockWorkers).flat().slice(0, 5);
+        : Object.values(mockWorkers).flat().slice(0, 6);
     } else {
-      // Show mixed results from all categories for better demonstration
-      displayResults = Object.values(mockWorkers).flat().slice(0, 8);
+      // Show comprehensive mixed results from all categories
+      displayResults = Object.values(mockWorkers).flat().slice(0, 10);
     }
   } else {
-    // Show jobs - use category-specific or mixed results
+    // Show jobs - prioritize category-specific results
     if (category) {
       const categoryKey = category.toLowerCase();
       displayResults = categoryKey in mockJobs 
         ? mockJobs[categoryKey as keyof typeof mockJobs] 
-        : Object.values(mockJobs).flat().slice(0, 5);
+        : Object.values(mockJobs).flat().slice(0, 6);
     } else {
-      // Show mixed results from all categories for better demonstration
-      displayResults = Object.values(mockJobs).flat().slice(0, 8);
+      // Show comprehensive mixed results from all categories
+      displayResults = Object.values(mockJobs).flat().slice(0, 10);
     }
   }
 

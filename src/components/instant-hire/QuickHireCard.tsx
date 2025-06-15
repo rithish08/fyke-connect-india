@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Clock, MapPin, Star, Phone, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ModernCard } from '@/components/ui/modern-card';
+import { AestheticCard } from '@/components/ui/aesthetic-card';
 import TrustScore from '@/components/trust/TrustScore';
 
 interface Worker {
@@ -39,11 +39,11 @@ const QuickHireCard: React.FC<QuickHireCardProps> = ({ worker, onHire, onMessage
   };
 
   return (
-    <ModernCard className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+    <AestheticCard variant="elevated" className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-700">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white">
               {worker.name[0]}
             </div>
             <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
@@ -108,7 +108,7 @@ const QuickHireCard: React.FC<QuickHireCardProps> = ({ worker, onHire, onMessage
           Available now • Responds in {worker.responseTime}
         </div>
       )}
-    </ModernCard>
+    </AestheticCard>
   );
 };
 
