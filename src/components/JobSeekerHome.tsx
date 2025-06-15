@@ -8,12 +8,31 @@ import JobSeekerLoadingState from '@/components/jobseeker/JobSeekerLoadingState'
 import { FloatingCard } from '@/components/ui/floating-card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Search, Briefcase } from 'lucide-react';
+import { Search, Briefcase, Settings, ToggleLeft, Pencil } from 'lucide-react';
+import { useState } from 'react';
 
 const JobSeekerHome = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
   const navigate = useNavigate();
+  const [isAvailable, setIsAvailable] = useState(user?.availability !== 'unavailable');
+  const [rate, setRate] = useState(user?.hourlyRate || '');
+
+  // Handler for availability toggle
+  const handleAvailabilityToggle = async () => {
+    const newStatus = isAvailable ? 'unavailable' : 'available';
+    setIsAvailable(!isAvailable);
+    await updateProfile({ availability: newStatus });
+  };
+
+  // Handler for editing rate
+  const handleRateEdit = async () => {
+    const newRate = window.prompt('Enter your hourly rate (₹):', rate?.toString() || '');
+    if (newRate !== null && newRate !== rate) {
+      setRate(newRate);
+      await updateProfile({ hourlyRate: newRate });
+    }
+  };
 
   if (isLoading) {
     return <JobSeekerLoadingState />;
@@ -39,7 +58,33 @@ const JobSeekerHome = () => {
   return (
     <div className="space-y-4 px-4">
       <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
-      
+
+      {/* Availability & Rate Management */}
+      <FloatingCard variant="elevated" size="sm" className="mb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <ToggleLeft className="w-6 h-6 text-gray-500" />
+            <span className="font-semibold text-gray-800">Available for work</span>
+          </div>
+          <Button
+            size="sm"
+            variant={isAvailable ? "default" : "outline"}
+            className={isAvailable ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+            onClick={handleAvailabilityToggle}
+          >
+            {isAvailable ? "Available" : "Unavailable"}
+          </Button>
+          <div className="flex items-center gap-2 ml-1">
+            <Settings className="w-5 h-5 text-gray-500" />
+            <span className="font-semibold text-gray-800">Your Rate:</span>
+            <span className="ml-1 text-blue-700">₹{rate || user?.hourlyRate || '--'}/hr</span>
+            <Button size="icon" variant="ghost" onClick={handleRateEdit}>
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </FloatingCard>
+
       {/* Quick Actions */}
       <FloatingCard variant="elevated" size="sm">
         <div className="flex items-center justify-between">
@@ -65,9 +110,9 @@ const JobSeekerHome = () => {
             View All
           </Button>
         </div>
-        
+
         {jobs && jobs.length === 0 && <JobSeekerEmptyState />}
-        
+
         {jobs && jobs.slice(0, 3).map(job => (
           <JobSeekerJobCard key={job.id} job={job} />
         ))}

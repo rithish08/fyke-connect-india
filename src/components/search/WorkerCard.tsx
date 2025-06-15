@@ -22,12 +22,17 @@ const WorkerCard = ({ worker, onHire, onMessage }: WorkerCardProps) => {
 
   const handleQuickHire = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onHire?.(worker);
+    if (onHire) onHire(worker);
   };
 
   const handleQuickMessage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMessage?.(worker);
+    if (onMessage) onMessage(worker);
+  };
+
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
   };
 
   return (
@@ -111,7 +116,6 @@ const WorkerCard = ({ worker, onHire, onMessage }: WorkerCardProps) => {
                 {worker.isOnline ? 'Available' : 'Offline'}
               </span>
             </div>
-            
             <div className="flex space-x-2">
               <Button
                 variant="outline"
@@ -129,11 +133,18 @@ const WorkerCard = ({ worker, onHire, onMessage }: WorkerCardProps) => {
               >
                 Hire
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs"
+                onClick={handleViewDetails}
+              >
+                View in Details
+              </Button>
             </div>
           </div>
         </div>
       </ModernCard>
-
       <WorkerProfileModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

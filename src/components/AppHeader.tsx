@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,9 +38,10 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
         <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
           <div className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+              src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
               alt="fyke logo"
-              className="h-8 w-auto"
+              className="h-9 w-auto"
+              style={{ maxWidth: "100px" }}
             />
             <span className="text-gray-300 text-2xl font-light">/</span>
             <span className="text-sm font-medium text-gray-500 capitalize">{roleDisplayName}</span>
@@ -96,5 +96,4 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
     </>
   );
 };
-
 export default AppHeader;

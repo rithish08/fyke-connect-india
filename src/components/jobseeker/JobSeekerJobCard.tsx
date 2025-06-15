@@ -43,18 +43,20 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
       goTo('/profile-setup');
       return;
     }
-
-    // Apply for job
     setApplicationState('requested');
     showSuccess(`Applied to ${job.title} successfully!`);
   };
 
   const handleViewDetails = () => {
-    goTo(`/job/${job.id}`);
+    goTo(`/job/${job.id}`, { job });
   };
 
   const handleCommunication = (type: 'chat' | 'call') => {
-    showSuccess(`${type === 'chat' ? 'Chat' : 'Call'} feature coming soon!`);
+    if (type === 'chat') {
+      goTo('/messages', { employerId: job.company });
+    } else if (type === 'call') {
+      showSuccess('Calling feature coming soon!');
+    }
   };
 
   return (
@@ -101,12 +103,10 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
           </div>
         </div>
 
-        {/* Description */}
         {job.description && (
           <p className="text-gray-600 text-sm line-clamp-2">{job.description}</p>
         )}
 
-        {/* Actions */}
         <div className="flex gap-2 pt-2">
           <Button
             onClick={handleApply}
@@ -124,11 +124,10 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
             variant="outline"
             className="px-6 h-11 rounded-xl border-gray-200"
           >
-            Details
+            View in Details
           </Button>
         </div>
 
-        {/* Communication Buttons */}
         <div className="flex gap-2 pt-2 border-t border-gray-100">
           <Button
             onClick={() => handleCommunication('chat')}

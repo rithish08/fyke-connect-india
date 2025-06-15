@@ -22,10 +22,11 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
         <div className="text-center px-4">
           <img 
-            src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+            src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
             alt="fyke logo"
-            className="w-48 sm:w-56 md:w-64 h-auto mx-auto mb-2"
+            className="mx-auto w-36 sm:w-48 md:w-56 h-auto"
           />
+          <div className="text-base font-semibold tracking-wide text-gray-700 mt-1">gig economy platform</div>
         </div>
       </div>
     );
@@ -35,13 +36,15 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300">
       <div className="text-center animate-pulse px-4">
         <img 
-          src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+          src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
           alt="fyke logo"
-          className="w-48 sm:w-56 md:w-64 h-auto mx-auto mb-2"
+          className="mx-auto w-36 sm:w-48 md:w-56 h-auto"
         />
+        <div className="text-lg font-bold tracking-wide text-gray-800 mt-2">gig economy platform</div>
       </div>
     </div>
   );
 };
 
 export default SplashScreen;
+

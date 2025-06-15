@@ -23,24 +23,24 @@ export const useProfileSetupForm = () => {
   });
 
   const watchedSubcategories = form.watch('subcategories') || [];
-  
-  // Check if user has selected vehicle owner category AND other categories
-  const hasVehicleOwnerCategory = watchedSubcategories.some(sub =>
-    ['Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 
-     'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 
-     'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)', 
-     'Water Tanker', 'Ambulance'].includes(sub)
-  );
 
+  // Update: Allow "Mason", "House Cleaning", and vehicle categories to be combined
+  const isVehicleCategory = (sub: string) => [
+    'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 'Tractor with Trailer',
+    'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 
+    'Private Bus (15–50 seats)', 'Water Tanker', 'Ambulance'
+  ].includes(sub);
+
+  const hasVehicleOwnerCategory = watchedSubcategories.some(isVehicleCategory);
+  const hasMason = watchedSubcategories.includes('Mason');
+  const hasHouseCleaning = watchedSubcategories.includes('House Cleaning');
   const hasNonVehicleOwnerCategory = watchedSubcategories.some(sub =>
-    !['Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 
-      'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 
-      'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)', 
-      'Water Tanker', 'Ambulance'].includes(sub)
+    !isVehicleCategory(sub)
   );
+  // (NEW logic) If categories are combined, allow progression
+  // -- allow combinations of "Mason", "House Cleaning", vehicle and others!
 
-  // If user has ONLY vehicle owner categories, skip wages
-  // If user has vehicle owner + other categories, show wages for non-vehicle categories only
+  // If only vehicle owner, skip wages; if vehicle + other (incl. Mason/HouseCleaning), show partial wages
   const shouldSkipWages = hasVehicleOwnerCategory && !hasNonVehicleOwnerCategory;
   const shouldShowPartialWages = hasVehicleOwnerCategory && hasNonVehicleOwnerCategory;
 
