@@ -1,24 +1,29 @@
 
-import { Capacitor } from '@capacitor/core';
-
-// Conditional imports to handle environments where plugins might not be available
+// Capacitor service with graceful fallbacks for web environment
+let Capacitor: any = null;
 let PushNotifications: any = null;
 let LocalNotifications: any = null;
 let Geolocation: any = null;
 
 try {
-  if (Capacitor.isNativePlatform()) {
+  // Only import Capacitor modules if available
+  Capacitor = require('@capacitor/core').Capacitor;
+  
+  if (Capacitor?.isNativePlatform()) {
     PushNotifications = require('@capacitor/push-notifications').PushNotifications;
     LocalNotifications = require('@capacitor/local-notifications').LocalNotifications;
     Geolocation = require('@capacitor/geolocation').Geolocation;
   }
 } catch (error) {
-  console.warn('Capacitor plugins not available:', error);
+  console.warn('Capacitor plugins not available, running in web mode:', error);
 }
 
 class CapacitorService {
   static async initializePushNotifications() {
-    if (!Capacitor.isNativePlatform() || !PushNotifications) return;
+    if (!Capacitor?.isNativePlatform() || !PushNotifications) {
+      console.log('Push notifications not available in web environment');
+      return;
+    }
 
     try {
       await PushNotifications.requestPermissions();
@@ -45,10 +50,16 @@ class CapacitorService {
   }
 
   static async scheduleLocalNotification(title: string, body: string, id: number) {
-    if (!Capacitor.isNativePlatform() || !LocalNotifications) {
+    if (!Capacitor?.isNativePlatform() || !LocalNotifications) {
       // Fallback for web
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, { body });
+      } else if ('Notification' in window) {
+        // Request permission if not granted
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          new Notification(title, { body });
+        }
       }
       return;
     }
@@ -60,7 +71,7 @@ class CapacitorService {
             title,
             body,
             id,
-            schedule: { at: new Date(Date.now() + 1000 * 5) }, // 5 seconds from now
+            schedule: { at: new Date(Date.now() + 1000 * 5) },
             sound: 'beep.wav',
             attachments: [],
             actionTypeId: '',
@@ -74,10 +85,14 @@ class CapacitorService {
   }
 
   static async getCurrentPosition() {
-    if (!Capacitor.isNativePlatform() || !Geolocation) {
+    if (!Capacitor?.isNativePlatform() || !Geolocation) {
       // Fallback to web geolocation
       return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        } else {
+          reject(new Error('Geolocation not supported'));
+        }
       });
     }
 
@@ -91,11 +106,11 @@ class CapacitorService {
   }
 
   static isNative() {
-    return Capacitor.isNativePlatform();
+    return Capacitor?.isNativePlatform() || false;
   }
 
   static getPlatform() {
-    return Capacitor.getPlatform();
+    return Capacitor?.getPlatform() || 'web';
   }
 }
 
