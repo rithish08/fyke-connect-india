@@ -1,143 +1,113 @@
 
-import { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
-import SalaryStep from '@/components/profile/SalaryStep';
-import AvailabilityStep from '@/components/profile/AvailabilityStep';
-import { BadgeCheck, ArrowLeft } from "lucide-react";
+import { Form } from '@/components/ui/form';
+import { ArrowLeft, BadgeCheck } from "lucide-react";
+import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
+import ProfileSetupStepper from '@/components/profile/ProfileSetupStepper';
+import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
+import ModernSalaryStep from '@/components/profile/ModernSalaryStep';
+import ModernAvailabilityStep from '@/components/profile/ModernAvailabilityStep';
 import ShimmerLoader from '@/components/ui/ShimmerLoader';
 
-const STEPS = ["category", "salary", "availability"];
-const STEP_TITLES = ["Choose Category", "Set Salary", "Availability"];
+const STEPS = [
+  {
+    title: "Choose Your Category",
+    description: "Select what type of work you do and your specializations"
+  },
+  {
+    title: "Set Your Rate",
+    description: "Tell us your expected salary to match with right opportunities"
+  },
+  {
+    title: "Set Availability",
+    description: "Let employers know when you're ready to work"
+  }
+];
 
 const ProfileSetup = () => {
-  const { user, updateProfile, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-
-  // Form state
-  const [category, setCategory] = useState(user?.primaryCategory || '');
-  const [vehicle, setVehicle] = useState('');
-  const [salary, setSalary] = useState<{ amount: string; period: 'daily' | 'weekly' | 'monthly' }>({ amount: '', period: 'daily' });
-  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
+  const { form, currentStep, isSubmitting, nextStep, prevStep, submitProfile } = useProfileSetupForm();
 
   useEffect(() => {
-    console.log('[ProfileSetup][useEffect] user:', user, 'loading:', loading);
+    console.log('[ProfileSetup] Auth state:', { user: !!user, loading, role: user?.role, profileComplete: user?.profileComplete });
 
     if (loading) {
-      console.log('[ProfileSetup][useEffect] Still loading...');
+      console.log('[ProfileSetup] Still loading auth...');
       return;
     }
 
     if (!user) {
-      // If done loading and no user, redirect to login after short delay for UX
-      console.log('[ProfileSetup][useEffect] No user found, will redirect to /login...');
-      setTimeout(() => {
-        navigate('/login');
-      }, 400);
+      console.log('[ProfileSetup] No user, redirecting to login...');
+      navigate('/login');
       return;
     }
 
     if (user.role === 'employer') {
-      console.log('[ProfileSetup][useEffect] Detected employer. Redirecting to /home...');
+      console.log('[ProfileSetup] Employer detected, redirecting to home...');
       navigate('/home');
       return;
     }
 
     if (!user.role) {
-      console.log('[ProfileSetup][useEffect] No role set. Redirecting to /role-selection...');
+      console.log('[ProfileSetup] No role set, redirecting to role selection...');
       navigate('/role-selection');
       return;
     }
 
     if (user.profileComplete) {
-      console.log('[ProfileSetup][useEffect] Profile already complete. Redirecting to /home...');
+      console.log('[ProfileSetup] Profile already complete, redirecting to home...');
       navigate('/home');
       return;
     }
-    // If we made it here, we should show the form!
-    console.log('[ProfileSetup][useEffect] Showing stepper form. Step:', step);
 
-  }, [user, navigate, loading, step]);
-
-  const handleFinish = () => {
-    if (!category) return;
-    console.log('Finishing profile setup with data:', {
-      category,
-      vehicle,
-      salary,
-      availability
-    });
-
-    // Get subcategories from localStorage
-    const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
-    const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
-
-    updateProfile({
-      category,
-      categories: [category],
-      primaryCategory: category,
-      subcategories: subcategories,
-      vehicle: category === "Driver" ? vehicle : undefined,
-      salaryExpectation: { min: Number(salary.amount), max: Number(salary.amount) },
-      salaryPeriod: salary.period,
-      availability,
-      profileComplete: true,
-    });
-
-    localStorage.removeItem('fyke_selected_subcategories');
-    navigate('/home');
-  };
+    console.log('[ProfileSetup] Ready to show profile setup form');
+  }, [user, loading, navigate]);
 
   const handleBack = () => {
-    if (step > 0) {
-      setStep(step - 1);
+    if (currentStep > 0) {
+      prevStep();
     } else {
       navigate('/role-selection');
     }
   };
 
-  // Show loading shimmer while auth still loading (first mount) or user data is loading
+  const handleFinish = async (data: any) => {
+    const success = await submitProfile(data);
+    if (success) {
+      navigate('/home');
+    }
+    return success;
+  };
+
+  // Show loading while checking auth
   if (loading) {
-    console.log('[ProfileSetup][render] Still loading...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <ShimmerLoader height={60} width="200px" />
+        <div className="text-center space-y-4">
+          <ShimmerLoader height={60} width="200px" />
+          <p className="text-gray-600">Setting up your profile...</p>
+        </div>
       </div>
     );
   }
 
-  // If user missing, show fallback loader UI
+  // Show fallback if no user after loading
   if (!user) {
-    console.log('[ProfileSetup][render] No user after loading. Render fallback.');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-          <p className="mt-2 text-gray-400 text-xs">If you are stuck here, please try to login again.</p>
+          <p className="text-gray-600">Redirecting to login...</p>
         </div>
       </div>
     );
   }
 
-  // Extra blank screen guard
-  if (!user.role || (user.role === 'jobseeker' && !user.profileComplete && step < 0)) {
-    console.log('[ProfileSetup][render] Unexpected edge case – preparing profile setup.');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div>
-          <p className="text-gray-500">Preparing profile setup…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // --- Main UI ---
-  console.log('[ProfileSetup][render] Showing main stepper form!');
+  // Main profile setup UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
       <div className="w-full max-w-lg mx-auto space-y-6">
@@ -156,55 +126,31 @@ const ProfileSetup = () => {
           <div className="w-10 h-10"></div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="bg-white rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-gray-600">
-              Step {step + 1} of {STEPS.length}
-            </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(((step + 1) / STEPS.length) * 100)}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-            />
-          </div>
-          <div className="mt-2 text-center">
-            <h3 className="font-semibold text-gray-900">{STEP_TITLES[step]}</h3>
-          </div>
-        </div>
+        {/* Progress Stepper */}
+        <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
+          <ProfileSetupStepper currentStep={currentStep} steps={STEPS} />
+        </Card>
 
         {/* Step Content */}
         <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
-          {step === 0 && (
-            <ProfileCategoryStep
-              category={category}
-              setCategory={setCategory}
-              vehicle={vehicle}
-              setVehicle={setVehicle}
-              role={user.role || 'jobseeker'}
-              onNext={() => setStep(step + 1)}
-            />
-          )}
-          {step === 1 && (
-            <SalaryStep
-              salary={salary}
-              setSalary={setSalary}
-              onNext={() => setStep(step + 1)}
-              onBack={() => setStep(step - 1)}
-            />
-          )}
-          {step === 2 && (
-            <AvailabilityStep
-              availability={availability}
-              setAvailability={setAvailability}
-              onBack={() => setStep(step - 1)}
-              onFinish={handleFinish}
-            />
-          )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(() => {})}>
+              {currentStep === 0 && (
+                <ModernCategoryStep form={form} onNext={nextStep} />
+              )}
+              {currentStep === 1 && (
+                <ModernSalaryStep form={form} onNext={nextStep} onBack={prevStep} />
+              )}
+              {currentStep === 2 && (
+                <ModernAvailabilityStep 
+                  form={form} 
+                  onBack={prevStep} 
+                  onFinish={handleFinish}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </form>
+          </Form>
         </Card>
 
         {/* Footer */}
@@ -217,4 +163,3 @@ const ProfileSetup = () => {
 };
 
 export default ProfileSetup;
-
