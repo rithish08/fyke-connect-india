@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -31,6 +30,7 @@ interface AuthContextType {
   setRole: (role: 'jobseeker' | 'employer') => void;
   switchRole: () => void;
   updateProfile: (updates: Partial<User>) => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
