@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Phone, Video, MoreVertical, Send, Paperclip } from 'lucide-react';
+import { Search, Phone, Video, MoreVertical, Send, Paperclip, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,7 +38,7 @@ const EnhancedMessaging = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,8 +78,71 @@ const EnhancedMessaging = () => {
           status: 'read'
         }
       ]
+    },
+    {
+      id: 2,
+      name: 'Quick Delivery Services',
+      role: 'Employer',
+      lastMessage: 'Are you available for delivery today?',
+      time: '1 hour ago',
+      unread: 0,
+      avatar: '🚚',
+      online: false,
+      typing: false,
+      jobTitle: 'Delivery Driver',
+      messages: [
+        {
+          id: 'msg-3',
+          senderId: 'emp-2',
+          senderName: 'Quick Delivery Services',
+          message: 'Are you available for delivery today?',
+          timestamp: '9:15 AM',
+          isOwn: false,
+          type: 'text',
+          status: 'read'
+        }
+      ]
     }
   ]);
+
+  // Check for URL parameters to open specific chat
+  useEffect(() => {
+    const chatWith = searchParams.get('chatWith');
+    const name = searchParams.get('name');
+    const type = searchParams.get('type');
+    
+    if (chatWith && name && type) {
+      // Create or find conversation
+      const existingConv = conversations.find(conv => 
+        conv.name.toLowerCase().includes(name.toLowerCase())
+      );
+      
+      if (existingConv) {
+        setSelectedChat(existingConv.id);
+      } else {
+        // Create new conversation
+        const newConv: Conversation = {
+          id: conversations.length + 1,
+          name: name,
+          role: type === 'worker' ? 'Job Seeker' : 'Employer',
+          lastMessage: 'Start your conversation',
+          time: 'now',
+          unread: 0,
+          avatar: type === 'worker' ? '👷' : '🏢',
+          online: true,
+          typing: false,
+          messages: [],
+          jobTitle: type === 'worker' ? 'Worker' : undefined
+        };
+        
+        setConversations(prev => [...prev, newConv]);
+        setSelectedChat(newConv.id);
+      }
+      
+      // Clear URL parameters
+      setSearchParams({});
+    }
+  }, [searchParams, conversations]);
 
   const filteredConversations = conversations.filter(conv => 
     conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -141,6 +204,11 @@ const EnhancedMessaging = () => {
           return conv;
         }));
       }, 1000);
+
+      toast({
+        title: "Message sent",
+        description: "Your message has been delivered",
+      });
     }
   };
 
@@ -157,7 +225,7 @@ const EnhancedMessaging = () => {
           onClick={() => setSelectedChat(null)}
           className="p-2 lg:hidden"
         >
-          ←
+          <ArrowLeft className="w-4 h-4" />
         </Button>
         <div className="relative">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
@@ -179,10 +247,10 @@ const EnhancedMessaging = () => {
       </div>
       
       <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => toast({ title: "Voice call", description: "Feature coming soon" })}>
           <Phone className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => toast({ title: "Video call", description: "Feature coming soon" })}>
           <Video className="w-4 h-4" />
         </Button>
         <Button variant="ghost" size="sm">
@@ -226,15 +294,24 @@ const EnhancedMessaging = () => {
         <ChatHeader chat={currentChat} />
         
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-          {currentChat.messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
+          {currentChat.messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-gray-500">
+                <div className="text-4xl mb-4">💬</div>
+                <p>Start your conversation with {currentChat.name}</p>
+              </div>
+            </div>
+          ) : (
+            currentChat.messages.map((message) => (
+              <MessageBubble key={message.id} message={message} />
+            ))
+          )}
           <div ref={messagesEndRef} />
         </div>
 
         <div className="bg-white border-t p-4">
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "File upload", description: "Feature coming soon" })}>
               <Paperclip className="w-4 h-4" />
             </Button>
             <Input
@@ -272,47 +349,57 @@ const EnhancedMessaging = () => {
       </div>
       
       <div className="flex-1 overflow-y-auto">
-        {filteredConversations.map((conversation) => (
-          <Card 
-            key={conversation.id}
-            className={`m-2 p-4 cursor-pointer transition-colors border ${
-              selectedChat === conversation.id ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'
-            }`}
-            onClick={() => setSelectedChat(conversation.id)}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl">
-                  {conversation.avatar}
-                </div>
-                {conversation.online && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-gray-900 truncate">{conversation.name}</h3>
-                  <span className="text-xs text-gray-500">{conversation.time}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
-                  {conversation.unread > 0 && (
-                    <Badge variant="destructive" className="ml-2 text-xs">
-                      {conversation.unread}
-                    </Badge>
+        {filteredConversations.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-gray-500">
+              <div className="text-4xl mb-4">📭</div>
+              <h3 className="font-semibold mb-2">No conversations yet</h3>
+              <p className="text-sm">Your messages will appear here</p>
+            </div>
+          </div>
+        ) : (
+          filteredConversations.map((conversation) => (
+            <Card 
+              key={conversation.id}
+              className={`m-2 p-4 cursor-pointer transition-colors border ${
+                selectedChat === conversation.id ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => setSelectedChat(conversation.id)}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl">
+                    {conversation.avatar}
+                  </div>
+                  {conversation.online && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                   )}
                 </div>
-                {conversation.jobTitle && (
-                  <p className="text-xs text-blue-600 mt-1">{conversation.jobTitle}</p>
-                )}
-                <Badge variant="outline" className="text-xs mt-1">
-                  {conversation.role}
-                </Badge>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-900 truncate">{conversation.name}</h3>
+                    <span className="text-xs text-gray-500">{conversation.time}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                    {conversation.unread > 0 && (
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        {conversation.unread}
+                      </Badge>
+                    )}
+                  </div>
+                  {conversation.jobTitle && (
+                    <p className="text-xs text-blue-600 mt-1">{conversation.jobTitle}</p>
+                  )}
+                  <Badge variant="outline" className="text-xs mt-1">
+                    {conversation.role}
+                  </Badge>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

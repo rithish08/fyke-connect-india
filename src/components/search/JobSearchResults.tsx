@@ -6,6 +6,7 @@ import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useLocalization } from '@/hooks/useLocalization';
 import { mockWorkers, mockJobs } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 interface JobSearchResultsProps {
   results: any[];
@@ -23,6 +24,7 @@ const JobSearchResults = ({
   category 
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
+  const navigate = useNavigate();
 
   // Enhanced mock data integration with consistent results
   let displayResults = results;
@@ -63,6 +65,24 @@ const JobSearchResults = ({
     return <JobSearchEmptyState />;
   }
 
+  const handleJobApply = (job: any) => {
+    console.log('Applying to job:', job);
+    // TODO: Implement job application functionality
+  };
+
+  const handleJobViewDetails = (job: any) => {
+    navigate(`/job/${job.id}`);
+  };
+
+  const handleWorkerHire = (worker: any) => {
+    console.log('Hiring worker:', worker);
+    // TODO: Implement quick hire functionality
+  };
+
+  const handleWorkerMessage = (worker: any) => {
+    navigate(`/messages?chatWith=${worker.id}&name=${worker.name}&type=worker`);
+  };
+
   return (
     <ErrorBoundary>
       <div className="max-w-2xl mx-auto px-4">
@@ -76,8 +96,8 @@ const JobSearchResults = ({
               <div key={res.id} role="listitem">
                 <UnifiedWorkerCard
                   worker={res}
-                  onHire={() => console.log('Hire worker:', res)}
-                  onMessage={() => console.log('Message worker:', res)}
+                  onHire={() => handleWorkerHire(res)}
+                  onMessage={() => handleWorkerMessage(res)}
                   onViewProfile={() => onWorkerClick(res)}
                 />
               </div>
@@ -85,8 +105,8 @@ const JobSearchResults = ({
               <div key={res.id} role="listitem">
                 <UnifiedJobCard 
                   job={res} 
-                  onApply={() => console.log('Apply to job:', res)}
-                  onViewDetails={() => console.log('View job details:', res)}
+                  onApply={() => handleJobApply(res)}
+                  onViewDetails={() => handleJobViewDetails(res)}
                   showCommunication={true}
                 />
               </div>
