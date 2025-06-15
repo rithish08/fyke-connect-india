@@ -1,9 +1,11 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocalization } from "@/contexts/LocalizationContext";
-import { Bell, ArrowRightLeft, User, Users } from "lucide-react";
+import { Bell, ArrowRightLeft, User, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ScrollingNotification from "./ScrollingNotification";
 import { getResponsiveTextSize } from "@/utils/textSizing";
 
@@ -16,11 +18,23 @@ const pageNames: Record<string, string> = {
   "/notifications": "notifications.title"
 };
 
+const languageList = [
+  { code: 'en', name: 'English', flag: "🇬🇧" },
+  { code: 'hi', name: 'हिन्दी', flag: "🇮🇳" },
+  { code: 'ta', name: 'தமிழ்', flag: "🇮🇳" },
+  { code: 'te', name: 'తెలుగు', flag: "🇮🇳" },
+  { code: 'bn', name: 'বাংলা', flag: "🇮🇳" },
+  { code: 'mr', name: 'मराठी', flag: "🇮🇳" },
+  { code: 'kn', name: 'ಕನ್ನಡ', flag: "🇮🇳" },
+  { code: 'ml', name: 'മലയാളം', flag: "🇮🇳" }
+];
+
 const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
   const { user, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLocalization();
+  const { t, language, setLanguage } = useLocalization();
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
 
   const pageKey = pageNames[location.pathname] || "app.title";
   const pageTitle = t(pageKey, "App");
@@ -33,6 +47,13 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
     maxSize: 14
   });
 
+  const currentLanguage = languageList.find(lang => lang.code === language) || languageList[0];
+
+  const handleLanguageChange = (langCode: string) => {
+    setLanguage(langCode);
+    setIsLanguageOpen(false);
+  };
+
   return (
     <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
       {/* Scrolling Notification Bar */}
@@ -41,7 +62,6 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
       {/* Main Header */}
       <div className="flex items-center justify-between h-14 px-4 border-b border-gray-50">
         <div className="flex items-center space-x-3">
-          {/* Replace logo image with fyke text */}
           <span 
             className="font-extrabold text-2xl tracking-tight text-black"
             style={{ fontFamily: "Inter, sans-serif" }}
@@ -56,6 +76,37 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
         </div>
         
         <div className="flex items-center space-x-3">
+          {/* Language Selector */}
+          <DropdownMenu open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 border flex items-center space-x-1.5"
+              >
+                <span className="text-sm">{currentLanguage.flag}</span>
+                <Globe className="w-3 h-3 text-gray-600" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-white border border-gray-200 shadow-lg">
+              {languageList.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`flex items-center space-x-2 px-3 py-2 cursor-pointer hover:bg-gray-50 ${
+                    language === lang.code ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <span>{lang.flag}</span>
+                  <span className="font-medium">{lang.name}</span>
+                  {language === lang.code && (
+                    <span className="ml-auto text-blue-600">✓</span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           {/* Role Switcher */}
           <Button
             onClick={switchRole}

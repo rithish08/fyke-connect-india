@@ -9,6 +9,8 @@ import AnimatedWrapper from '@/components/AnimatedWrapper';
 import { Star, MapPin, Clock, MessageCircle, Phone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { mockWorkers } from '@/data/mockData';
+import { useCommunication } from '@/contexts/CommunicationContext';
+import { useGlobalToast } from '@/hooks/useGlobalToast';
 
 interface Worker {
   id: string;
@@ -28,6 +30,9 @@ interface Worker {
 const NearbyWorkersSection = () => {
   const navigate = useNavigate();
   const [workers, setWorkers] = useState<Worker[] | null>(null);
+  const { addHireRequest, addSentRequest } = useCommunication();
+  const { showSuccess, showError } = useGlobalToast();
+  const [hiredWorkers, setHiredWorkers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setTimeout(() => {
@@ -41,14 +46,22 @@ const NearbyWorkersSection = () => {
   }, []);
 
   const handleHire = (worker: Worker) => {
-    console.log('Hiring worker:', worker);
+    setHiredWorkers(prev => new Set([...prev, worker.id]));
+    addHireRequest(worker.id);
+    addSentRequest(worker.id);
+    showSuccess(`Hire request sent to ${worker.name}!`);
   };
 
   const handleCommunication = (type: 'chat' | 'call', worker: Worker) => {
+    if (!hiredWorkers.has(worker.id)) {
+      showError('Please send a hire request first to start communication');
+      return;
+    }
+
     if (type === 'chat') {
       navigate(`/messages?chatWith=${worker.id}&name=${worker.name}&type=worker`);
     } else {
-      console.log('Calling worker:', worker);
+      showSuccess('Calling feature available after hire request!');
     }
   };
 
@@ -146,6 +159,7 @@ const NearbyWorkersSection = () => {
                         size="sm"
                         className="h-8 px-3 text-xs"
                         onClick={() => handleCommunication('chat', worker)}
+                        disabled={!hiredWorkers.has(worker.id)}
                       >
                         <MessageCircle className="w-3 h-3" />
                       </Button>
@@ -154,6 +168,7 @@ const NearbyWorkersSection = () => {
                         size="sm"
                         className="h-8 px-3 text-xs"
                         onClick={() => handleCommunication('call', worker)}
+                        disabled={!hiredWorkers.has(worker.id)}
                       >
                         <Phone className="w-3 h-3" />
                       </Button>
@@ -161,8 +176,9 @@ const NearbyWorkersSection = () => {
                         size="sm"
                         className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700"
                         onClick={() => handleHire(worker)}
+                        disabled={hiredWorkers.has(worker.id)}
                       >
-                        Hire
+                        {hiredWorkers.has(worker.id) ? 'Sent' : 'Hire'}
                       </Button>
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useCommunication } from '@/contexts/CommunicationContext';
 import { useJobSeekerJobs } from '@/hooks/useJobSeekerJobs';
 import JobSeekerHomeHeader from '@/components/jobseeker/JobSeekerHomeHeader';
 import JobSeekerEmptyState from '@/components/jobseeker/JobSeekerEmptyState';
@@ -10,14 +11,18 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Briefcase, MessageCircle, Phone, Plus } from 'lucide-react';
 import { useState } from 'react';
 import QuickPostModal from '@/components/job/QuickPostModal';
+import { useGlobalToast } from '@/hooks/useGlobalToast';
 
 const JobSeekerHome = () => {
   const { user, updateProfile } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
+  const { canCommunicate, addJobApplication } = useCommunication();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useGlobalToast();
   const [availability, setAvailability] = useState<"available" | "busy" | "offline">(user?.availability || 'available');
   const [editingRates, setEditingRates] = useState<{ [sub: string]: boolean }>({});
   const [showQuickPost, setShowQuickPost] = useState(false);
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
 
   const statusList: Array<"available" | "busy" | "offline"> = ["available", "busy", "offline"];
   
@@ -44,6 +49,25 @@ const JobSeekerHome = () => {
       });
     }
     setEditingRates(prev => ({ ...prev, [subcategory]: false }));
+  };
+
+  const handleApplyJob = (jobId: string, jobTitle: string) => {
+    setAppliedJobs(prev => new Set([...prev, jobId]));
+    addJobApplication(jobId);
+    showSuccess(`Applied to ${jobTitle} successfully!`);
+  };
+
+  const handleCommunication = (type: 'chat' | 'call', jobId: string, jobTitle: string) => {
+    if (!appliedJobs.has(jobId)) {
+      showError('Please apply to this job first to start communication');
+      return;
+    }
+    
+    if (type === 'chat') {
+      navigate(`/messages?jobId=${jobId}&jobTitle=${jobTitle}`);
+    } else {
+      showSuccess('Calling feature will be available after applying!');
+    }
   };
 
   if (isLoading) {
@@ -182,14 +206,21 @@ const JobSeekerHome = () => {
 
               {/* Actions */}
               <div className="flex gap-2 pt-2">
-                <Button className="flex-1 h-9" size="sm">
-                  Apply Now
+                <Button 
+                  className="flex-1 h-9" 
+                  size="sm"
+                  onClick={() => handleApplyJob(job.id, job.title)}
+                  disabled={appliedJobs.has(job.id)}
+                >
+                  {appliedJobs.has(job.id) ? 'Applied' : 'Apply Now'}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className="px-3 h-9"
                   title="Chat"
+                  onClick={() => handleCommunication('chat', job.id, job.title)}
+                  disabled={!appliedJobs.has(job.id)}
                 >
                   <MessageCircle className="w-4 h-4" />
                 </Button>
@@ -198,6 +229,8 @@ const JobSeekerHome = () => {
                   size="sm"
                   className="px-3 h-9"
                   title="Call"
+                  onClick={() => handleCommunication('call', job.id, job.title)}
+                  disabled={!appliedJobs.has(job.id)}
                 >
                   <Phone className="w-4 h-4" />
                 </Button>
