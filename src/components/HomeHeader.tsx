@@ -13,7 +13,6 @@ const pageNames: Record<string, string> = {
   "/profile": "Profile",
   "/messages": "Messages",
   "/notifications": "Notifications"
-  // ...add others as needed...
 };
 
 const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
@@ -34,16 +33,13 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
   return (
     <>
       <div className="relative bg-white p-0 shadow-none w-full">
-        {/* App Brand in top left */}
+        {/* App Brand - replace logo image with fyke text */}
         <div className="flex items-center h-14 px-4 border-b border-gray-100">
-          <img 
-            src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
-            alt="fyke logo"
-            className="h-9 w-auto"
-            style={{ maxWidth: '100px' }}
-          />
+          <span 
+            className="font-extrabold text-2xl tracking-tight text-black"
+            style={{ fontFamily: "Inter, sans-serif" }}
+          >fyke</span>
         </div>
-        {/* Page Name below app name */}
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
           <span>{showPage}</span>
         </div>
@@ -64,7 +60,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
             <button onClick={() => navigate('/notifications')}
               className="relative">
               <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100"><span className="text-xl">🔔</span>
-              <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
+                <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
               </span>
             </button>
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">

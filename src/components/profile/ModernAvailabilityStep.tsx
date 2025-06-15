@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -24,10 +23,11 @@ const ModernAvailabilityStep = ({ form, onBack, onFinish, isSubmitting }: Modern
     }
   };
 
+  // Better design for compact UI and status
   const availabilityOptions = [
     { value: 'available', label: 'Available', icon: '🟢', description: 'Ready to work' },
     { value: 'busy', label: 'Busy', icon: '🟡', description: 'Limited availability' },
-    { value: 'offline', label: 'Offline', icon: '🔴', description: 'Not available' }
+    { value: 'offline', label: 'Do Not Disturb', icon: '🔴', description: 'Not available' }
   ] as const;
 
   return (
@@ -45,32 +45,24 @@ const ModernAvailabilityStep = ({ form, onBack, onFinish, isSubmitting }: Modern
 
       {/* Availability Options */}
       <FloatingCard variant="elevated" size="md">
-        <div className="space-y-3">
+        <div className="flex items-center justify-center gap-4">
           {availabilityOptions.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => form.setValue('availability', option.value)}
-              className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                availability === option.value
+              className={`px-6 py-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center
+                ${availability === option.value
                   ? 'border-green-500 bg-green-50 scale-[1.02]'
                   : 'border-gray-200 bg-white hover:border-green-300 hover:bg-green-25'
-              }`}
+                }`}
+              style={{ minWidth: 110 }}
             >
-              <div className="flex items-center space-x-4">
-                <span className="text-2xl">{option.icon}</span>
-                <div className="flex-1">
-                  <h3 className={`font-semibold ${availability === option.value ? 'text-green-900' : 'text-gray-900'}`}>
-                    {option.label}
-                  </h3>
-                  <p className={`text-sm ${availability === option.value ? 'text-green-700' : 'text-gray-600'}`}>
-                    {option.description}
-                  </p>
-                </div>
-                {availability === option.value && (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                )}
-              </div>
+              <span className="text-2xl">{option.icon}</span>
+              <span className={`font-semibold mt-1 ${availability === option.value ? 'text-green-900' : 'text-gray-900'}`}>
+                {option.label}
+              </span>
+              <span className={`text-xs ${availability === option.value ? 'text-green-700' : 'text-gray-600'}`}>{option.description}</span>
             </button>
           ))}
         </div>

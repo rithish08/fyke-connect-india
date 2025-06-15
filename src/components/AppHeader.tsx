@@ -37,12 +37,11 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
         {/* Top Header with Brand, Role, and Bell */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
           <div className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
-              alt="fyke logo"
-              className="h-9 w-auto"
-              style={{ maxWidth: "100px" }}
-            />
+            {/* Replace logo image with fyke text */}
+            <span 
+              className="font-extrabold text-2xl tracking-tight text-black"
+              style={{ fontFamily: "Inter, sans-serif" }}
+            >fyke</span>
             <span className="text-gray-300 text-2xl font-light">/</span>
             <span className="text-sm font-medium text-gray-500 capitalize">{roleDisplayName}</span>
           </div>
@@ -54,7 +53,6 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
           </button>
         </div>
-        
         {/* User Info with Role Switcher */}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex-1">

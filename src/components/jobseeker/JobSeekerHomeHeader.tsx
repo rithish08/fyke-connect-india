@@ -11,6 +11,11 @@ const JobSeekerHomeHeader = ({ userPrimaryCategory }: JobSeekerHomeHeaderProps) 
 
   return (
     <div className="flex items-center justify-between mb-4">
+      {/* Text logo for fyke in black, bold, small f */}
+      <span 
+        className="font-extrabold text-2xl tracking-tight text-black"
+        style={{ fontFamily: "Inter, sans-serif" }}
+      >fyke</span>
       <h2 className="text-lg font-bold text-gray-900">
         {userPrimaryCategory ? `${userPrimaryCategory} Jobs` : 'Jobs for You'}
       </h2>

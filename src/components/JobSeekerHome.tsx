@@ -15,30 +15,44 @@ const JobSeekerHome = () => {
   const { user, updateProfile } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
   const navigate = useNavigate();
-  const [isAvailable, setIsAvailable] = useState(user?.availability !== 'unavailable');
-  const [rate, setRate] = useState(user?.hourlyRate || '');
+  // Availability: only "available" | "busy" | "offline"
+  const [availability, setAvailability] = useState<"available" | "busy" | "offline">(user?.availability || 'available');
+  // Remove use of hourlyRate, use salaryBySubcategory if present
+  const [editingRates, setEditingRates] = useState<{ [sub: string]: boolean }>({});
 
-  // Handler for availability toggle
+  // Handler for availability toggle (cycle through statuses)
+  const statusList: Array<"available" | "busy" | "offline"> = ["available", "busy", "offline"];
   const handleAvailabilityToggle = async () => {
-    const newStatus = isAvailable ? 'unavailable' : 'available';
-    setIsAvailable(!isAvailable);
+    const currentIdx = statusList.indexOf(availability);
+    const newStatus = statusList[(currentIdx + 1) % statusList.length];
+    setAvailability(newStatus);
     await updateProfile({ availability: newStatus });
   };
 
-  // Handler for editing rate
-  const handleRateEdit = async () => {
-    const newRate = window.prompt('Enter your hourly rate (₹):', rate?.toString() || '');
-    if (newRate !== null && newRate !== rate) {
-      setRate(newRate);
-      await updateProfile({ hourlyRate: newRate });
+  // Handler for editing rate for a subcategory
+  const handleRateEdit = async (subcategory: string) => {
+    setEditingRates(prev => ({ ...prev, [subcategory]: true }));
+    const currentAmount = user?.salaryBySubcategory?.[subcategory]?.amount ?? "";
+    const newRate = window.prompt(`Enter your rate for ${subcategory} (₹):`, currentAmount);
+    if (newRate && newRate !== currentAmount) {
+      await updateProfile({ 
+        salaryBySubcategory: {
+          ...user?.salaryBySubcategory,
+          [subcategory]: {
+            amount: newRate,
+            period: user?.salaryBySubcategory?.[subcategory]?.period || "daily"
+          }
+        }
+      });
     }
+    setEditingRates(prev => ({ ...prev, [subcategory]: false }));
   };
 
   if (isLoading) {
     return <JobSeekerLoadingState />;
   }
 
-  // Show message if user hasn't completed profile
+  // Complete profile CTA if necessary
   if (!user?.primaryCategory && !user?.profileComplete) {
     return (
       <div className="space-y-4 px-4">
@@ -55,35 +69,57 @@ const JobSeekerHome = () => {
     );
   }
 
+  // Subcategories list (for rate UI)
+  const subcategories = user?.subcategories || Object.keys(user?.salaryBySubcategory || {});
+
   return (
     <div className="space-y-4 px-4">
       <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
 
-      {/* Availability & Rate Management */}
+      {/* Availability Management */}
       <FloatingCard variant="elevated" size="sm" className="mb-2">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <ToggleLeft className="w-6 h-6 text-gray-500" />
-            <span className="font-semibold text-gray-800">Available for work</span>
-          </div>
-          <Button
-            size="sm"
-            variant={isAvailable ? "default" : "outline"}
-            className={isAvailable ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-            onClick={handleAvailabilityToggle}
-          >
-            {isAvailable ? "Available" : "Unavailable"}
-          </Button>
-          <div className="flex items-center gap-2 ml-1">
-            <Settings className="w-5 h-5 text-gray-500" />
-            <span className="font-semibold text-gray-800">Your Rate:</span>
-            <span className="ml-1 text-blue-700">₹{rate || user?.hourlyRate || '--'}/hr</span>
-            <Button size="icon" variant="ghost" onClick={handleRateEdit}>
-              <Pencil className="w-4 h-4" />
+            <span className={`inline-block w-3 h-3 rounded-full ${
+              availability === "available" ? "bg-green-500" : availability === "busy" ? "bg-yellow-500" : "bg-gray-400"
+            }`} />
+            <span className="font-semibold text-gray-800 select-none">Availability:</span>
+            <Button 
+              variant="outline" 
+              className="ml-2"
+              onClick={handleAvailabilityToggle}
+            >
+              {availability.charAt(0).toUpperCase() + availability.slice(1)}
             </Button>
           </div>
         </div>
       </FloatingCard>
+
+      {/* Rate Management */}
+      {subcategories?.length > 0 && (
+        <FloatingCard variant="elevated" size="sm" className="mb-2">
+          <div>
+            <span className="font-semibold text-gray-800">Your Rates</span>
+            <div className="mt-2 space-y-1">
+              {subcategories.map((sub: string) => (
+                <div key={sub} className="flex items-center gap-4 text-sm">
+                  <span className="min-w-[120px] font-medium">{sub}</span>
+                  <span className="ml-1 text-blue-700">
+                    ₹{user?.salaryBySubcategory?.[sub]?.amount || "--"}/
+                    {user?.salaryBySubcategory?.[sub]?.period ?? "daily"}
+                  </span>
+                  <Button 
+                    size="icon" 
+                    variant="ghost"
+                    onClick={() => handleRateEdit(sub)}
+                    className="ml-2"
+                  >✏️</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FloatingCard>
+      )}
 
       {/* Quick Actions */}
       <FloatingCard variant="elevated" size="sm">
