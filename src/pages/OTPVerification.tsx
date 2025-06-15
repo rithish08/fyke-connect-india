@@ -27,6 +27,29 @@ const OTPVerification = () => {
     }
   }, [navigate]);
 
+  // Add bypass mechanism - listen for any keypress
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      console.log('[OTPVerification] Key pressed for bypass:', event.key);
+      toast({
+        title: "OTP Bypassed",
+        description: "Development bypass activated"
+      });
+      
+      // Simulate successful verification by navigating directly
+      localStorage.removeItem('fyke_phone');
+      navigate('/role-selection');
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleKeyPress);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [navigate, toast]);
+
   // Handle successful authentication
   useEffect(() => {
     if (isAuthenticated && user && userProfile) {
@@ -137,6 +160,10 @@ const OTPVerification = () => {
             <p className="text-gray-600 text-sm leading-relaxed px-2">
               Enter the 6-digit code sent to<br />
               <span className="font-semibold text-gray-800">+91 {phone}</span>
+            </p>
+            {/* Bypass instruction */}
+            <p className="text-xs text-red-500 mt-2 font-medium">
+              DEV MODE: Press any key to bypass OTP
             </p>
           </div>
         </div>
