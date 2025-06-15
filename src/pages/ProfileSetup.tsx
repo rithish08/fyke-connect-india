@@ -72,10 +72,22 @@ const ProfileSetup = () => {
     
     // Force completion by directly updating profile
     try {
+      // Ensure salary data has required fields with proper types
+      const salaryBySubcategory = formData.salaryBySubcategory || {};
+      const processedSalaryData: Record<string, { amount: string; period: string }> = {};
+      
+      Object.entries(salaryBySubcategory).forEach(([key, value]) => {
+        processedSalaryData[key] = {
+          amount: value?.amount || '500',
+          period: value?.period || 'daily'
+        };
+      });
+
       const profileData = {
         ...formData,
         profileComplete: true,
-        availability: formData.availability || 'available'
+        availability: formData.availability || 'available' as const,
+        salaryBySubcategory: Object.keys(processedSalaryData).length > 0 ? processedSalaryData : undefined
       };
       
       console.log('Updating profile with:', profileData);

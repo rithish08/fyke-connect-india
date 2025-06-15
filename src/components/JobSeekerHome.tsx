@@ -2,26 +2,25 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useJobSeekerJobs } from '@/hooks/useJobSeekerJobs';
 import JobSeekerHomeHeader from '@/components/jobseeker/JobSeekerHomeHeader';
-import JobSeekerJobCard from '@/components/jobseeker/JobSeekerJobCard';
 import JobSeekerEmptyState from '@/components/jobseeker/JobSeekerEmptyState';
 import JobSeekerLoadingState from '@/components/jobseeker/JobSeekerLoadingState';
 import { FloatingCard } from '@/components/ui/floating-card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Search, Briefcase, Settings, ToggleLeft, Pencil } from 'lucide-react';
+import { Search, Briefcase, MessageCircle, Phone, Plus } from 'lucide-react';
 import { useState } from 'react';
+import QuickPostModal from '@/components/job/QuickPostModal';
 
 const JobSeekerHome = () => {
   const { user, updateProfile } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
   const navigate = useNavigate();
-  // Availability: only "available" | "busy" | "offline"
   const [availability, setAvailability] = useState<"available" | "busy" | "offline">(user?.availability || 'available');
-  // Remove use of hourlyRate, use salaryBySubcategory if present
   const [editingRates, setEditingRates] = useState<{ [sub: string]: boolean }>({});
+  const [showQuickPost, setShowQuickPost] = useState(false);
 
-  // Handler for availability toggle (cycle through statuses)
   const statusList: Array<"available" | "busy" | "offline"> = ["available", "busy", "offline"];
+  
   const handleAvailabilityToggle = async () => {
     const currentIdx = statusList.indexOf(availability);
     const newStatus = statusList[(currentIdx + 1) % statusList.length];
@@ -29,7 +28,6 @@ const JobSeekerHome = () => {
     await updateProfile({ availability: newStatus });
   };
 
-  // Handler for editing rate for a subcategory
   const handleRateEdit = async (subcategory: string) => {
     setEditingRates(prev => ({ ...prev, [subcategory]: true }));
     const currentAmount = user?.salaryBySubcategory?.[subcategory]?.amount ?? "";
@@ -52,10 +50,9 @@ const JobSeekerHome = () => {
     return <JobSeekerLoadingState />;
   }
 
-  // Complete profile CTA if necessary
   if (!user?.primaryCategory && !user?.profileComplete) {
     return (
-      <div className="space-y-4 px-4">
+      <div className="space-y-6 px-4 py-6">
         <JobSeekerHomeHeader userPrimaryCategory={undefined} />
         <FloatingCard variant="glow" size="md" className="text-center py-8">
           <div className="text-4xl mb-4">⚙️</div>
@@ -69,51 +66,78 @@ const JobSeekerHome = () => {
     );
   }
 
-  // Subcategories list (for rate UI)
   const subcategories = user?.subcategories || Object.keys(user?.salaryBySubcategory || {});
 
   return (
-    <div className="space-y-4 px-4">
+    <div className="space-y-6 px-4 py-6">
       <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-3">
+        <FloatingCard variant="elevated" size="sm">
+          <div className="text-center py-4">
+            <Search className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+            <p className="text-sm font-medium text-gray-900 mb-1">Find Jobs</p>
+            <p className="text-xs text-gray-600 mb-3">Browse available work</p>
+            <Button onClick={() => navigate('/search')} size="sm" className="w-full">
+              Search
+            </Button>
+          </div>
+        </FloatingCard>
+
+        <FloatingCard variant="elevated" size="sm">
+          <div className="text-center py-4">
+            <Plus className="w-6 h-6 mx-auto mb-2 text-green-600" />
+            <p className="text-sm font-medium text-gray-900 mb-1">Quick Post</p>
+            <p className="text-xs text-gray-600 mb-3">Post a job quickly</p>
+            <Button onClick={() => setShowQuickPost(true)} size="sm" className="w-full" variant="outline">
+              Post Job
+            </Button>
+          </div>
+        </FloatingCard>
+      </div>
+
       {/* Availability Management */}
-      <FloatingCard variant="elevated" size="sm" className="mb-2">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <FloatingCard variant="elevated" size="sm">
+        <div className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
             <span className={`inline-block w-3 h-3 rounded-full ${
               availability === "available" ? "bg-green-500" : availability === "busy" ? "bg-yellow-500" : "bg-gray-400"
             }`} />
-            <span className="font-semibold text-gray-800 select-none">Availability:</span>
-            <Button 
-              variant="outline" 
-              className="ml-2"
-              onClick={handleAvailabilityToggle}
-            >
-              {availability.charAt(0).toUpperCase() + availability.slice(1)}
-            </Button>
+            <span className="font-semibold text-gray-800">Availability:</span>
           </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleAvailabilityToggle}
+          >
+            {availability.charAt(0).toUpperCase() + availability.slice(1)}
+          </Button>
         </div>
       </FloatingCard>
 
       {/* Rate Management */}
       {subcategories?.length > 0 && (
-        <FloatingCard variant="elevated" size="sm" className="mb-2">
+        <FloatingCard variant="elevated" size="sm">
           <div>
-            <span className="font-semibold text-gray-800">Your Rates</span>
-            <div className="mt-2 space-y-1">
+            <span className="font-semibold text-gray-800 mb-3 block">Your Rates</span>
+            <div className="space-y-2">
               {subcategories.map((sub: string) => (
-                <div key={sub} className="flex items-center gap-4 text-sm">
-                  <span className="min-w-[120px] font-medium">{sub}</span>
-                  <span className="ml-1 text-blue-700">
-                    ₹{user?.salaryBySubcategory?.[sub]?.amount || "--"}/
-                    {user?.salaryBySubcategory?.[sub]?.period ?? "daily"}
-                  </span>
-                  <Button 
-                    size="icon" 
-                    variant="ghost"
-                    onClick={() => handleRateEdit(sub)}
-                    className="ml-2"
-                  >✏️</Button>
+                <div key={sub} className="flex items-center justify-between text-sm py-2 border-b border-gray-100 last:border-b-0">
+                  <span className="font-medium text-gray-700">{sub}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-700 font-medium">
+                      ₹{user?.salaryBySubcategory?.[sub]?.amount || "--"}/
+                      {user?.salaryBySubcategory?.[sub]?.period ?? "daily"}
+                    </span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleRateEdit(sub)}
+                    >
+                      ✏️
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -121,22 +145,8 @@ const JobSeekerHome = () => {
         </FloatingCard>
       )}
 
-      {/* Quick Actions */}
-      <FloatingCard variant="elevated" size="sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-1">Find Your Next Job</h3>
-            <p className="text-sm text-gray-600">Browse jobs matching your skills</p>
-          </div>
-          <Button onClick={() => navigate('/search')} size="sm">
-            <Search className="w-4 h-4 mr-1" />
-            Search Jobs
-          </Button>
-        </div>
-      </FloatingCard>
-
       {/* Recommended Jobs */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-900 flex items-center">
             <Briefcase className="w-5 h-5 mr-2" />
@@ -150,9 +160,55 @@ const JobSeekerHome = () => {
         {jobs && jobs.length === 0 && <JobSeekerEmptyState />}
 
         {jobs && jobs.slice(0, 3).map(job => (
-          <JobSeekerJobCard key={job.id} job={job} />
+          <FloatingCard key={job.id} variant="elevated" size="sm">
+            <div className="space-y-3">
+              {/* Job Header */}
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900">{job.title}</h4>
+                  <p className="text-sm text-gray-600">{job.company}</p>
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                    <span>{job.location} • {job.distance}</span>
+                    <span>₹{job.salary}</span>
+                    <span>{job.timePosted}</span>
+                  </div>
+                </div>
+                {job.urgent && (
+                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
+                    Urgent
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <Button className="flex-1 h-9" size="sm">
+                  Apply Now
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-3 h-9"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-3 h-9"
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </FloatingCard>
         ))}
       </div>
+
+      <QuickPostModal 
+        isOpen={showQuickPost} 
+        onClose={() => setShowQuickPost(false)} 
+      />
     </div>
   );
 };
