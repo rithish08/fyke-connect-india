@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockWorkers, mockJobs } from '@/data/mockData';
@@ -10,6 +9,9 @@ interface FilterState {
   priceRange: [number, number];
   availability: 'all' | 'online' | 'verified';
   responseTime: 'all' | 'fast' | 'medium';
+  location: string;
+  urgent: boolean;
+  category: string;
 }
 
 type ViewState = 'category' | 'subcategory' | 'results';
@@ -28,7 +30,10 @@ export const useJobSearchState = () => {
     minRating: 0,
     priceRange: [0, 1000],
     availability: 'all',
-    responseTime: 'all'
+    responseTime: 'all',
+    location: '',
+    urgent: false,
+    category: ''
   });
   const [urgentOnly, setUrgentOnly] = useState(false);
 

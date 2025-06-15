@@ -16,6 +16,9 @@ interface FilterState {
   priceRange: [number, number];
   availability: 'all' | 'online' | 'verified';
   responseTime: 'all' | 'fast' | 'medium';
+  location: string;
+  urgent: boolean;
+  category: string;
 }
 
 interface JobSearchResultsViewProps {
