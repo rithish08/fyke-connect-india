@@ -52,32 +52,41 @@ const AppContent = () => {
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/language-selection" replace />} />
         <Route path="/language-selection" element={<LanguageSelection />} />
-        <Route path="/role-selection" element={<RoleSelection />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/otp-verification" element={<OTPVerification />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         
-        {/* Protected Routes */}
+        {/* Semi-Protected Routes (require auth but not complete profile) */}
         <Route 
-          path="/home" 
+          path="/role-selection" 
           element={
-            <ProtectedRoute requireProfileComplete={true}>
-              <HomePage />
+            <ProtectedRoute requireAuth={true} requireProfileComplete={false}>
+              <RoleSelection />
             </ProtectedRoute>
           } 
         />
         <Route 
           path="/profile-setup" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAuth={true} requireProfileComplete={false}>
               <ProfileSetup />
             </ProtectedRoute>
           } 
         />
+        
+        {/* Fully Protected Routes (require auth and complete profile) */}
         <Route 
-          path="/job-search" 
+          path="/home" 
           element={
-            <ProtectedRoute requireProfileComplete={true}>
+            <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
+              <HomePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/search" 
+          element={
+            <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
               <JobSearch />
             </ProtectedRoute>
           } 
@@ -85,7 +94,7 @@ const AppContent = () => {
         <Route 
           path="/messaging" 
           element={
-            <ProtectedRoute requireProfileComplete={true}>
+            <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
               <Messaging />
             </ProtectedRoute>
           } 
@@ -93,7 +102,7 @@ const AppContent = () => {
         <Route 
           path="/profile" 
           element={
-            <ProtectedRoute requireProfileComplete={true}>
+            <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
               <Profile />
             </ProtectedRoute>
           } 
@@ -101,7 +110,7 @@ const AppContent = () => {
         <Route 
           path="/my-jobs" 
           element={
-            <ProtectedRoute requireProfileComplete={true}>
+            <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
               <MyJobs />
             </ProtectedRoute>
           } 
@@ -109,7 +118,7 @@ const AppContent = () => {
         <Route 
           path="/post-job" 
           element={
-            <ProtectedRoute requireProfileComplete={true}>
+            <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
               <PostJob />
             </ProtectedRoute>
           } 

@@ -102,23 +102,8 @@ const OTPVerification = () => {
     }
   };
 
-  // NEW: allow developer bypass (press B to bypass OTP check and go to role selection)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'b' || e.key === 'B') {
-        // Dev-only bypass
-        localStorage.removeItem('fyke_phone');
-        navigate('/role-selection');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
-      {/* Hidden recaptcha container for Firebase */}
-      <div id="recaptcha-container"></div>
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -133,6 +118,7 @@ const OTPVerification = () => {
             </p>
           </div>
         </div>
+        
         {/* OTP Card */}
         <Card className="p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
           <div className="space-y-6">
@@ -146,15 +132,18 @@ const OTPVerification = () => {
                 />
               </div>
             </div>
+            
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <p className="text-sm text-gray-500">Code will be verified automatically</p>
               </div>
             </div>
+            
             {(errorState || !phone) && (
               <div className="text-center text-sm text-red-500">{errorState}</div>
             )}
+            
             <div className="text-center">
               {resendTimer > 0 ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -173,7 +162,8 @@ const OTPVerification = () => {
                 </button>
               )}
             </div>
-            {/* Fallback navigation if stuck */}
+            
+            {/* Navigation buttons */}
             <div className="flex flex-col space-y-2 pt-4">
               <Button
                 variant="outline"
@@ -186,16 +176,10 @@ const OTPVerification = () => {
               >
                 Back to Login
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
-                Reload Page
-              </Button>
             </div>
           </div>
         </Card>
+        
         {/* Security Info */}
         <div className="text-center space-y-2 px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">

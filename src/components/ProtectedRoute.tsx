@@ -24,7 +24,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     userProfile: !!userProfile,
     role: userProfile?.role,
     profileComplete: userProfile?.profile_complete,
-    loading
+    loading,
+    requireAuth,
+    requireAdmin,
+    requireProfileComplete
   });
 
   if (loading) {
@@ -41,72 +44,60 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If authentication is required but user is not authenticated
-  if (requireAuth && !user) {
-    console.log('[ProtectedRoute] Auth required but no user, redirecting to language selection');
-    return <Navigate to="/language-selection" replace />;
+  // Public routes - no auth required
+  if (!requireAuth) {
+    return <>{children}</>;
   }
 
-  // If admin access is required but user is not admin
+  // Check authentication requirement
+  if (!user) {
+    console.log('[ProtectedRoute] No user, redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Check admin requirement
   if (requireAdmin && userProfile?.role !== 'admin') {
-    console.log('[ProtectedRoute] Admin required but user is not admin, redirecting to home');
+    console.log('[ProtectedRoute] Admin required but user is not admin');
     return <Navigate to="/home" replace />;
   }
 
-  // If user is authenticated but no profile exists, redirect to role selection
-  if (requireAuth && user && !userProfile) {
-    console.log('[ProtectedRoute] User authenticated but no profile, redirecting to role selection');
+  // If no profile exists, redirect to role selection
+  if (!userProfile) {
+    console.log('[ProtectedRoute] No profile, redirecting to role selection');
     return <Navigate to="/role-selection" replace />;
   }
 
-  // If user is authenticated but no role selected, redirect to role selection
-  if (requireAuth && user && userProfile && !userProfile.role) {
-    console.log('[ProtectedRoute] User has profile but no role, redirecting to role selection');
+  // If no role selected, redirect to role selection
+  if (!userProfile.role) {
+    console.log('[ProtectedRoute] No role, redirecting to role selection');
     return <Navigate to="/role-selection" replace />;
   }
 
-  // If jobseeker hasn't completed profile setup, redirect to profile setup
-  if (
-    requireAuth && 
-    user && 
-    userProfile && 
-    userProfile.role === 'jobseeker' && 
-    !userProfile.profile_complete && 
-    location.pathname !== '/profile-setup' &&
-    requireProfileComplete
-  ) {
-    console.log('[ProtectedRoute] Jobseeker profile incomplete, redirecting to profile setup');
-    return <Navigate to="/profile-setup" replace />;
-  }
-
-  // Prevent completed profiles from accessing setup pages
-  if (
-    userProfile?.role === 'jobseeker' && 
-    userProfile.profile_complete && 
-    location.pathname === '/profile-setup'
-  ) {
-    console.log('[ProtectedRoute] Profile already complete, redirecting to home');
-    return <Navigate to="/home" replace />;
-  }
-
-  // Prevent employers from accessing profile setup
-  if (
-    userProfile?.role === 'employer' && 
-    location.pathname === '/profile-setup'
-  ) {
-    console.log('[ProtectedRoute] Employer accessing profile setup, redirecting to home');
-    return <Navigate to="/home" replace />;
-  }
-
-  // Prevent users with roles from accessing role selection
-  if (
-    userProfile?.role && 
-    location.pathname === '/role-selection'
-  ) {
-    console.log('[ProtectedRoute] User has role, redirecting from role selection');
+  // Profile completion checks
+  if (requireProfileComplete) {
+    // Jobseekers need complete profile
     if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+      console.log('[ProtectedRoute] Jobseeker profile incomplete, redirecting to setup');
+      return <Navigate to="/profile-setup" replace />;
+    }
+  }
+
+  // Prevent access to setup pages if not needed
+  if (location.pathname === '/profile-setup') {
+    if (userProfile.role === 'employer' || 
+        (userProfile.role === 'jobseeker' && userProfile.profile_complete)) {
+      console.log('[ProtectedRoute] Profile setup not needed, redirecting to home');
+      return <Navigate to="/home" replace />;
+    }
+  }
+
+  // Prevent access to role selection if role already set
+  if (location.pathname === '/role-selection' && userProfile.role) {
+    if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+      console.log('[ProtectedRoute] Redirecting from role selection to profile setup');
       return <Navigate to="/profile-setup" replace />;
     } else {
+      console.log('[ProtectedRoute] Redirecting from role selection to home');
       return <Navigate to="/home" replace />;
     }
   }

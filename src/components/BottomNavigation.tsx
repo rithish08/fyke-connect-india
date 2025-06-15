@@ -13,7 +13,7 @@ const EMPLOYER_NAV = [
   { path: '/home', icon: Home, labelKey: 'nav.home', label: 'Home' },
   { path: '/search', icon: Users, labelKey: 'nav.workers', label: 'Workers' },
   { path: '/my-jobs', icon: ClipboardList, labelKey: 'nav.posts', label: 'My Posts' },
-  { path: '/messages', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
+  { path: '/messaging', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
   { path: '/profile', icon: UserIcon, labelKey: 'nav.profile', label: 'Profile' }
 ];
 
@@ -21,14 +21,14 @@ const JOBSEEKER_NAV = [
   { path: '/home', icon: Home, labelKey: 'nav.home', label: 'Home' },
   { path: '/search', icon: Search, labelKey: 'nav.jobs', label: 'Jobs' },
   { path: '/my-jobs', icon: ClipboardList, labelKey: 'nav.myjobs', label: 'My Jobs' },
-  { path: '/messages', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
+  { path: '/messaging', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
   { path: '/profile', icon: UserIcon, labelKey: 'nav.profile', label: 'Profile' }
 ];
 
 const BottomNavigation = () => {
   const location = useLocation();
   const { goTo } = useScreenNavigation();
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const { t } = useLocalization();
   const { isFlowComplete } = useUserFlow();
 
@@ -45,12 +45,12 @@ const BottomNavigation = () => {
   }
 
   // Don't show on setup/onboarding screens
-  const hiddenPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
+  const hiddenPaths = ['/', '/language-selection', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
   if (hiddenPaths.includes(location.pathname)) {
     return null;
   }
 
-  const navItems = user?.role === 'employer' ? EMPLOYER_NAV : JOBSEEKER_NAV;
+  const navItems = userProfile?.role === 'employer' ? EMPLOYER_NAV : JOBSEEKER_NAV;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg">
