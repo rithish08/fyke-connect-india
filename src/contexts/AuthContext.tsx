@@ -1,38 +1,37 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 interface User {
-  id?: string;
-  phone?: string;
+  id: string;
+  phone: string;
   name?: string;
   email?: string;
-  role?: 'jobseeker' | 'employer';
-  profileComplete?: boolean;
-  verified?: boolean;
-  primaryCategory?: string;
-  categories?: string[];
-  subcategories?: string[];
-  skills?: string[];
   bio?: string;
+  role: 'jobseeker' | 'employer';
+  verified: boolean;
+  profileComplete: boolean;
+  profilePhoto?: string;
   location?: string;
-  salaryBySubcategory?: Record<string, { amount: string; period: string }>;
   availability?: 'available' | 'busy' | 'offline';
+  skills?: string[];
+  salaryExpectation?: { min: number; max: number };
+  category?: string;
   vehicle?: string;
-  activeRole?: 'jobseeker' | 'employer'; // Current active role for dual-role users
+  salaryPeriod?: 'daily' | 'weekly' | 'monthly';
+  categories?: string[];
+  primaryCategory?: string;
+  subcategories?: string[];
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
   isAuthenticated: boolean;
-  login: (phone: string, otp?: string) => Promise<void>;
-  verifyOTP: (otp: string) => Promise<void>;
+  login: (phone: string, otp: string) => Promise<void>;
   logout: () => void;
-  updateProfile: (data: Partial<User>) => Promise<void>;
   setRole: (role: 'jobseeker' | 'employer') => void;
   switchRole: () => void;
-  getCurrentUserRole: () => 'jobseeker' | 'employer' | null;
+  updateProfile: (updates: Partial<User>) => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,194 +46,122 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Load user from localStorage on app start
-    const loadUser = () => {
+    console.log('[AuthProvider] Checking stored auth data...');
+    const storedUser = localStorage.getItem('fyke_user');
+    if (storedUser) {
       try {
-        const storedUser = localStorage.getItem('fyke_user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-        }
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
+        console.log('[AuthProvider] User loaded from localStorage:', userData);
       } catch (error) {
-        console.error('Error loading user:', error);
+        console.error('[AuthProvider] Error parsing stored user data:', error);
         localStorage.removeItem('fyke_user');
-      } finally {
-        setLoading(false);
+        setUser(null);
+        setIsAuthenticated(false);
       }
-    };
-
-    loadUser();
+    } else {
+      setUser(null);
+      setIsAuthenticated(false);
+      console.log('[AuthProvider] No stored user found');
+    }
+    setLoading(false);
+    console.log('[AuthProvider] Loading state set to false');
   }, []);
 
-  const persistUser = (userData: User) => {
+  const login = async (phone: string, otp: string) => {
     try {
-      localStorage.setItem('fyke_user', JSON.stringify(userData));
-      setUser(userData);
-    } catch (error) {
-      console.error('Error persisting user:', error);
-    }
-  };
-
-  const login = async (phone: string, otp?: string) => {
-    try {
-      setLoading(true);
-      
-      if (otp) {
-        // Handle OTP verification during login
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const newUser: User = {
-          id: `user_${Date.now()}`,
-          phone,
-          verified: true,
-          profileComplete: false
-        };
-        
-        persistUser(newUser);
-        localStorage.removeItem('fyke_pending_phone');
-        
-        toast({
-          title: "Login Successful!",
-          description: "Welcome to Fyke Connect"
-        });
-      } else {
-        // Handle sending OTP
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        localStorage.setItem('fyke_pending_phone', phone);
-        
-        toast({
-          title: "OTP Sent",
-          description: "Please check your phone for the verification code",
-        });
+      // Simulate API call with basic validation
+      if (otp.length !== 6) {
+        throw new Error('Invalid OTP length');
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: otp ? "Invalid OTP. Please try again." : "Failed to send OTP. Please try again.",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const verifyOTP = async (otp: string) => {
-    try {
-      setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get stored name if available
+      const storedName = localStorage.getItem('fyke_name') || '';
       
-      const phone = localStorage.getItem('fyke_pending_phone');
-      if (!phone) throw new Error('No pending phone verification');
-      
-      const newUser: User = {
-        id: `user_${Date.now()}`,
+      const mockUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
         phone,
-        verified: true,
-        profileComplete: false
+        name: storedName,
+        email: '',
+        bio: '',
+        role: 'jobseeker', // Default role, will be changed in role selection
+        verified: Math.random() > 0.3,
+        profileComplete: false, // Always false for new users
+        categories: [],
+        primaryCategory: undefined,
+        subcategories: [],
+        availability: 'available',
+        skills: [],
+        salaryExpectation: { min: 0, max: 0 },
+        location: 'Mumbai, Maharashtra'
       };
       
-      persistUser(newUser);
-      localStorage.removeItem('fyke_pending_phone');
-      
-      toast({
-        title: "Welcome to Fyke!",
-        description: "Your phone number has been verified successfully",
-      });
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('fyke_user', JSON.stringify(mockUser));
+      console.log('User logged in successfully:', mockUser);
     } catch (error) {
-      toast({
-        title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Login failed:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('fyke_user');
-    localStorage.removeItem('fyke_return_intent');
     setUser(null);
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully",
-    });
-  };
-
-  const updateProfile = async (data: Partial<User>) => {
-    try {
-      if (!user) throw new Error('No user to update');
-      
-      const updatedUser = { ...user, ...data };
-      persistUser(updatedUser);
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-      throw error;
-    }
+    setIsAuthenticated(false);
+    localStorage.removeItem('fyke_user');
+    localStorage.removeItem('fyke_phone');
+    localStorage.removeItem('fyke_name');
+    console.log('User logged out');
   };
 
   const setRole = (role: 'jobseeker' | 'employer') => {
-    if (!user) return;
-    
-    const updatedUser = { 
-      ...user, 
-      role,
-      activeRole: role,
-      profileComplete: role === 'employer' ? true : user.profileComplete 
-    };
-    persistUser(updatedUser);
-  };
-
-  const switchRole = () => {
-    if (!user?.role) return;
-    
-    // For now, users can only have one role, but this enables future dual-role functionality
-    const newActiveRole: 'jobseeker' | 'employer' = user.activeRole === 'jobseeker' ? 'employer' : 'jobseeker';
-    
-    // Only switch if user actually has this role
-    if (user.role === newActiveRole || user.role === 'employer') {
-      const updatedUser = { ...user, activeRole: newActiveRole };
-      persistUser(updatedUser);
-      
-      toast({
-        title: "Role Switched",
-        description: `Now viewing as ${newActiveRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}`,
-      });
+    if (user) {
+      const updatedUser = { 
+        ...user, 
+        role,
+        profileComplete: role === 'employer' ? true : user.profileComplete
+      };
+      setUser(updatedUser);
+      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('User role updated to:', role);
     }
   };
 
-  const getCurrentUserRole = (): 'jobseeker' | 'employer' | null => {
-    return user?.activeRole || user?.role || null;
+  const switchRole = () => {
+    if (user) {
+      const newRole = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
+      setRole(newRole);
+    }
   };
 
-  const value: AuthContextType = {
-    user,
-    loading,
-    isAuthenticated: !!user,
-    login,
-    verifyOTP,
-    logout,
-    updateProfile,
-    setRole,
-    switchRole,
-    getCurrentUserRole
+  const updateProfile = (updates: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('Profile updated:', updates);
+      console.log('Updated user:', updatedUser);
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
+      login,
+      logout,
+      setRole,
+      switchRole,
+      updateProfile,
+      loading
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

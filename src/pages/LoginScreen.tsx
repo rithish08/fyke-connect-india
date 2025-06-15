@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,11 +42,20 @@ const LoginScreen = () => {
       // Store phone for later use
       localStorage.setItem('fyke_phone', phone);
 
-      await login(phone);
+      // Simulate sending OTP
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setShowOTP(true);
       setResendTimer(60);
+      toast({
+        title: "OTP Sent",
+        description: `Verification code sent to +91 ${phone}`
+      });
     } catch (error) {
-      // Error is already handled in the login function
+      toast({
+        title: "Error",
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -63,8 +73,19 @@ const LoginScreen = () => {
     setLoading(true);
     try {
       await login(phone, otpCode);
+      toast({
+        title: "Login Successful!",
+        description: "Welcome to Fyke Connect"
+      });
+
+      // Navigate to role selection after successful login
       navigate('/role-selection');
     } catch (error) {
+      toast({
+        title: "Verification Failed",
+        description: "Invalid OTP. Please try again.",
+        variant: "destructive"
+      });
       setOtp(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
@@ -84,7 +105,6 @@ const LoginScreen = () => {
     setOtp(['', '', '', '', '', '']);
   };
 
-  
   if (showOTP) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
