@@ -5,6 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
 import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { profileSetupSchema, ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -21,11 +24,23 @@ const ProfileSetup = () => {
   const [bio, setBio] = useState('');
   const [category, setCategory] = useState('');
   const [vehicle, setVehicle] = useState('');
-  const [salaryBySubcategory, setSalaryBySubcategory] = useState<{ [key: string]: { amount: string; period: string } }>({});
 
   const { userProfile, completeProfileSetup } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Initialize form for salary step
+  const form = useForm<ProfileSetupFormData>({
+    resolver: zodResolver(profileSetupSchema),
+    defaultValues: {
+      name: '',
+      category: '',
+      subcategories: [],
+      vehicle: '',
+      salaryBySubcategory: {},
+      availability: 'available'
+    }
+  });
 
   useEffect(() => {
     // Redirect if not a jobseeker or already complete
@@ -50,8 +65,46 @@ const ProfileSetup = () => {
     if (userProfile.bio) setBio(userProfile.bio);
   }, [userProfile, navigate]);
 
+  // Update form when category changes
+  useEffect(() => {
+    if (category) {
+      form.setValue('category', category);
+    }
+  }, [category, form]);
+
+  // Update form when vehicle changes
+  useEffect(() => {
+    if (vehicle) {
+      form.setValue('vehicle', vehicle);
+    }
+  }, [vehicle, form]);
+
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep === 1) {
+      // Get selected subcategories from localStorage
+      const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
+      const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
+      
+      // Update form with selected data
+      form.setValue('subcategories', subcategories);
+      
+      // Check if we should skip salary step (vehicle only categories)
+      const vehicleOwnerSubs = [
+        'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
+        'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
+        'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)',
+        'Water Tanker', 'Ambulance'
+      ];
+      
+      const hasOnlyVehicleCategories = subcategories.length > 0 && 
+        subcategories.every((sub: string) => vehicleOwnerSubs.includes(sub));
+      
+      if (hasOnlyVehicleCategories) {
+        setCurrentStep(3); // Skip to personal details
+      } else {
+        setCurrentStep(2); // Go to salary step
+      }
+    } else if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -60,6 +113,10 @@ const ProfileSetup = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleSalaryNext = () => {
+    setCurrentStep(3);
   };
 
   const handleComplete = async () => {
@@ -77,6 +134,10 @@ const ProfileSetup = () => {
       // Get saved subcategories
       const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
       const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
+
+      // Get salary data from form
+      const formData = form.getValues();
+      const salaryBySubcategory = formData.salaryBySubcategory || {};
 
       const profileData = {
         name: name.trim(),
@@ -137,17 +198,9 @@ const ProfileSetup = () => {
             </div>
             
             <ModernMultiSalaryStep
-              selectedSubcategories={(() => {
-                try {
-                  const saved = localStorage.getItem('fyke_selected_subcategories');
-                  return saved ? JSON.parse(saved) : [];
-                } catch {
-                  return [];
-                }
-              })()}
-              salaryBySubcategory={salaryBySubcategory}
-              setSalaryBySubcategory={setSalaryBySubcategory}
-              onNext={handleNext}
+              form={form}
+              onNext={handleSalaryNext}
+              onBack={handleBack}
             />
             
             <div className="flex justify-center">
