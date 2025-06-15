@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocalization } from '@/contexts/LocalizationContext';
@@ -34,13 +33,11 @@ const LanguageSelection = () => {
             <span className="text-2xl font-bold text-white font-mono tracking-wider">fyke</span>
           </div>
         </div>
-
         {/* Header */}
         <div className="text-center mb-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Choose Your Language</h1>
           <p className="text-gray-500 text-base mt-2">Select your preferred language</p>
         </div>
-
         {/* Language Grid */}
         <div className="grid grid-cols-2 gap-4 mt-8">
           {languages.map((lang) => {
@@ -58,7 +55,7 @@ const LanguageSelection = () => {
                 ].join(' ')}
                 type="button"
               >
-                {/* Flag Circle */}
+                {/* Flag */}
                 <span className={`mb-2 w-12 h-12 flex items-center justify-center text-lg font-bold text-white ${lang.color} rounded-full border border-white shadow`}>
                   {lang.flag}
                 </span>
@@ -78,7 +75,6 @@ const LanguageSelection = () => {
             );
           })}
         </div>
-
         {/* Continue Button */}
         <div className="mt-12 mb-2">
           <Button
@@ -93,5 +89,4 @@ const LanguageSelection = () => {
     </div>
   );
 };
-
 export default LanguageSelection;

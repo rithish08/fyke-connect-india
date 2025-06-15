@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,13 +57,11 @@ const RoleSelection = () => {
               <p className="text-gray-600">Choose your role to get started</p>
             </div>
           </div>
-
           {/* Role Options */}
           <div className="space-y-4">
             {roles.map((role) => {
               const Icon = role.icon;
               const isSelected = selectedRole === role.id;
-              
               return (
                 <ModernCard
                   key={role.id}
@@ -94,7 +91,6 @@ const RoleSelection = () => {
               );
             })}
           </div>
-
           {/* Continue Button */}
           <div className="pt-4">
             <Button

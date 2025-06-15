@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,7 @@ const LoginScreen = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center px-6">
       <div className="max-w-sm mx-auto w-full">
         <ModernCard variant="elevated" className="p-8 shadow-2xl">
-          {/* Header */}
+          {/* Header section with logo/icon */}
           <div className="text-center space-y-6 mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center mx-auto shadow-xl">
               <Phone className="w-10 h-10 text-white" />
@@ -88,7 +87,6 @@ const LoginScreen = () => {
               </p>
             </div>
           </div>
-          
           {/* Phone Input */}
           <div className="space-y-6">
             <div className="relative">
@@ -102,13 +100,12 @@ const LoginScreen = () => {
                 onChange={handlePhoneChange}
                 className="pl-14 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" 
                 disabled={loading}
+                autoFocus
               />
             </div>
-            
             {error && (
               <div className="text-sm text-red-500 text-center">{error}</div>
             )}
-            
             <Button 
               onClick={handleSendOTP} 
               disabled={phone.length !== 10 || loading} 
@@ -124,7 +121,6 @@ const LoginScreen = () => {
               )}
             </Button>
           </div>
-          
           {/* Footer */}
           <div className="text-center mt-8">
             <p className="text-xs text-gray-500 leading-relaxed">
