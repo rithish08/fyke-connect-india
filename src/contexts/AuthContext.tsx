@@ -46,11 +46,11 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check for stored auth data
     const storedUser = localStorage.getItem('fyke_user');
-    
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
@@ -60,10 +60,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('fyke_user');
+        setUser(null);
+        setIsAuthenticated(false);
       }
     } else {
+      setUser(null);
+      setIsAuthenticated(false);
       console.log('No stored user found');
     }
+    setLoading(false);
   }, []);
 
   const login = async (phone: string, otp: string) => {
@@ -151,7 +156,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       setRole,
       switchRole,
-      updateProfile
+      updateProfile,
+      loading // Provide the loading state
     }}>
       {children}
     </AuthContext.Provider>

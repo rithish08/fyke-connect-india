@@ -8,12 +8,13 @@ import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
 import SalaryStep from '@/components/profile/SalaryStep';
 import AvailabilityStep from '@/components/profile/AvailabilityStep';
 import { BadgeCheck, ArrowLeft } from "lucide-react";
+import ShimmerLoader from '@/components/ui/ShimmerLoader';
 
 const STEPS = ["category", "salary", "availability"];
 const STEP_TITLES = ["Choose Category", "Set Salary", "Availability"];
 
 const ProfileSetup = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, loading } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
@@ -24,49 +25,51 @@ const ProfileSetup = () => {
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   useEffect(() => {
+    if (loading) return; // Wait for auth to load
     console.log('ProfileSetup - Current user:', user);
-    
-    // If no user, redirect to login
+
+    // If still loading, do nothing
     if (!user) {
-      console.log('No user found, redirecting to login');
-      navigate('/login');
+      // If done loading and no user, redirect to login after short delay for UX
+      setTimeout(() => {
+        navigate('/login');
+      }, 400);
       return;
     }
-    
+
     // If user is employer, redirect to home (employers don't need profile setup)
     if (user.role === 'employer') {
-      console.log('User is employer, redirecting to home');
       navigate('/home');
       return;
     }
-    
+
     // If user doesn't have a role set, redirect to role selection
     if (!user.role) {
-      console.log('User has no role, redirecting to role selection');
       navigate('/role-selection');
       return;
     }
-    
+
     // If profile is already complete, redirect to home
     if (user.profileComplete) {
-      console.log('Profile already complete, redirecting to home');
       navigate('/home');
       return;
     }
-  }, [user, navigate]);
+  }, [user, navigate, loading]);
 
   const handleFinish = () => {
+    // Defensive: don't allow finishing if not ready
+    if (!category) return;
     console.log('Finishing profile setup with data:', {
       category,
       vehicle,
       salary,
       availability
     });
-    
+
     // Get subcategories from localStorage
     const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
     const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
-    
+
     updateProfile({
       category,
       categories: [category],
@@ -78,7 +81,7 @@ const ProfileSetup = () => {
       availability,
       profileComplete: true,
     });
-    
+
     // Clean up localStorage
     localStorage.removeItem('fyke_selected_subcategories');
     navigate('/home');
@@ -92,7 +95,16 @@ const ProfileSetup = () => {
     }
   };
 
-  // Show loading if no user yet
+  // Show loading shimmer while auth still loading (first mount) or user data is loading
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <ShimmerLoader height={60} width="200px" />
+      </div>
+    );
+  }
+
+  // Show loading if user not present (should be rare due to above useEffect redirect)
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
