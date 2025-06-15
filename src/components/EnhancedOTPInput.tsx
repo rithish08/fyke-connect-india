@@ -1,19 +1,19 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { Input } from '@/components/ui/input';
 
 interface EnhancedOTPInputProps {
   value: string[];
   onChange: (otp: string[]) => void;
   onComplete: (otp: string) => void;
+  disabled?: boolean;
 }
 
-const EnhancedOTPInput = ({ value, onChange, onComplete }: EnhancedOTPInputProps) => {
+const EnhancedOTPInput = ({ value, onChange, onComplete, disabled = false }: EnhancedOTPInputProps) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, inputValue: string) => {
     if (inputValue.length > 1) return;
-    
     const newOtp = [...value];
     newOtp[index] = inputValue;
     onChange(newOtp);
@@ -40,18 +40,19 @@ const EnhancedOTPInput = ({ value, onChange, onComplete }: EnhancedOTPInputProps
       {value.map((digit, index) => (
         <div key={index} className="relative flex-1 max-w-[50px]">
           <Input
-            ref={(el) => (inputRefs.current[index] = el)}
+            ref={el => (inputRefs.current[index] = el)}
             type="text"
             inputMode="numeric"
             value={digit}
-            onChange={(e) => handleChange(index, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(index, e)}
+            onChange={e => handleChange(index, e.target.value)}
+            onKeyDown={e => handleKeyDown(index, e)}
             className={`w-full h-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 rounded-xl transition-all duration-200 ${
-              digit 
-                ? 'border-green-500 bg-green-50 scale-105' 
+              digit
+                ? 'border-green-500 bg-green-50 scale-105'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
             }`}
             maxLength={1}
+            disabled={disabled}
           />
           {/* Success Animation */}
           {digit && (
@@ -66,3 +67,4 @@ const EnhancedOTPInput = ({ value, onChange, onComplete }: EnhancedOTPInputProps
 };
 
 export default EnhancedOTPInput;
+

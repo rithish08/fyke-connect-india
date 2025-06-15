@@ -315,6 +315,27 @@ export type Database = {
           },
         ]
       }
+      otpauth: {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          email: string | null
+          uid: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          created_at?: string | null
+          email?: string | null
+          uid?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          created_at?: string | null
+          email?: string | null
+          uid?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           availability:
