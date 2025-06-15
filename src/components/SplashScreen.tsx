@@ -20,9 +20,12 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   if (!isVisible) {
     return (
       <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div className="text-center">
-          <div className="text-4xl font-bold text-blue-600 mb-2">fyke</div>
-          <div className="text-sm text-gray-500">gig economy platform</div>
+        <div className="text-center px-4">
+          <img 
+            src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+            alt="fyke logo"
+            className="w-48 sm:w-56 md:w-64 h-auto mx-auto mb-2"
+          />
         </div>
       </div>
     );
@@ -30,9 +33,12 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300">
-      <div className="text-center animate-pulse">
-        <div className="text-4xl font-bold text-blue-600 mb-2">fyke</div>
-        <div className="text-sm text-gray-500">gig economy platform</div>
+      <div className="text-center animate-pulse px-4">
+        <img 
+          src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+          alt="fyke logo"
+          className="w-48 sm:w-56 md:w-64 h-auto mx-auto mb-2"
+        />
       </div>
     </div>
   );
