@@ -30,9 +30,12 @@ interface AuthContextType {
   verifyOTP: (otpCode: string) => Promise<{ success: boolean; error?: string }>;
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  signOut: () => Promise<void>; // alias for logout
+  updateProfile: (updates: Partial<UserProfile>) => Promise<{ error?: any }>;
   signUp: (email: string, password: string, phone: string, name: string, role: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  switchRole: () => Promise<void>;
+  setRole: (role: 'jobseeker' | 'employer' | 'admin') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -187,10 +190,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  // --- NEW: signOut for convention/compat
+  const signOut = logout;
+
+  // NEW: setRole method (updates profile and refetches)
+  const setRole = async (role: 'jobseeker' | 'employer' | 'admin') => {
     if (!user) return;
+    await updateProfile({ role });
+    await fetchUserProfile(user.id);
+  };
+
+  // NEW: switchRole toggles between jobseeker and employer (not admin)
+  const switchRole = async () => {
+    if (!userProfile) return;
+    const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
+    await updateProfile({ role: newRole });
+    await fetchUserProfile(userProfile.id);
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) return { error: 'Not logged in' };
 
     try {
+      // Profile update -- fix naming: profile_complete, not profileComplete
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -204,12 +226,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Profile Updated",
         description: "Your profile has been successfully updated"
       });
+      return { error: undefined };
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
         variant: "destructive"
       });
+      return { error };
     }
   };
 
@@ -247,9 +271,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     verifyOTP,
     login,
     logout,
+    signOut,
     updateProfile,
     signUp,
-    signIn
+    signIn,
+    switchRole,
+    setRole
   };
 
   return (

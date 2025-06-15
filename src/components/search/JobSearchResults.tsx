@@ -1,4 +1,3 @@
-
 import UnifiedJobCard from '@/components/common/UnifiedJobCard';
 import UnifiedWorkerCard from '@/components/common/UnifiedWorkerCard';
 import JobSearchEmptyState from './JobSearchEmptyState';
@@ -57,7 +56,7 @@ const JobSearchResults = ({
     }
   } else {
     // For job seekers, only show jobs from their selected categories or primary category
-    const userCategories = userProfile?.categories || (userProfile?.primary_category ? [userProfile.primary_category] : []);
+    const userCategories = userProfile?.subcategories || (userProfile?.primary_category ? [userProfile.primary_category] : []);
     
     if (category) {
       const categoryKey = category.toLowerCase();

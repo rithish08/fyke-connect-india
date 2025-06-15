@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ const RoleSelection = () => {
       // Update profile with the selected role
       updateProfile({
         role: selectedRole,
-        profileComplete: selectedRole === 'employer' ? true : false
+        profile_complete: selectedRole === 'employer' ? true : false
       });
 
       // Navigate based on role

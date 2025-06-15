@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,10 +33,8 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
   }, [profileData]);
 
   const handleSave = async () => {
-    // Update in Supabase
-    const { error } = await updateProfile(editData);
-    
-    if (!error) {
+    const result = await updateProfile(editData);
+    if (!result.error) {
       onUpdate(editData);
     }
   };
