@@ -189,6 +189,7 @@ const JobSeekerHome = () => {
                   variant="outline"
                   size="sm"
                   className="px-3 h-9"
+                  title="Chat"
                 >
                   <MessageCircle className="w-4 h-4" />
                 </Button>
@@ -196,6 +197,7 @@ const JobSeekerHome = () => {
                   variant="outline"
                   size="sm"
                   className="px-3 h-9"
+                  title="Call"
                 >
                   <Phone className="w-4 h-4" />
                 </Button>

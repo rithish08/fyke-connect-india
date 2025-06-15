@@ -36,9 +36,9 @@ const EnhancedOTPInput = ({ value, onChange, onComplete }: EnhancedOTPInputProps
   };
 
   return (
-    <div className="flex justify-center space-x-3">
+    <div className="flex justify-center space-x-2 sm:space-x-3 w-full">
       {value.map((digit, index) => (
-        <div key={index} className="relative">
+        <div key={index} className="relative flex-1 max-w-[50px]">
           <Input
             ref={(el) => (inputRefs.current[index] = el)}
             type="text"
@@ -46,7 +46,7 @@ const EnhancedOTPInput = ({ value, onChange, onComplete }: EnhancedOTPInputProps
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className={`w-14 h-14 text-center text-xl font-bold border-2 rounded-xl transition-all duration-200 ${
+            className={`w-full h-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 rounded-xl transition-all duration-200 ${
               digit 
                 ? 'border-green-500 bg-green-50 scale-105' 
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'

@@ -83,7 +83,7 @@ const OTPVerification = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Phone</h1>
-            <p className="text-gray-600 text-sm leading-relaxed">
+            <p className="text-gray-600 text-sm leading-relaxed px-2">
               Enter the 6-digit code sent to<br />
               <span className="font-semibold text-gray-800">+91 {phone}</span>
             </p>
@@ -91,15 +91,17 @@ const OTPVerification = () => {
         </div>
 
         {/* OTP Card */}
-        <Card className="p-6 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
           <div className="space-y-6">
             {/* Enhanced OTP Input */}
-            <div className="flex justify-center">
-              <EnhancedOTPInput
-                value={otp}
-                onChange={setOtp}
-                onComplete={handleOTPComplete}
-              />
+            <div className="flex justify-center px-2">
+              <div className="w-full max-w-xs">
+                <EnhancedOTPInput
+                  value={otp}
+                  onChange={setOtp}
+                  onComplete={handleOTPComplete}
+                />
+              </div>
             </div>
 
             <div className="text-center">
@@ -130,7 +132,7 @@ const OTPVerification = () => {
         </Card>
 
         {/* Security Info */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">
             <span className="text-sm">🛡️</span>
             <span className="text-sm font-medium">Secure Verification</span>
