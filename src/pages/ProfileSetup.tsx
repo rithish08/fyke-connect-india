@@ -12,13 +12,15 @@ import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
 import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
+import StickyFooterButton from '@/components/ui/StickyFooterButton';
 
 const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { form, currentStep, isSubmitting, nextStep, prevStep, submitProfile } = useProfileSetupForm();
-  const [nameStep, setNameStep] = useState(0);
+  const [step, setStep] = useState<"name"|"category"|"wage"|"availability">("name");
 
+  // Initial authentication + profile state redirects
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -37,21 +39,36 @@ const ProfileSetup = () => {
       navigate('/home');
       return;
     }
-    // Always start with name step if not present
-    if (!user.name?.trim()) setNameStep(0);
-    else setNameStep(1);
+    // If name not set, go to name input, else category
+    if (!user.name?.trim()) setStep("name");
+    else setStep("category");
   }, [user, loading, navigate]);
-
-  const handleBack = () => {
-    if (currentStep > 0) prevStep();
-    else setNameStep(0);
-  };
 
   const handleNameSubmit = (name: string) => {
     updateProfile({ name: name });
-    setNameStep(1);
+    setStep("category");
   };
 
+  // Category → Wage → Availability steps, but without a stepper
+  const [interStep, setInterStep] = useState<"category"|"wage"|"availability">("category");
+
+  // Used by the sticky footer in each step
+  const goNext = async () => {
+    if (interStep === "category") {
+      const valid = await nextStep();
+      if (valid) setInterStep("wage");
+    }
+    else if (interStep === "wage") {
+      const valid = await nextStep();
+      if (valid) setInterStep("availability");
+    }
+  };
+  const goBack = () => {
+    if (interStep === "wage") setInterStep("category");
+    else if (interStep === "availability") setInterStep("wage");
+  };
+
+  // Final submission handler for complete profile
   const handleFinish = async (data: any) => {
     const success = await submitProfile(data);
     if (success) navigate('/home');
@@ -61,8 +78,8 @@ const ProfileSetup = () => {
   if (loading) return <ProfileLoading />;
   if (!user) return <ProfileRedirect />;
 
-  // Name input step
-  if (nameStep === 0) {
+  // Name step single input
+  if (step === "name") {
     return (
       <ProfileNameStep
         onSubmit={handleNameSubmit}
@@ -73,13 +90,16 @@ const ProfileSetup = () => {
 
   // Main profile setup UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 px-4 py-6">
-      <div className="w-full max-w-lg mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 px-2 py-3">
+      <div className="w-full max-w-lg mx-auto">
         {/* Floating Header */}
-        <FloatingCard variant="glow" size="sm">
+        <FloatingCard variant="glow" size="sm" className="mb-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={handleBack}
+              onClick={() => {
+                if (interStep === "category") setStep("name");
+                else goBack();
+              }}
               className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-all duration-200 hover:scale-110"
             >
               <ArrowLeft className="w-4 h-4 text-gray-600" />
@@ -89,42 +109,45 @@ const ProfileSetup = () => {
                 <BadgeCheck className="w-4 h-4 text-white" />
               </div>
               <span className="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
-                Complete Profile
+                Profile Setup
               </span>
             </div>
-            <div className="w-10 h-10"></div>
+            <div className="w-10 h-10" />
           </div>
         </FloatingCard>
 
-        {/* Step Content */}
-        <FloatingCard variant="glow" size="md" className="border-0">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(() => {})}>
-              {currentStep === 0 && (
-                <ModernCategoryStep
-                  form={form}
-                  onNext={nextStep}
-                  userName={user?.name || ""}
-                />
-              )}
-              {currentStep === 1 && (
-                <ModernMultiSalaryStep
-                  form={form}
-                  onNext={nextStep}
-                  onBack={prevStep}
-                />
-              )}
-              {currentStep === 2 && (
-                <ModernAvailabilityStep 
-                  form={form} 
-                  onBack={prevStep} 
-                  onFinish={handleFinish}
-                  isSubmitting={isSubmitting}
-                />
-              )}
-            </form>
-          </Form>
-        </FloatingCard>
+        <Form {...form}>
+          {/* Main body */}
+          <form
+            // Don't automatically submit
+            onSubmit={e => e.preventDefault()}
+            className="w-full"
+            autoComplete="off"
+          >
+            {interStep === "category" && (
+              <ModernCategoryStep
+                form={form}
+                onNext={goNext}
+                userName={user?.name || ""}
+              />
+            )}
+            {interStep === "wage" && (
+              <ModernMultiSalaryStep
+                form={form}
+                onNext={goNext}
+                onBack={goBack}
+              />
+            )}
+            {interStep === "availability" && (
+              <ModernAvailabilityStep 
+                form={form} 
+                onBack={goBack} 
+                onFinish={handleFinish}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </form>
+        </Form>
       </div>
     </div>
   );
