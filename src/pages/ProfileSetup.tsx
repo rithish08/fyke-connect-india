@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -52,9 +51,11 @@ const ProfileSetup = () => {
     setNameStep(1);
   };
 
-  const handleFinish = async (data: any) => {
+  const handleFinish = async (data: ProfileSetupFormData) => {
     const success = await submitProfile(data);
-    if (success) navigate('/home');
+    if (success) {
+      navigate('/home');
+    }
     return success;
   };
 
@@ -74,9 +75,9 @@ const ProfileSetup = () => {
   // Main profile setup UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 px-4 py-6">
-      <div className="w-full max-w-lg mx-auto space-y-6">
+      <div className="w-full max-w-lg mx-auto">
         {/* Floating Header */}
-        <FloatingCard variant="glow" size="sm">
+        <FloatingCard variant="glow" size="sm" className="mb-6">
           <div className="flex items-center justify-between">
             <button
               onClick={handleBack}
@@ -97,34 +98,32 @@ const ProfileSetup = () => {
         </FloatingCard>
 
         {/* Step Content */}
-        <FloatingCard variant="glow" size="md" className="border-0">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(() => {})}>
-              {currentStep === 0 && (
-                <ModernCategoryStep
-                  form={form}
-                  onNext={nextStep}
-                  userName={user?.name || ""}
-                />
-              )}
-              {currentStep === 1 && (
-                <ModernMultiSalaryStep
-                  form={form}
-                  onNext={nextStep}
-                  onBack={prevStep}
-                />
-              )}
-              {currentStep === 2 && (
-                <ModernAvailabilityStep 
-                  form={form} 
-                  onBack={prevStep} 
-                  onFinish={handleFinish}
-                  isSubmitting={isSubmitting}
-                />
-              )}
-            </form>
-          </Form>
-        </FloatingCard>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(() => {})}>
+            {currentStep === 0 && (
+              <ModernCategoryStep
+                form={form}
+                onNext={nextStep}
+                userName={user?.name || ""}
+              />
+            )}
+            {currentStep === 1 && (
+              <ModernMultiSalaryStep
+                form={form}
+                onNext={nextStep}
+                onBack={prevStep}
+              />
+            )}
+            {currentStep === 2 && (
+              <ModernAvailabilityStep 
+                form={form} 
+                onBack={prevStep} 
+                onFinish={handleFinish}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </form>
+        </Form>
       </div>
     </div>
   );
