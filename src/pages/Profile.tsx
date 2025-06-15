@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import { 
   User, MapPin, Phone, Mail, Star, Award, Settings, 
   Edit, Camera, Plus, FileText, CheckCircle, Clock,
@@ -349,6 +351,204 @@ const Profile = () => {
       <BottomNavigation />
     </div>
   );
+
+  // Helper functions for handlers
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const { name, value } = e.target;
+    setProfileData(prev => ({ ...prev, [name]: value }));
+  }
+
+  function handleSkillsChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setProfileData(prev => ({ ...prev, skills: value.split(',').map(s => s.trim()) }));
+  }
+
+  function handleCategoriesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setProfileData(prev => ({ ...prev, categories: value.split(',').map(c => c.trim()) }));
+  }
+
+  function handleEditClick() {
+    setIsEditing(true);
+  }
+
+  function handleCancelClick() {
+    setIsEditing(false);
+    // Reset form data to original values
+    setProfileData({
+      name: userProfile?.name || '',
+      email: userProfile?.email || '',
+      location: userProfile?.location || '',
+      phone: userProfile?.phone || '',
+      bio: userProfile?.bio || '',
+      skills: userProfile?.skills || [],
+      categories: userProfile?.categories || []
+    });
+  }
+
+  function handleSaveClick() {
+    // In a real app, this would update the profile data in the database
+    setIsEditing(false);
+    console.log('Saving profile data:', profileData);
+    // Here you would typically call an API to update the profile
+  }
+
+  async function handleLogout() {
+    setShowLogoutConfirmation(false);
+    await logout();
+  }
+
+  function EditProfileSection() {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Edit Profile</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input 
+              type="text" 
+              id="name" 
+              name="name" 
+              value={profileData.name} 
+              onChange={handleInputChange} 
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              type="email" 
+              id="email" 
+              name="email" 
+              value={profileData.email} 
+              onChange={handleInputChange} 
+            />
+          </div>
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input 
+              type="text" 
+              id="location" 
+              name="location" 
+              value={profileData.location} 
+              onChange={handleInputChange} 
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              value={profileData.phone} 
+              onChange={handleInputChange} 
+            />
+          </div>
+          <div>
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea 
+              id="bio" 
+              name="bio" 
+              value={profileData.bio} 
+              onChange={handleInputChange} 
+            />
+          </div>
+          <div>
+            <Label htmlFor="skills">Skills (comma separated)</Label>
+            <Input 
+              type="text" 
+              id="skills" 
+              name="skills" 
+              value={profileData.skills.join(', ')} 
+              onChange={handleSkillsChange} 
+            />
+          </div>
+          <div>
+            <Label htmlFor="categories">Categories (comma separated)</Label>
+            <Input 
+              type="text" 
+              id="categories" 
+              name="categories" 
+              value={profileData.categories.join(', ')} 
+              onChange={handleCategoriesChange} 
+            />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function AccountSettings() {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Settings className="w-5 h-5" />
+            <span>Account Settings</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span>Notifications</span>
+            <Switch />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Dark Mode</span>
+            <Switch />
+          </div>
+          <Separator />
+          <Button variant="destructive" className="w-full justify-start" onClick={() => setShowLogoutConfirmation(true)}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function VerificationStatus() {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="w-5 h-5" />
+            <span>Verification Status</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span>Account Verified</span>
+            {userProfile?.verified ? (
+              <CheckCircle className="w-5 h-5 text-green-500" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+            )}
+          </div>
+          
+          <div className="text-sm text-gray-500">
+            {userProfile?.verified ? (
+              <>
+                <CheckCircle className="w-4 h-4 text-green-500 inline-block mr-1" />
+                Your account is verified.
+              </>
+            ) : (
+              <>
+                <Clock className="w-4 h-4 text-yellow-500 inline-block mr-1" />
+                Verification pending.
+              </>
+            )}
+          </div>
+          
+          {!userProfile?.verified && (
+            <Button className="w-full" variant="outline">
+              Start Verification Process
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 };
 
 export default Profile;

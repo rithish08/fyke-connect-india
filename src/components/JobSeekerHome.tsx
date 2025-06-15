@@ -15,7 +15,7 @@ import { useGlobalToast } from '@/hooks/useGlobalToast';
 
 const JobSeekerHome = () => {
   const { userProfile, updateProfile } = useAuth();
-  const { jobs, isLoading } = useJobSeekerJobs();
+  const { jobs, loading } = useJobSeekerJobs();
   const { canCommunicate, addJobApplication } = useCommunication();
   const navigate = useNavigate();
   const { showSuccess, showError } = useGlobalToast();
@@ -70,11 +70,11 @@ const JobSeekerHome = () => {
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return <JobSeekerLoadingState />;
   }
 
-  if (!userProfile?.primaryCategory && !userProfile?.profile_complete) {
+  if (!userProfile?.primary_category && !userProfile?.profile_complete) {
     return (
       <div className="space-y-6 px-4 py-6">
         <JobSeekerHomeHeader userPrimaryCategory={undefined} />
@@ -94,7 +94,7 @@ const JobSeekerHome = () => {
 
   return (
     <div className="space-y-6 px-4 py-6">
-      <JobSeekerHomeHeader userPrimaryCategory={userProfile?.primaryCategory} />
+      <JobSeekerHomeHeader userPrimaryCategory={userProfile?.primary_category} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">

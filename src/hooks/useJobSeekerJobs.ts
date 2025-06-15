@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockJobs } from '@/data/mockJobs';
@@ -97,7 +98,9 @@ export const useJobSeekerJobs = () => {
     const categoryKey = userProfile.primary_category.toLowerCase();
     const categoryJobs = mockJobs[categoryKey] || [];
 
-    let result = [...categoryJobs];
+    // Ensure categoryJobs is always an array
+    const jobsArray = Array.isArray(categoryJobs) ? categoryJobs : [];
+    let result = [...jobsArray];
 
     if (urgentOnly) {
       result = result.filter(job => job.urgent);

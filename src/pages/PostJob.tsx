@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,6 +61,8 @@ const PostJob = () => {
     navigate('/my-jobs');
   };
 
+  const selectedCategory = categories.find(cat => cat.name === formData.category);
+
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,11 +112,11 @@ const PostJob = () => {
                 >
                   <option value="">Select a category</option>
                   {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    <option key={cat.name} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
               </div>
-              {formData.category && (
+              {formData.category && selectedCategory && (
                 <div>
                   <Label htmlFor="subcategory">Subcategory</Label>
                   <select
@@ -125,8 +128,8 @@ const PostJob = () => {
                     required
                   >
                     <option value="">Select a subcategory</option>
-                    {categories.find(cat => cat.id === formData.category)?.subcategories.map(subcat => (
-                      <option key={subcat.id} value={subcat.id}>{subcat.name}</option>
+                    {selectedCategory.subcategories.map(subcat => (
+                      <option key={subcat} value={subcat}>{subcat}</option>
                     ))}
                   </select>
                 </div>
