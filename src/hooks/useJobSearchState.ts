@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockWorkers, mockJobs } from '@/data/mockData';
@@ -18,7 +17,7 @@ interface FilterState {
 type ViewState = 'category' | 'subcategory' | 'results';
 
 export const useJobSearchState = () => {
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const { translateCategory } = useLocalization();
   const [currentView, setCurrentView] = useState<ViewState>('category');
   const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string} | null>(null);
@@ -40,7 +39,7 @@ export const useJobSearchState = () => {
 
   const loadResults = () => {
     setTimeout(() => {
-      if (user?.role === 'employer') {
+      if (userProfile?.role === 'employer') {
         // Enhanced worker data loading with better filtering
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
         let categoryWorkers: any[] = [];
@@ -101,12 +100,12 @@ export const useJobSearchState = () => {
 
   // For job seekers, auto-navigate to their category
   useEffect(() => {
-    if (user?.role === 'jobseeker' && user?.primaryCategory && currentView === 'category') {
-      const categoryId = user.primaryCategory.toLowerCase();
-      setSelectedCategory({ id: categoryId, name: user.primaryCategory });
+    if (userProfile?.role === 'jobseeker' && userProfile?.primary_category && currentView === 'category') {
+      const categoryId = userProfile.primary_category.toLowerCase();
+      setSelectedCategory({ id: categoryId, name: userProfile.primary_category });
       setCurrentView('subcategory');
     }
-  }, [user, currentView]);
+  }, [userProfile, currentView]);
 
   return {
     currentView,

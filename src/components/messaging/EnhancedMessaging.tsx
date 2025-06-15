@@ -12,6 +12,7 @@ interface Message {
   id: string;
   content: string;
   sender_id: string;
+  conversation_id: string;
   created_at: string;
   profiles?: {
     name: string;

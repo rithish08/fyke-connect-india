@@ -30,7 +30,7 @@ const JobSearchResults = ({
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const { showSuccess } = useGlobalToast();
 
   // Enhanced mock data integration with user-specific filtering
@@ -57,7 +57,7 @@ const JobSearchResults = ({
     }
   } else {
     // For job seekers, only show jobs from their selected categories or primary category
-    const userCategories = user?.categories || (user?.primaryCategory ? [user.primaryCategory] : []);
+    const userCategories = userProfile?.categories || (userProfile?.primary_category ? [userProfile.primary_category] : []);
     
     if (category) {
       const categoryKey = category.toLowerCase();

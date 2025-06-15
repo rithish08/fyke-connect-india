@@ -1,409 +1,351 @@
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import EnhancedProfileInfo from '@/components/profile/EnhancedProfileInfo';
-import ProfileSkills from '@/components/profile/ProfileSkills';
-import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileVerification from '@/components/profile/ProfileVerification';
-import ProfileSettings from '@/components/profile/ProfileSettings';
-import BannerAd from '@/components/BannerAd';
-import ProfileProgress from '@/components/ProfileProgress';
-import BottomNavigation from '@/components/BottomNavigation';
-import { SkeletonProfileCard } from '@/components/ui/skeleton-cards';
-import { Card } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MapPin, Clock, User, Eye, Edit, Trash2, Briefcase, Star, Settings, PlusCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { 
+  User, MapPin, Phone, Mail, Star, Award, Settings, 
+  Edit, Camera, Plus, FileText, CheckCircle, Clock,
+  Shield, AlertTriangle, LogOut 
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import BottomNavigation from '@/components/BottomNavigation';
 
-const ProfileCategoryManager = ({
-  categories,
-  handleAdd,
-  handleRemove,
-}: {
+interface ProfileData {
+  name: string;
+  email: string;
+  location: string;
+  phone: string;
+  bio: string;
+  skills: string[];
   categories: string[];
-  handleAdd: () => void;
-  handleRemove: (idx: number) => void;
-}) => {
-  return (
-    <Card className="p-6">
-      <h3 className="font-semibold text-lg mb-4 flex items-center">
-        <Settings className="w-5 h-5 mr-2" />
-        Work Categories
-      </h3>
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category: string, index: number) => (
-            <Badge key={index} variant="secondary" className="px-3 py-1 flex items-center gap-2">
-              {category}
-              <button
-                onClick={() => handleRemove(index)}
-                className="ml-1 text-red-500 hover:text-red-700 font-bold"
-                aria-label="Remove category"
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
-        </div>
-        {categories.length < 3 && (
-          <Button
-            variant="outline"
-            className="w-full flex gap-2 items-center justify-center"
-            onClick={handleAdd}
-            type="button"
-          >
-            <PlusCircle className="w-4 h-4" />
-            {categories.length === 0
-              ? "Add Your First Category"
-              : categories.length === 1
-                ? "Add Second Category"
-                : "Add Third Category"}
-          </Button>
-        )}
-        <p className="text-sm text-gray-500">
-          You can select up to 3 work categories to show your expertise areas.
-        </p>
-      </div>
-    </Card>
-  );
-};
+}
 
 const Profile = () => {
-  const { user, updateProfile, logout } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const { userProfile, logout } = useAuth();
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    location: user?.location || 'Mumbai, Maharashtra',
-    experience: '2 years',
-    bio: user?.bio || '',
-    skills: user?.skills || ['Construction', 'Manual Labor', 'Team Work'],
-    categories: user?.categories || []
+    name: userProfile?.name || '',
+    email: userProfile?.email || '',
+    location: userProfile?.location || '',
+    phone: userProfile?.phone || '',
+    bio: userProfile?.bio || '',
+    skills: userProfile?.skills || [],
+    categories: userProfile?.categories || []
   });
-  const [showBanner, setShowBanner] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const isEmployer = user?.role === 'employer';
-
-  const handleProfileUpdate = async (updates: any) => {
-    setIsLoading(true);
-    try {
-      updateProfile(updates);
-      setProfileData(prev => ({ ...prev, ...updates }));
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved successfully"
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully"
+  const handleSkillsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setProfileData(prev => ({ ...prev, skills: value.split(',').map(s => s.trim()) }));
+  };
+
+  const handleCategoriesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setProfileData(prev => ({ ...prev, categories: value.split(',').map(c => c.trim()) }));
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    // Reset form data to original values
+    setProfileData({
+      name: userProfile?.name || '',
+      email: userProfile?.email || '',
+      location: userProfile?.location || '',
+      phone: userProfile?.phone || '',
+      bio: userProfile?.bio || '',
+      skills: userProfile?.skills || [],
+      categories: userProfile?.categories || []
     });
   };
 
-  const handleAddCategory = () => {
-    navigate('/profile-setup');
-  };
-  
-  const handleRemoveCategory = (idx: number) => {
-    const newCategories = profileData.categories.filter((_: any, i: number) => i !== idx);
-    handleProfileUpdate({ categories: newCategories });
+  const handleSaveClick = () => {
+    // In a real app, this would update the profile data in the database
+    setIsEditing(false);
+    console.log('Saving profile data:', profileData);
+    // Here you would typically call an API to update the profile
   };
 
-  // Show loading state
-  if (!user || isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="max-w-xl mx-auto pt-8 px-4 space-y-6">
-          <div className="flex flex-col items-center">
-            <div className="w-28 h-28 bg-gray-200 rounded-full animate-pulse mb-4" />
-            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse mb-2" />
-            <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
-          </div>
-          <SkeletonProfileCard />
-          <SkeletonProfileCard />
-          <SkeletonProfileCard />
-        </div>
-        <BottomNavigation />
-      </div>
-    );
-  }
-
-  // Profile completeness calculation
-  const hasName = !!profileData.name;
-  const hasEmail = !!profileData.email;
-  const hasPhoto = true;
-  const hasSkills = profileData.skills && profileData.skills.length > 0;
-  const hasLocation = !!profileData.location;
-  const hasBio = !!profileData.bio;
-  const fields = [hasName, hasEmail, hasPhoto, hasSkills, hasLocation, hasBio];
-  const completePercent = Math.round((fields.filter(Boolean).length / fields.length) * 100);
-
-  // Mock data for employer statistics
-  const employerStats = {
-    jobsPosted: 12,
-    activeJobs: 3,
-    totalHires: 45,
-    avgRating: 4.7,
-    responseRate: 92
+  const handleLogout = async () => {
+    setShowLogoutConfirmation(false);
+    await logout();
   };
 
-  // Mock data for job seeker statistics  
-  const jobSeekerStats = {
-    jobsApplied: 23,
-    interviewsScheduled: 5,
-    jobsCompleted: 15,
-    avgRating: 4.5,
-    responseRate: 89
-  };
-
-  const EmployerProfileContent = () => (
-    <div className="space-y-4">
-      {/* Employer Stats */}
-      <Card className="p-6">
-        <h3 className="font-semibold text-lg mb-4 flex items-center">
-          <Briefcase className="w-5 h-5 mr-2" />
-          Employer Dashboard
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{employerStats.jobsPosted}</div>
-            <div className="text-sm text-gray-600">Jobs Posted</div>
+  const ProfileHeader = () => (
+    <Card className="mb-6">
+      <CardContent className="pt-6">
+        <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+          <div className="relative">
+            <Avatar className="w-32 h-32 border-4 border-white shadow-md">
+              <AvatarImage src="/placeholder.svg" alt={profileData.name} />
+              <AvatarFallback className="bg-muted">
+                <User className="w-10 h-10 text-gray-500" />
+              </AvatarFallback>
+            </Avatar>
+            {isEditing && (
+              <Button size="icon" variant="secondary" className="absolute bottom-0 right-0 rounded-full">
+                <Camera className="w-4 h-4" />
+              </Button>
+            )}
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{employerStats.activeJobs}</div>
-            <div className="text-sm text-gray-600">Active Jobs</div>
-          </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{employerStats.totalHires}</div>
-            <div className="text-sm text-gray-600">Total Hires</div>
-          </div>
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <div className="flex items-center justify-center space-x-1">
-              <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-              <span className="text-2xl font-bold text-yellow-600">{employerStats.avgRating}</span>
+          
+          <div className="flex-1 text-center md:text-left">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-2xl font-bold">{profileData.name}</h1>
+              {isEditing ? (
+                <div className="space-x-2">
+                  <Button size="sm" onClick={handleSaveClick}>Save</Button>
+                  <Button size="sm" variant="ghost" onClick={handleCancelClick}>Cancel</Button>
+                </div>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={handleEditClick}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
             </div>
-            <div className="text-sm text-gray-600">Avg Rating</div>
+            
+            <div className="space-y-2 text-gray-600">
+              <div className="flex items-center justify-center md:justify-start space-x-1">
+                <MapPin className="w-4 h-4" />
+                <span>{profileData.location}</span>
+              </div>
+              <div className="flex items-center justify-center md:justify-start space-x-1">
+                <Phone className="w-4 h-4" />
+                <span>{profileData.phone}</span>
+              </div>
+              <div className="flex items-center justify-center md:justify-start space-x-1">
+                <Mail className="w-4 h-4" />
+                <span>{profileData.email}</span>
+              </div>
+            </div>
+
+            <p className="mt-3 text-gray-700">{profileData.bio}</p>
+            
+            <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
+              {profileData.skills.map((skill, index) => (
+                <Badge key={index} variant="secondary">{skill}</Badge>
+              ))}
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start">
+              {profileData.categories.map((category, index) => (
+                <Badge key={index} variant="outline">{category}</Badge>
+              ))}
+            </div>
           </div>
         </div>
-      </Card>
-
-      {/* Quick Actions for Employers */}
-      <Card className="p-6">
-        <h3 className="font-semibold text-lg mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <Button onClick={() => navigate('/post-job')} className="h-12">
-            <Plus className="w-4 h-4 mr-2" />
-            Post New Job
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/my-jobs')} className="h-12">
-            <Eye className="w-4 h-4 mr-2" />
-            View My Jobs
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/search')} className="h-12">
-            <User className="w-4 h-4 mr-2" />
-            Find Workers
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/messages')} className="h-12">
-            Messages
-          </Button>
-        </div>
-      </Card>
-
-      {/* Work Category Management */}
-      <ProfileCategoryManager
-        categories={profileData.categories}
-        handleAdd={handleAddCategory}
-        handleRemove={handleRemoveCategory}
-      />
-
-      {/* Company Information */}
-      <Card className="p-6">
-        <h3 className="font-semibold text-lg mb-4">Company Information</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Company Name</span>
-            <span className="font-medium">{profileData.name || 'Not specified'}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Business Type</span>
-            <span className="font-medium">Construction & Services</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Established</span>
-            <span className="font-medium">2020</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Response Rate</span>
-            <Badge variant="secondary">{employerStats.responseRate}%</Badge>
-          </div>
-        </div>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 
-  const JobSeekerProfileContent = () => (
-    <div className="space-y-4">
-      {/* Job Seeker Stats */}
-      <Card className="p-6">
-        <h3 className="font-semibold text-lg mb-4 flex items-center">
-          <User className="w-5 h-5 mr-2" />
-          Job Seeker Dashboard
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{jobSeekerStats.jobsApplied}</div>
-            <div className="text-sm text-gray-600">Jobs Applied</div>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{jobSeekerStats.interviewsScheduled}</div>
-            <div className="text-sm text-gray-600">Interviews</div>
-          </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{jobSeekerStats.jobsCompleted}</div>
-            <div className="text-sm text-gray-600">Jobs Completed</div>
-          </div>
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <div className="flex items-center justify-center space-x-1">
-              <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-              <span className="text-2xl font-bold text-yellow-600">{jobSeekerStats.avgRating}</span>
-            </div>
-            <div className="text-sm text-gray-600">Avg Rating</div>
-          </div>
+  const EditProfileSection = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Edit Profile</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label htmlFor="name">Name</Label>
+          <Input 
+            type="text" 
+            id="name" 
+            name="name" 
+            value={profileData.name} 
+            onChange={handleInputChange} 
+          />
         </div>
-      </Card>
-
-      {/* Quick Actions for Job Seekers */}
-      <Card className="p-6">
-        <h3 className="font-semibold text-lg mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <Button onClick={() => navigate('/search')} className="h-12">
-            Search Jobs
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/my-jobs')} className="h-12">
-            <Eye className="w-4 h-4 mr-2" />
-            My Applications
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/messages')} className="h-12">
-            Messages
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/profile-setup')} className="h-12">
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Skills
-          </Button>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input 
+            type="email" 
+            id="email" 
+            name="email" 
+            value={profileData.email} 
+            onChange={handleInputChange} 
+          />
         </div>
-      </Card>
+        <div>
+          <Label htmlFor="location">Location</Label>
+          <Input 
+            type="text" 
+            id="location" 
+            name="location" 
+            value={profileData.location} 
+            onChange={handleInputChange} 
+          />
+        </div>
+        <div>
+          <Label htmlFor="phone">Phone</Label>
+          <Input 
+            type="tel" 
+            id="phone" 
+            name="phone" 
+            value={profileData.phone} 
+            onChange={handleInputChange} 
+          />
+        </div>
+        <div>
+          <Label htmlFor="bio">Bio</Label>
+          <Textarea 
+            id="bio" 
+            name="bio" 
+            value={profileData.bio} 
+            onChange={handleInputChange} 
+          />
+        </div>
+        <div>
+          <Label htmlFor="skills">Skills (comma separated)</Label>
+          <Input 
+            type="text" 
+            id="skills" 
+            name="skills" 
+            value={profileData.skills.join(', ')} 
+            onChange={handleSkillsChange} 
+          />
+        </div>
+        <div>
+          <Label htmlFor="categories">Categories (comma separated)</Label>
+          <Input 
+            type="text" 
+            id="categories" 
+            name="categories" 
+            value={profileData.categories.join(', ')} 
+            onChange={handleCategoriesChange} 
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
 
-      {/* Categories and Skills */}
-      <ProfileCategoryManager
-        categories={profileData.categories}
-        handleAdd={handleAddCategory}
-        handleRemove={handleRemoveCategory}
-      />
+  const AccountSettings = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Settings className="w-5 h-5" />
+          <span>Account Settings</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span>Notifications</span>
+          <Switch />
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Dark Mode</span>
+          <Switch />
+        </div>
+        <Separator />
+        <Button variant="destructive" className="w-full justify-start" onClick={() => setShowLogoutConfirmation(true)}>
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </Button>
+      </CardContent>
+    </Card>
+  );
 
-      {/* Skills & Experience */}
-      <ProfileSkills
-        userRole={user.role}
-        skills={profileData.skills}
-        isEditing={false}
-      />
-    </div>
+  const VerificationStatus = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Shield className="w-5 h-5" />
+          <span>Verification Status</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span>Account Verified</span>
+          {userProfile?.verified ? (
+            <CheckCircle className="w-5 h-5 text-green-500" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 text-yellow-500" />
+          )}
+        </div>
+        
+        <div className="text-sm text-gray-500">
+          {userProfile?.verified ? (
+            <>
+              <CheckCircle className="w-4 h-4 text-green-500 inline-block mr-1" />
+              Your account is verified.
+            </>
+          ) : (
+            <>
+              <Clock className="w-4 h-4 text-yellow-500 inline-block mr-1" />
+              Verification pending.
+            </>
+          )}
+        </div>
+        
+        {!userProfile?.verified && (
+          <Button className="w-full" variant="outline">
+            Start Verification Process
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
-      <ProfileProgress />
-      
-      {/* Profile Header */}
-      <div className="flex flex-col items-center pt-8 pb-4 px-4">
-        <ProfileHeader
-          name={profileData.name}
-          phone={user.phone}
-          role={user.role}
-          verified={!!user.verified}
-        />
+    <div className="min-h-screen bg-gray-100 py-6">
+      <div className="container max-w-4xl mx-auto px-4">
+        <ProfileHeader />
         
-        {/* Profile Completion Ring */}
-        <div className="flex flex-col items-center mt-4">
-          <div className="relative w-20 h-20 flex items-center justify-center mb-2">
-            <svg className="absolute top-0 left-0" width="80" height="80">
-              <circle
-                cx="40"
-                cy="40"
-                r="36"
-                stroke="#F2F3F6"
-                strokeWidth="7"
-                fill="none"
-              />
-              <circle
-                cx="40"
-                cy="40"
-                r="36"
-                stroke="#254778"
-                strokeWidth="7"
-                fill="none"
-                strokeDasharray={2 * Math.PI * 36}
-                strokeDashoffset={2 * Math.PI * 36 * (1 - completePercent / 100)}
-                style={{ transition: 'stroke-dashoffset 0.7s' }}
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="text-lg font-medium z-10 text-[#254778]">
-              {completePercent}%
-            </span>
-          </div>
-          <span className="text-xs text-gray-500">
-            {completePercent}% complete
-          </span>
-        </div>
-      </div>
-
-      {/* Profile Sections */}
-      <div className="w-full max-w-xl mx-auto space-y-4 px-4">
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+        <Tabs defaultValue="account" className="space-y-4">
+          <TabsList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="verification">Verification</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview" className="space-y-4 mt-4">
-            <EnhancedProfileInfo
-              profileData={profileData}
-              userRole={user.role}
-              onUpdate={handleProfileUpdate}
-            />
-            
-            {isEmployer ? <EmployerProfileContent /> : <JobSeekerProfileContent />}
-            
-            <ProfileStats userRole={user.role} />
-            <ProfileVerification verified={!!user.verified} />
+          <TabsContent value="account" className="space-y-4">
+            {isEditing ? <EditProfileSection /> : null}
           </TabsContent>
           
-          <TabsContent value="settings" className="mt-4">
-            <ProfileSettings onLogout={handleLogout} />
+          <TabsContent value="settings" className="space-y-4">
+            <AccountSettings />
+          </TabsContent>
+          
+          <TabsContent value="verification" className="space-y-4">
+            <VerificationStatus />
           </TabsContent>
         </Tabs>
+
+        {/* Logout Confirmation Dialog */}
+        {showLogoutConfirmation && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <h3 className="text-lg font-medium text-gray-800">Logout Confirmation</h3>
+              <div className="mt-2 text-gray-600">
+                Are you sure you want to logout?
+              </div>
+              <div className="mt-4 flex justify-end space-x-2">
+                <Button variant="ghost" onClick={() => setShowLogoutConfirmation(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      
       <BottomNavigation />
     </div>
   );
