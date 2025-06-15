@@ -4,7 +4,10 @@ import { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
-import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
+import { categories } from '@/data/categories';
+import { Badge } from '@/components/ui/badge';
+import { AestheticCard } from '@/components/ui/aesthetic-card';
+import { CheckCircle, X } from 'lucide-react';
 
 interface ModernCategoryStepProps {
   form: UseFormReturn<ProfileSetupFormData>;
@@ -12,46 +15,38 @@ interface ModernCategoryStepProps {
 }
 
 const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext }) => {
-  const [selectedCategories, setSelectedCategories] = useState<{ [catId: string]: string[] }>({});
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
+    form.getValues('subcategories') || []
+  );
 
-  const category = form.watch('category');
-  const subcategories = form.watch('subcategories');
-
-  // Initialize selectedCategories from form data
-  React.useEffect(() => {
-    if (category && subcategories?.length > 0) {
-      setSelectedCategories({
-        [category.toLowerCase()]: subcategories
-      });
-    }
-  }, [category, subcategories]);
-
-  const handleCategorySelect = (categoryId: string) => {
-    // This will open the subcategory popup in EnhancedCategoryModal
-  };
-
-  const handleSubcategorySelect = (categoryId: string, subcategoriesSelected: string[]) => {
-    setSelectedCategories(prev => ({
-      ...prev,
-      [categoryId]: subcategoriesSelected
-    }));
-
-    // Update form with the selected category and subcategories
-    const categoryName = categoryId.charAt(0).toUpperCase() + categoryId.slice(1);
-    form.setValue('category', categoryName);
-    form.setValue('subcategories', subcategoriesSelected);
-  };
-
-  const handleClear = (categoryId: string) => {
-    setSelectedCategories(prev => {
-      const copy = { ...prev };
-      delete copy[categoryId];
-      return copy;
+  const handleSubcategoryToggle = (subcategory: string) => {
+    setSelectedSubcategories(prev => {
+      const isSelected = prev.includes(subcategory);
+      let newSelection;
+      
+      if (isSelected) {
+        // Remove if already selected
+        newSelection = prev.filter(sub => sub !== subcategory);
+      } else {
+        // Add if not selected and under limit
+        if (prev.length < 3) {
+          newSelection = [...prev, subcategory];
+        } else {
+          // Replace last selection if at limit
+          newSelection = [...prev.slice(0, 2), subcategory];
+        }
+      }
+      
+      // Update form
+      form.setValue('subcategories', newSelection);
+      return newSelection;
     });
+  };
 
-    // Clear form data
-    form.setValue('category', '');
-    form.setValue('subcategories', []);
+  const removeSubcategory = (subcategory: string) => {
+    const newSelection = selectedSubcategories.filter(sub => sub !== subcategory);
+    setSelectedSubcategories(newSelection);
+    form.setValue('subcategories', newSelection);
   };
 
   const handleNext = async () => {
@@ -61,31 +56,95 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext })
     }
   };
 
-  // Check if any category with subcategories is selected
-  const hasValidSelection = Object.values(selectedCategories).some(subs => subs.length > 0);
-
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          Choose Your Work Category
+          Choose Your Specializations
         </h2>
-        <p className="text-gray-600">Select what type of gig work you do and your specializations</p>
+        <p className="text-gray-600">Select 1-3 specializations from any category that match your skills</p>
       </div>
+
+      {/* Selected Subcategories Display */}
+      {selectedSubcategories.length > 0 && (
+        <AestheticCard variant="glass" className="p-4 bg-blue-50 border-blue-200">
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-900">Selected Specializations ({selectedSubcategories.length}/3)</h3>
+            <div className="flex flex-wrap gap-2">
+              {selectedSubcategories.map(sub => (
+                <Badge 
+                  key={sub} 
+                  variant="secondary" 
+                  className="bg-blue-100 text-blue-800 flex items-center gap-1 pr-1"
+                >
+                  {sub}
+                  <button
+                    type="button"
+                    onClick={() => removeSubcategory(sub)}
+                    className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </AestheticCard>
+      )}
 
       <FormField
         control={form.control}
-        name="category"
+        name="subcategories"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="sr-only">Work Category</FormLabel>
+            <FormLabel className="sr-only">Specializations</FormLabel>
             <FormControl>
-              <EnhancedCategoryModal
-                selectedCategories={selectedCategories}
-                onCategorySelect={handleCategorySelect}
-                onSubcategorySelect={handleSubcategorySelect}
-                onClear={handleClear}
-              />
+              <div className="space-y-6">
+                {categories.map((category) => (
+                  <AestheticCard key={category.name} variant="elevated" className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg`}>
+                          <span className="text-white text-xl">{category.icon}</span>
+                        </div>
+                        <h3 className="font-bold text-gray-900">{category.name}</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-2">
+                        {category.subcategories.map((subcategory) => {
+                          const isSelected = selectedSubcategories.includes(subcategory);
+                          const isDisabled = !isSelected && selectedSubcategories.length >= 3;
+                          
+                          return (
+                            <button
+                              key={subcategory}
+                              type="button"
+                              onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
+                              disabled={isDisabled}
+                              className={`p-3 rounded-lg text-left transition-all duration-200 border ${
+                                isSelected 
+                                  ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500' 
+                                  : isDisabled
+                                    ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
+                                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className={`font-medium ${isSelected ? 'text-blue-900' : isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
+                                  {subcategory}
+                                </span>
+                                {isSelected && (
+                                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </AestheticCard>
+                ))}
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -96,10 +155,13 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext })
       <Button
         type="button"
         onClick={handleNext}
-        disabled={!hasValidSelection}
+        disabled={selectedSubcategories.length === 0}
         className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold shadow-lg"
       >
-        Continue to Salary Setup
+        {selectedSubcategories.length === 0 
+          ? 'Select at least 1 specialization' 
+          : `Continue with ${selectedSubcategories.length} specialization${selectedSubcategories.length !== 1 ? 's' : ''}`
+        }
       </Button>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,12 +16,12 @@ import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
 
 const STEPS = [
   {
-    title: "Complete Your Profile",
-    description: "Add your name and basic information"
+    title: "Enter Your Name",
+    description: "Add your name to complete your profile"
   },
   {
-    title: "Choose Your Category",
-    description: "Select what type of work you do and your specializations"
+    title: "Choose Specializations",
+    description: "Select 1-3 specializations that match your skills"
   },
   {
     title: "Set Your Rate",
@@ -37,7 +38,6 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const { form, currentStep, isSubmitting, nextStep, prevStep, submitProfile } = useProfileSetupForm();
   const [nameStep, setNameStep] = useState(0);
-  const [initialName, setInitialName] = useState('');
 
   useEffect(() => {
     console.log('[ProfileSetup] Auth state:', { user: !!user, loading, role: user?.role, profileComplete: user?.profileComplete });
@@ -71,12 +71,8 @@ const ProfileSetup = () => {
       return;
     }
 
-    // Check if user needs to complete name
+    // Check if user needs to complete name - always start with name step for profile setup
     if (!user.name?.trim()) {
-      const storedName = localStorage.getItem('fyke_name') || '';
-      if (storedName?.trim()) {
-        setInitialName(storedName.trim());
-      }
       setNameStep(0);
     } else {
       setNameStep(1); // Skip name step if already has name
@@ -121,7 +117,7 @@ const ProfileSetup = () => {
     return (
       <ProfileNameStep
         onSubmit={handleNameSubmit}
-        initialName={initialName}
+        initialName=""
       />
     );
   }

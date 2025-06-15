@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,45 +7,40 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Phone, MessageSquare, User } from "lucide-react";
+import { Phone, MessageSquare } from "lucide-react";
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
+
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
-  const [name, setName] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
-  const {
-    t
-  } = useLocalization();
-  const {
-    login
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { t } = useLocalization();
+  const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [resendTimer]);
+
   const handleSendOTP = async () => {
-    if (phone.length !== 10 || !name.trim()) {
+    if (phone.length !== 10) {
       toast({
         title: "Invalid Input",
-        description: "Please enter your name and a valid 10-digit phone number",
+        description: "Please enter a valid 10-digit phone number",
         variant: "destructive"
       });
       return;
     }
     setLoading(true);
     try {
-      // Store user data for later use
+      // Store phone for later use
       localStorage.setItem('fyke_phone', phone);
-      localStorage.setItem('fyke_name', name.trim());
 
       // Simulate sending OTP
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -64,6 +60,7 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
+
   const handleOTPComplete = async (otpCode: string) => {
     if (otpCode.length !== 6) {
       toast({
@@ -94,6 +91,7 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
+
   const handleResend = () => {
     setResendTimer(60);
     toast({
@@ -101,12 +99,15 @@ const LoginScreen = () => {
       description: "New verification code sent to your phone"
     });
   };
+
   const handleBack = () => {
     setShowOTP(false);
     setOtp(['', '', '', '', '', '']);
   };
+
   if (showOTP) {
-    return <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           {/* Header */}
           <div className="text-center space-y-4">
@@ -140,11 +141,15 @@ const LoginScreen = () => {
                   ← Change Number
                 </button>
                 
-                {resendTimer > 0 ? <p className="text-sm text-gray-400">
+                {resendTimer > 0 ? (
+                  <p className="text-sm text-gray-400">
                     Resend in {resendTimer}s
-                  </p> : <button onClick={handleResend} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                  </p>
+                ) : (
+                  <button onClick={handleResend} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                     Resend OTP
-                  </button>}
+                  </button>
+                )}
               </div>
             </div>
           </Card>
@@ -160,9 +165,12 @@ const LoginScreen = () => {
             </p>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
         <CardContent className="p-8 space-y-6">
           {/* Header */}
@@ -173,30 +181,31 @@ const LoginScreen = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{t('login.title', 'Welcome to Fyke')}</h1>
               <p className="text-gray-500 text-sm">
-                Enter your details to get started
+                Enter your phone number to get started
               </p>
             </div>
           </div>
 
-          {/* Name and Phone Input */}
+          {/* Phone Input */}
           <div className="space-y-4">
-            {/* Name Input */}
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                
-              </div>
-              
-            </div>
-            
-            {/* Phone Input */}
             <div className="relative">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                 +91
               </div>
-              <Input type="tel" placeholder="9876543210" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <Input 
+                type="tel" 
+                placeholder="9876543210" 
+                value={phone} 
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
+                className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              />
             </div>
             
-            <Button onClick={handleSendOTP} disabled={phone.length !== 10 || !name.trim() || loading} className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg">
+            <Button 
+              onClick={handleSendOTP} 
+              disabled={phone.length !== 10 || loading} 
+              className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+            >
               {loading ? 'Sending...' : 'Send OTP'}
             </Button>
           </div>
@@ -209,6 +218,8 @@ const LoginScreen = () => {
           </div>
         </CardContent>
       </Card>
-    </div>;
+    </div>
+  );
 };
+
 export default LoginScreen;
