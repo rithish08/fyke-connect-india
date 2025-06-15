@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Clock, MapPin, DollarSign, Star, User, MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,12 +47,12 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
   };
 
   const handleViewDetails = () => {
-    goTo(`/job/${job.id}`, { job });
+    goTo(`/job/${job.id}`);
   };
 
   const handleCommunication = (type: 'chat' | 'call') => {
     if (type === 'chat') {
-      goTo('/messages', { employerId: job.company });
+      goTo('/messages');
     } else if (type === 'call') {
       showSuccess('Calling feature coming soon!');
     }
