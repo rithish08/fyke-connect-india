@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { firebaseAuthService } from '@/services/firebaseAuthService';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserProfile {
@@ -111,9 +110,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const sendOTP = async (phoneNumber: string) => {
     try {
-      console.log('[AuthContext] Sending OTP to:', phoneNumber);
-      const result = await firebaseAuthService.sendOTP(phoneNumber);
-      if (result.success) {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: '+91' + phoneNumber,
+      });
+      if (!error) {
         toast({
           title: "OTP Sent",
           description: `Verification code sent to +91 ${phoneNumber}`
@@ -122,14 +122,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to send OTP",
+          description: error.message || "Failed to send OTP",
           variant: "destructive"
         });
-        return { success: false, error: result.error };
+        return { success: false, error: error.message };
       }
     } catch (error: any) {
       const errorMessage = error.message || "Failed to send OTP";
-      console.error('[AuthContext] Send OTP error:', errorMessage);
       toast({
         title: "Error",
         description: errorMessage,
@@ -141,24 +140,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const verifyOTP = async (otpCode: string) => {
     try {
-      console.log('[AuthContext] Verifying OTP:', otpCode);
-      const result = await firebaseAuthService.verifyOTP(otpCode);
-      if (result.success) {
-        console.log('[AuthContext] OTP verification successful');
-        // The auth state change will be handled by the listener
+      const phone = localStorage.getItem('fyke_phone');
+      if (!phone) {
+        return { success: false, error: "No phone found" };
+      }
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: '+91' + phone,
+        token: otpCode,
+        type: 'sms',
+      });
+      if (!error) {
+        toast({
+          title: "Phone Verified!",
+          description: "Successfully authenticated"
+        });
         return { success: true };
       } else {
-        console.error('[AuthContext] OTP verification failed:', result.error);
         toast({
           title: "Verification Failed",
-          description: result.error || "Invalid OTP",
+          description: error.message || "Invalid OTP",
           variant: "destructive"
         });
-        return { success: false, error: result.error };
+        return { success: false, error: error.message };
       }
     } catch (error: any) {
       const errorMessage = error.message || "Failed to verify OTP";
-      console.error('[AuthContext] Verify OTP error:', errorMessage);
       toast({
         title: "Verification Failed",
         description: errorMessage,
@@ -177,7 +183,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      firebaseAuthService.cleanup();
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
