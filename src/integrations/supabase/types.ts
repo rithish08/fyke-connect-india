@@ -344,6 +344,7 @@ export type Database = {
           bio: string | null
           created_at: string | null
           email: string | null
+          firebase_uid: string | null
           id: string
           location: string | null
           name: string | null
@@ -361,6 +362,7 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          firebase_uid?: string | null
           id: string
           location?: string | null
           name?: string | null
@@ -378,6 +380,7 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          firebase_uid?: string | null
           id?: string
           location?: string | null
           name?: string | null
