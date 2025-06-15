@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,12 @@ const LoginScreen = () => {
               <p className="text-gray-600 leading-relaxed text-base">Sign in with your phone number to continue</p>
             </div>
           </div>
+          {/* Divider for visual structure on mobile */}
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 border-t border-gray-200" />
+            <span className="mx-3 text-xs text-gray-400">OR</span>
+            <div className="w-12 border-t border-gray-200" />
+          </div>
           {/* Phone Input */}
           <div className="space-y-5">
             <div className="relative">
@@ -97,17 +104,20 @@ const LoginScreen = () => {
                 placeholder="Enter your phone number"
                 value={phone}
                 onChange={handlePhoneChange}
-                className="pl-14 h-12 sm:h-14 text-lg border-gray-200 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all"
+                className="pl-14 h-14 sm:h-16 text-lg border-gray-200 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none bg-gray-50 transition-all"
                 disabled={loading}
                 autoFocus
                 pattern="[6-9]{1}[0-9]{9}"
+                aria-label="Phone number"
               />
             </div>
             {error && <div className="text-sm text-red-500 text-center min-h-[20px]">{error}</div>}
             <Button
               onClick={handleSendOTP}
               disabled={phone.length !== 10 || loading}
-              className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full h-14 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[.99] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
+              aria-label="Send OTP"
+              style={{ minHeight: 56, fontSize: 18 }}
             >
               {loading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -119,9 +129,13 @@ const LoginScreen = () => {
               )}
             </Button>
           </div>
+          {/* Accessibility: Add spacer for safe-tap zone on mobile */}
+          <div className="h-5" />
           <div className="text-center mt-8">
             <p className="text-xs text-gray-500 leading-relaxed">
-              By continuing, you agree to our Terms of Service and Privacy Policy
+              By continuing, you agree to our{" "}
+              <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and{" "}
+              <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
             </p>
           </div>
         </ModernCard>
@@ -130,3 +144,4 @@ const LoginScreen = () => {
   );
 };
 export default LoginScreen;
+
