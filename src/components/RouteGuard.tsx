@@ -15,7 +15,7 @@ const RouteGuard = ({
   requireAuth = true, 
   requireProfile = true 
 }: RouteGuardProps) => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { userProfile, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [hasChecked, setHasChecked] = useState(false);
@@ -32,12 +32,12 @@ const RouteGuard = ({
 
     const currentPath = location.pathname;
     console.log('[RouteGuard] Checking route:', currentPath, { 
-      user: !!user, 
+      userProfile: !!userProfile, 
       isAuthenticated, 
       requireAuth, 
       requireProfile,
-      role: user?.role,
-      profileComplete: user?.profileComplete
+      role: userProfile?.role,
+      profileComplete: userProfile?.profile_complete
     });
 
     // Public routes that don't need authentication
@@ -55,39 +55,39 @@ const RouteGuard = ({
     }
 
     // If authenticated, check user state
-    if (isAuthenticated && user) {
+    if (isAuthenticated && userProfile) {
       // Check role requirement
-      if (!user.role && currentPath !== '/role-selection') {
+      if (!userProfile.role && currentPath !== '/role-selection') {
         console.log('[RouteGuard] No role set, redirecting to role selection');
         navigate('/role-selection');
         return;
       }
 
       // Check profile completion for jobseekers only
-      if (requireProfile && user.role === 'jobseeker' && !user.profileComplete && currentPath !== '/profile-setup') {
+      if (requireProfile && userProfile.role === 'jobseeker' && !userProfile.profile_complete && currentPath !== '/profile-setup') {
         console.log('[RouteGuard] Jobseeker profile incomplete, redirecting to profile setup');
         navigate('/profile-setup');
         return;
       }
 
       // Redirect completed jobseeker profiles away from setup pages
-      if (user.role === 'jobseeker' && user.profileComplete && currentPath === '/profile-setup') {
+      if (userProfile.role === 'jobseeker' && userProfile.profile_complete && currentPath === '/profile-setup') {
         console.log('[RouteGuard] Jobseeker profile complete, redirecting to home');
         navigate('/home');
         return;
       }
 
       // Redirect employers away from profile setup (they don't need it)
-      if (user.role === 'employer' && currentPath === '/profile-setup') {
+      if (userProfile.role === 'employer' && currentPath === '/profile-setup') {
         console.log('[RouteGuard] Employer on profile setup, redirecting to home');
         navigate('/home');
         return;
       }
 
       // Redirect away from role selection if role is already set
-      if (user.role && currentPath === '/role-selection') {
+      if (userProfile.role && currentPath === '/role-selection') {
         console.log('[RouteGuard] Role already set, redirecting to appropriate home');
-        if (user.role === 'jobseeker' && !user.profileComplete) {
+        if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
           navigate('/profile-setup');
         } else {
           navigate('/home');
@@ -97,7 +97,7 @@ const RouteGuard = ({
     }
 
     console.log('[RouteGuard] All checks passed, showing content');
-  }, [user, isAuthenticated, loading, requireAuth, requireProfile, navigate, location.pathname]);
+  }, [userProfile, isAuthenticated, loading, requireAuth, requireProfile, navigate, location.pathname]);
 
   // Show loading while checking authentication or during initial load
   if (loading || !hasChecked) {
@@ -112,7 +112,7 @@ const RouteGuard = ({
   }
 
   // Add fallback for profile-setup without proper user state
-  if (location.pathname === '/profile-setup' && (!user || !user.role)) {
+  if (location.pathname === '/profile-setup' && (!userProfile || !userProfile.role)) {
     console.log('[RouteGuard] Profile setup without proper user state, redirecting to role selection');
     navigate('/role-selection');
     return (

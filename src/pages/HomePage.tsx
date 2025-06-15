@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const { t } = useLocalization();
   const { isFlowComplete } = useUserFlow();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -24,13 +24,13 @@ const HomePage = () => {
 
   // Handle role switching redirect logic
   useEffect(() => {
-    if (user && user.role === 'jobseeker' && !user.profileComplete) {
+    if (userProfile && userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
       console.log('Jobseeker without completed profile detected, redirecting to profile setup');
       navigate('/profile-setup');
     }
-  }, [user, navigate]);
+  }, [userProfile, navigate]);
 
-  if (!user || !isFlowComplete) {
+  if (!userProfile || !isFlowComplete) {
     return null; // RouteGuard will handle redirects
   }
 
@@ -46,7 +46,7 @@ const HomePage = () => {
       <div className="flex justify-center">
         <div className="w-full max-w-2xl">
           <div className="pt-4 pb-20">
-            {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
+            {userProfile.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>
       </div>

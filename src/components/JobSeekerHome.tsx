@@ -14,12 +14,12 @@ import QuickPostModal from '@/components/job/QuickPostModal';
 import { useGlobalToast } from '@/hooks/useGlobalToast';
 
 const JobSeekerHome = () => {
-  const { user, updateProfile } = useAuth();
+  const { userProfile, updateProfile } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
   const { canCommunicate, addJobApplication } = useCommunication();
   const navigate = useNavigate();
   const { showSuccess, showError } = useGlobalToast();
-  const [availability, setAvailability] = useState<"available" | "busy" | "offline">(user?.availability || 'available');
+  const [availability, setAvailability] = useState<"available" | "busy" | "offline">(userProfile?.availability || 'available');
   const [editingRates, setEditingRates] = useState<{ [sub: string]: boolean }>({});
   const [showQuickPost, setShowQuickPost] = useState(false);
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
@@ -35,15 +35,15 @@ const JobSeekerHome = () => {
 
   const handleRateEdit = async (subcategory: string) => {
     setEditingRates(prev => ({ ...prev, [subcategory]: true }));
-    const currentAmount = user?.salaryBySubcategory?.[subcategory]?.amount ?? "";
+    const currentAmount = userProfile?.salaryBySubcategory?.[subcategory]?.amount ?? "";
     const newRate = window.prompt(`Enter your rate for ${subcategory} (₹):`, currentAmount);
     if (newRate && newRate !== currentAmount) {
       await updateProfile({ 
         salaryBySubcategory: {
-          ...user?.salaryBySubcategory,
+          ...userProfile?.salaryBySubcategory,
           [subcategory]: {
             amount: newRate,
-            period: user?.salaryBySubcategory?.[subcategory]?.period || "daily"
+            period: userProfile?.salaryBySubcategory?.[subcategory]?.period || "daily"
           }
         }
       });
@@ -74,7 +74,7 @@ const JobSeekerHome = () => {
     return <JobSeekerLoadingState />;
   }
 
-  if (!user?.primaryCategory && !user?.profileComplete) {
+  if (!userProfile?.primaryCategory && !userProfile?.profile_complete) {
     return (
       <div className="space-y-6 px-4 py-6">
         <JobSeekerHomeHeader userPrimaryCategory={undefined} />
@@ -90,11 +90,11 @@ const JobSeekerHome = () => {
     );
   }
 
-  const subcategories = user?.subcategories || Object.keys(user?.salaryBySubcategory || {});
+  const subcategories = userProfile?.subcategories || Object.keys(userProfile?.salaryBySubcategory || {});
 
   return (
     <div className="space-y-6 px-4 py-6">
-      <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
+      <JobSeekerHomeHeader userPrimaryCategory={userProfile?.primaryCategory} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
@@ -151,8 +151,8 @@ const JobSeekerHome = () => {
                   <span className="font-medium text-gray-700">{sub}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-blue-700 font-medium">
-                      ₹{user?.salaryBySubcategory?.[sub]?.amount || "--"}/
-                      {user?.salaryBySubcategory?.[sub]?.period ?? "daily"}
+                      ₹{userProfile?.salaryBySubcategory?.[sub]?.amount || "--"}/
+                      {userProfile?.salaryBySubcategory?.[sub]?.period ?? "daily"}
                     </span>
                     <Button 
                       size="sm" 

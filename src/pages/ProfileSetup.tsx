@@ -13,7 +13,7 @@ import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
 
 const ProfileSetup = () => {
-  const { user, loading, updateProfile } = useAuth();
+  const { userProfile, loading, updateProfile } = useAuth();
   const navigate = useNavigate();
   const {
     form,
@@ -29,25 +29,25 @@ const ProfileSetup = () => {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) {
+    if (!userProfile) {
       navigate('/');
       return;
     }
-    if (user.role === 'employer') {
+    if (userProfile.role === 'employer') {
       navigate('/home');
       return;
     }
-    if (!user.role) {
+    if (!userProfile.role) {
       navigate('/role-selection');
       return;
     }
-    if (user.profileComplete) {
+    if (userProfile.profile_complete) {
       navigate('/home');
       return;
     }
-    if (!user.name?.trim()) setNameStep(0);
+    if (!userProfile.name?.trim()) setNameStep(0);
     else setNameStep(1);
-  }, [user, loading, navigate]);
+  }, [userProfile, loading, navigate]);
 
   const handleBack = async () => {
     if (currentStep > 0) {
@@ -85,7 +85,7 @@ const ProfileSetup = () => {
 
       const profileData = {
         ...formData,
-        profileComplete: true,
+        profile_complete: true,
         availability: formData.availability || 'available' as const,
         salaryBySubcategory: Object.keys(processedSalaryData).length > 0 ? processedSalaryData : undefined
       };
@@ -103,7 +103,7 @@ const ProfileSetup = () => {
   };
 
   if (loading) return <ProfileLoading />;
-  if (!user) return <ProfileRedirect />;
+  if (!userProfile) return <ProfileRedirect />;
 
   if (nameStep === 0) {
     return (
@@ -145,7 +145,7 @@ const ProfileSetup = () => {
               <ModernCategoryStep
                 form={form}
                 onNext={nextStep}
-                userName={user?.name || ""}
+                userName={userProfile?.name || ""}
               />
             )}
             {currentStep === 1 && (shouldShowPartialWages || !shouldSkipWages) && (

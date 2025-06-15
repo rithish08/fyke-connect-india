@@ -20,7 +20,7 @@ const languageList = [
 ];
 
 const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const { language, setLanguage, t } = useLocalization();
   const navigate = useNavigate();
 
@@ -40,10 +40,10 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
         {/* Left: Greeting */}
         <div className="flex-1">
           <div className="text-lg font-bold text-gray-900">
-            {t('greeting.good_morning', 'Good Morning')}, {user?.name || 'User'}!
+            {t('greeting.good_morning', 'Good Morning')}, {userProfile?.name || 'User'}!
           </div>
           <div className="text-sm text-gray-500">
-            {formatTime(currentTime)} • {user?.location || 'Mumbai, Maharashtra'}
+            {formatTime(currentTime)} • {userProfile?.location || 'Mumbai, Maharashtra'}
           </div>
         </div>
 

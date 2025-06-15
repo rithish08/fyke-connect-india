@@ -1,154 +1,217 @@
+
 import React, { useState } from 'react';
-import { Clock, MapPin, DollarSign, Star, User, MessageCircle, Phone } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ModernCard } from '@/components/ui/modern-card';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Clock, DollarSign, Star, MessageSquare, Phone, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGlobalToast } from '@/hooks/useGlobalToast';
-import { useScreenNavigation } from '@/hooks/useScreenNavigation';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  salary: string;
-  distance: string;
-  timePosted: string;
-  rating?: number;
-  urgent?: boolean;
-  description?: string;
+interface JobCardProps {
+  job: {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    distance: string;
+    salary: string;
+    rating: number;
+    timePosted: string;
+    urgent?: boolean;
+    description?: string;
+    requirements?: string[];
+    benefits?: string[];
+  };
+  onApply?: (jobId: string) => void;
+  onSave?: (jobId: string) => void;
+  applied?: boolean;
+  saved?: boolean;
 }
 
-interface JobSeekerJobCardProps {
-  job: Job;
-}
-
-const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
-  const { user, isAuthenticated } = useAuth();
-  const { showSuccess, showError } = useGlobalToast();
-  const { goTo } = useScreenNavigation();
-  const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');
+const JobSeekerJobCard: React.FC<JobCardProps> = ({ 
+  job, 
+  onApply, 
+  onSave, 
+  applied = false, 
+  saved = false 
+}) => {
+  const { userProfile, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [localApplied, setLocalApplied] = useState(applied);
+  const [localSaved, setLocalSaved] = useState(saved);
 
   const handleApply = () => {
     if (!isAuthenticated) {
-      localStorage.setItem('fyke_return_intent', `/job/${job.id}`);
-      showError('Please login to apply for jobs');
-      goTo('/login');
+      toast.error('Please login to apply for jobs');
+      navigate('/auth');
       return;
     }
 
-    if (!user?.profileComplete) {
-      showError('Please complete your profile to apply for jobs');
-      goTo('/profile-setup');
+    if (!userProfile?.profile_complete) {
+      toast.error('Please complete your profile to apply for jobs');
+      navigate('/profile-setup');
       return;
     }
-    setApplicationState('requested');
-    showSuccess(`Applied to ${job.title} successfully!`);
+
+    setLocalApplied(true);
+    onApply?.(job.id);
+    toast.success(`Applied to ${job.title} successfully!`);
   };
 
-  const handleViewDetails = () => {
-    goTo(`/job/${job.id}`);
+  const handleSave = () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to save jobs');
+      navigate('/auth');
+      return;
+    }
+
+    setLocalSaved(!localSaved);
+    onSave?.(job.id);
+    toast.success(`Job ${localSaved ? 'removed from' : 'added to'} saved jobs`);
   };
 
-  const handleCommunication = (type: 'chat' | 'call') => {
+  const handleCommunicate = (type: 'chat' | 'call') => {
+    if (!localApplied) {
+      toast.error('Please apply to this job first to start communication');
+      return;
+    }
+
     if (type === 'chat') {
-      goTo('/messages');
-    } else if (type === 'call') {
-      showSuccess('Calling feature coming soon!');
+      navigate(`/messages?jobId=${job.id}&jobTitle=${job.title}`);
+    } else {
+      toast.success('Calling feature will be available soon!');
     }
   };
 
   return (
-    <ModernCard className="p-4 mb-3 hover:shadow-lg transition-all duration-200">
-      <div className="space-y-3">
+    <Card className="mb-4 hover:shadow-lg transition-shadow duration-200">
+      <CardContent className="p-4">
         {/* Header */}
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-gray-900 text-lg">{job.title}</h3>
+              <h3 className="font-semibold text-lg text-gray-900">{job.title}</h3>
               {job.urgent && (
-                <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
+                <Badge variant="destructive" className="text-xs">
                   Urgent
-                </span>
+                </Badge>
               )}
             </div>
-            <p className="text-gray-600 flex items-center gap-1">
-              <User className="w-4 h-4" />
-              {job.company}
-            </p>
-          </div>
-          {job.rating && (
-            <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
-              <Star className="w-4 h-4 fill-green-500 text-green-500" />
-              <span className="text-green-700 font-medium text-sm">{job.rating}</span>
+            <p className="text-sm text-gray-600 font-medium">{job.company}</p>
+            
+            {/* Job Info */}
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                <span>{job.location} • {job.distance}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <DollarSign className="w-3 h-3" />
+                <span>₹{job.salary}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{job.timePosted}</span>
+              </div>
+              {job.rating && (
+                <div className="flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <span>{job.rating}</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSave}
+            className="ml-2 p-1"
+          >
+            <Bookmark className={`w-4 h-4 ${localSaved ? 'fill-blue-500 text-blue-500' : 'text-gray-400'}`} />
+          </Button>
         </div>
 
-        {/* Details */}
-        <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            <span>{job.location}</span>
-            <span className="text-gray-400">• {job.distance}</span>
+        {/* Expandable Content */}
+        {isExpanded && (
+          <div className="mb-4 space-y-3">
+            {job.description && (
+              <div>
+                <h4 className="font-medium text-sm text-gray-900 mb-1">Description</h4>
+                <p className="text-sm text-gray-600">{job.description}</p>
+              </div>
+            )}
+            
+            {job.requirements && job.requirements.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm text-gray-900 mb-1">Requirements</h4>
+                <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                  {job.requirements.map((req, index) => (
+                    <li key={index}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {job.benefits && job.benefits.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm text-gray-900 mb-1">Benefits</h4>
+                <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                  {job.benefits.map((benefit, index) => (
+                    <li key={index}>{benefit}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4" />
-            <span className="font-medium text-gray-900">{job.salary}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>{job.timePosted}</span>
-          </div>
-        </div>
-
-        {job.description && (
-          <p className="text-gray-600 text-sm line-clamp-2">{job.description}</p>
         )}
 
+        {/* Actions */}
         <div className="flex gap-2 pt-2">
-          <Button
+          <Button 
             onClick={handleApply}
-            disabled={applicationState === 'requested'}
-            className={`flex-1 h-11 rounded-xl font-medium transition-all ${
-              applicationState === 'requested'
-                ? 'bg-green-600 hover:bg-green-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
+            disabled={localApplied}
+            className={`flex-1 h-9 ${localApplied ? 'bg-green-600 hover:bg-green-700' : ''}`}
+            size="sm"
           >
-            {applicationState === 'requested' ? 'Requested' : 'Apply Now'}
+            {localApplied ? '✓ Applied' : 'Apply Now'}
           </Button>
+          
           <Button
-            onClick={handleViewDetails}
-            variant="outline"
-            className="px-6 h-11 rounded-xl border-gray-200"
-          >
-            View in Details
-          </Button>
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
-          <Button
-            onClick={() => handleCommunication('chat')}
             variant="outline"
             size="sm"
-            className="flex-1 h-9 rounded-lg"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="px-3 h-9"
           >
-            <MessageCircle className="w-4 h-4 mr-1" />
-            Chat
+            {isExpanded ? 'Less' : 'More'}
           </Button>
+          
           <Button
-            onClick={() => handleCommunication('call')}
             variant="outline"
             size="sm"
-            className="flex-1 h-9 rounded-lg"
+            onClick={() => handleCommunicate('chat')}
+            disabled={!localApplied}
+            className="px-3 h-9"
+            title="Chat with employer"
           >
-            <Phone className="w-4 h-4 mr-1" />
-            Call
+            <MessageSquare className="w-4 h-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleCommunicate('call')}
+            disabled={!localApplied}
+            className="px-3 h-9"
+            title="Call employer"
+          >
+            <Phone className="w-4 h-4" />
           </Button>
         </div>
-      </div>
-    </ModernCard>
+      </CardContent>
+    </Card>
   );
 };
 

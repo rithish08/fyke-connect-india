@@ -1,96 +1,111 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useLocalization } from '@/contexts/LocalizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import AnimatedWrapper from '@/components/AnimatedWrapper';
+import { Check } from 'lucide-react';
 
-const languageList = [
-  { code: 'en', name: 'English', native: 'English', color: 'bg-blue-500', icon: "🇬🇧" },
-  { code: 'hi', name: 'Hindi', native: 'हिन्दी', color: 'bg-amber-400', icon: "🇮🇳" },
-  { code: 'ta', name: 'Tamil', native: 'தமிழ்', color: 'bg-pink-400', icon: "🇮🇳" },
-  { code: 'te', name: 'Telugu', native: 'తెలుగు', color: 'bg-green-500', icon: "🇮🇳" },
-  { code: 'bn', name: 'Bengali', native: 'বাংলা', color: 'bg-purple-500', icon: "🇮🇳" },
-  { code: 'mr', name: 'Marathi', native: 'मराठी', color: 'bg-red-500', icon: "🇮🇳" },
-  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ', color: 'bg-indigo-500', icon: "🇮🇳" },
-  { code: 'ml', name: 'Malayalam', native: 'മലയാളം', color: 'bg-teal-400', icon: "🇮🇳" }
+const languages = [
+  { code: 'en', name: 'English', native: 'English', icon: "🇬🇧" },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी', icon: "🇮🇳" },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்', icon: "🇮🇳" },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు', icon: "🇮🇳" },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা', icon: "🇮🇳" },
+  { code: 'mr', name: 'Marathi', native: 'मराठी', icon: "🇮🇳" }
 ];
 
 const LanguageSelection = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const { setLanguage, t } = useLocalization();
-  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { isAuthenticated, userProfile } = useAuth();
+  const { language, setLanguage, t } = useLocalization();
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+
+  useEffect(() => {
+    // If user is authenticated and has completed setup, redirect to home
+    if (isAuthenticated && userProfile) {
+      if (userProfile.role && userProfile.profile_complete) {
+        navigate('/home');
+      } else if (userProfile.role && !userProfile.profile_complete) {
+        navigate('/profile-setup');
+      } else if (!userProfile.role) {
+        navigate('/role-selection');
+      }
+    }
+  }, [isAuthenticated, userProfile, navigate]);
+
+  const handleLanguageSelect = (langCode: string) => {
+    setSelectedLanguage(langCode);
+    setLanguage(langCode);
+  };
 
   const handleContinue = () => {
-    setLanguage(selectedLanguage);
-    
-    // If user is already authenticated, determine next screen based on flow
-    if (isAuthenticated && user) {
-      if (!user.role) {
-        navigate('/role-selection');
-      } else if (user.role === 'jobseeker' && !user.profileComplete) {
-        navigate('/profile-setup');
-      } else {
+    if (isAuthenticated) {
+      if (userProfile?.role) {
         navigate('/home');
+      } else {
+        navigate('/role-selection');
       }
-      return;
+    } else {
+      navigate('/auth');
     }
-
-    // For new/unauthenticated users, go directly to login
-    navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 pb-32">
-        <div className="w-full max-w-lg mx-auto space-y-7">
-          {/* Brand + Welcome */}
-          <div className="flex flex-col items-center gap-4">
-            <span className="flex rounded-full bg-gray-900 text-white w-14 h-14 justify-center items-center text-2xl font-bold shadow border-2 border-gray-100">fyke</span>
-            <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
-            <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
-          </div>
-          
-          {/* Language grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {languageList.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => setSelectedLanguage(lang.code)}
-                className={`group transition-all duration-150 rounded-xl flex flex-col items-center p-5 shadow hover:shadow-lg border-2 ${
-                  selectedLanguage === lang.code
-                    ? "border-gray-700 bg-gray-50 scale-105"
-                    : "border-gray-100 bg-white hover:border-gray-300"
-                }`}
-              >
-                <span className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 ${lang.color} text-white shadow-lg`}>
-                  {lang.icon}
-                </span>
-                <span className="text-xl font-bold text-gray-900">{lang.native}</span>
-                <span className="text-xs text-gray-400 mt-1">{lang.name}</span>
-                {selectedLanguage === lang.code && (
-                  <span className="mt-2 text-xs text-green-600 font-medium">✔ Selected</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+    <AnimatedWrapper>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md mx-auto shadow-2xl border-0">
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">🌍</div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {t('language.choose', 'Choose Your Language')}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                {t('language.subtitle', 'Select your preferred language to continue')}
+              </p>
+            </div>
 
-      {/* Fixed Footer Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
-        <div className="w-full max-w-lg mx-auto">
-          <Button
-            onClick={handleContinue}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 rounded-2xl shadow-lg text-lg h-14"
-          >
-            {t('common.continue', 'Continue')}
-          </Button>
-        </div>
+            <div className="space-y-3 mb-8">
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleLanguageSelect(lang.code)}
+                  className={`w-full p-4 rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] ${
+                    selectedLanguage === lang.code
+                      ? 'border-blue-500 bg-blue-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{lang.icon}</span>
+                      <div className="text-left">
+                        <div className="font-semibold text-gray-900">{lang.native}</div>
+                        <div className="text-sm text-gray-500">{lang.name}</div>
+                      </div>
+                    </div>
+                    {selectedLanguage === lang.code && (
+                      <Check className="w-5 h-5 text-blue-500" />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <Button
+              onClick={handleContinue}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              size="lg"
+            >
+              {t('common.continue', 'Continue')}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </AnimatedWrapper>
   );
 };
 
