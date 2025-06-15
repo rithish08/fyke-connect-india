@@ -4,27 +4,27 @@ import { useToast } from '@/hooks/use-toast';
 export const useGlobalToast = () => {
   const { toast } = useToast();
 
-  const showSuccess = (message: string) => {
+  const showSuccess = (message: string, description?: string) => {
     toast({
-      title: "Success",
-      description: message,
-      variant: "default"
+      title: message,
+      description,
+      variant: 'default'
     });
   };
 
-  const showError = (message: string) => {
+  const showError = (message: string, description?: string) => {
     toast({
-      title: "Error",
-      description: message,
-      variant: "destructive"
+      title: message,
+      description,
+      variant: 'destructive'
     });
   };
 
-  const showInfo = (message: string) => {
+  const showInfo = (message: string, description?: string) => {
     toast({
-      title: "Info",
-      description: message,
-      variant: "default"
+      title: message,
+      description,
+      variant: 'default'
     });
   };
 
