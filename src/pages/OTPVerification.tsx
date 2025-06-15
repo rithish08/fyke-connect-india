@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,44 +11,36 @@ const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
+  const [errorState, setErrorState] = useState<string | null>(null);
   const navigate = useNavigate();
   const { verifyOTP, sendOTP, userProfile, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const didAutoNavigate = useRef(false);
 
+  const phone = localStorage.getItem('fyke_phone');
+
+  // Main onboarding/correct auth flow
   useEffect(() => {
-    const phone = localStorage.getItem('fyke_phone');
-    console.log('[OTPVerification] Component mounted, phone:', phone);
-    console.log('[OTPVerification] Auth state:', { isAuthenticated, user: !!user, userProfile: !!userProfile });
-    
+    // No phone, go back to login
     if (!phone) {
-      console.log('[OTPVerification] No phone found, redirecting to login');
       navigate('/login');
       return;
     }
-  }, [navigate]);
-
-  // Handle successful authentication
-  useEffect(() => {
-    if (isAuthenticated && user && userProfile) {
-      console.log('[OTPVerification] User authenticated, profile:', userProfile);
-      
-      // Clear phone from localStorage since we're now authenticated
+    // Successful login and profile, navigate away by role
+    if (isAuthenticated && user && userProfile && !didAutoNavigate.current) {
+      didAutoNavigate.current = true; // prevent racey double navigation
       localStorage.removeItem('fyke_phone');
-      
-      // Check role and redirect appropriately
       if (!userProfile.role) {
-        console.log('[OTPVerification] No role, redirecting to role selection');
         navigate('/role-selection');
       } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
-        console.log('[OTPVerification] Jobseeker incomplete profile, redirecting to profile setup');
         navigate('/profile-setup');
       } else {
-        console.log('[OTPVerification] Complete profile, redirecting to home');
         navigate('/home');
       }
     }
-  }, [isAuthenticated, user, userProfile, navigate]);
+  }, [isAuthenticated, user, userProfile, navigate, phone]);
 
+  // Timer logic for resend OTP
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
@@ -67,32 +59,22 @@ const OTPVerification = () => {
     }
 
     setLoading(true);
+    setErrorState(null);
 
     try {
-      console.log('[OTPVerification] Submitting OTP verification:', otpCode);
-      
       const result = await verifyOTP(otpCode);
-      
       if (result.success) {
-        console.log('[OTPVerification] OTP verification succeeded');
-        
         toast({
           title: "Phone Verified!",
           description: "Successfully authenticated"
         });
-        
-        // Navigation will be handled by the useEffect above
+        // auth navigation will happen automatically from useEffect above
       } else {
-        console.log('[OTPVerification] OTP verification failed:', result.error);
+        setErrorState(result.error || "OTP verification failed. Please try again.");
         setOtp(['', '', '', '', '', '']);
       }
     } catch (error: any) {
-      console.error('[OTPVerification] Verification Failed:', error);
-      toast({
-        title: "Verification Failed",
-        description: error?.message || "Invalid OTP. Please try again.",
-        variant: "destructive"
-      });
+      setErrorState(error?.message || "Failed to verify OTP, please try again.");
       setOtp(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
@@ -100,32 +82,43 @@ const OTPVerification = () => {
   };
 
   const handleResend = async () => {
-    const phone = localStorage.getItem('fyke_phone');
-    if (!phone) return;
-
+    if (!phone) {
+      setErrorState("Missing phone number, return to login.");
+      return;
+    }
     setLoading(true);
+    setErrorState(null);
     try {
-      console.log('[OTPVerification] Resending OTP to:', phone);
       await sendOTP(phone);
       setResendTimer(60);
       toast({
         title: "OTP Resent",
         description: "New verification code sent to your phone"
       });
-    } catch (error) {
-      console.error('Error resending OTP:', error);
+    } catch (error: any) {
+      setErrorState("Failed to resend OTP. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const phone = localStorage.getItem('fyke_phone');
+  // NEW: allow developer bypass (press B to bypass OTP check and go to role selection)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'b' || e.key === 'B') {
+        // Dev-only bypass
+        localStorage.removeItem('fyke_phone');
+        navigate('/role-selection');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
       {/* Hidden recaptcha container for Firebase */}
       <div id="recaptcha-container"></div>
-      
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -140,7 +133,6 @@ const OTPVerification = () => {
             </p>
           </div>
         </div>
-
         {/* OTP Card */}
         <Card className="p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
           <div className="space-y-6">
@@ -150,17 +142,19 @@ const OTPVerification = () => {
                   value={otp}
                   onChange={setOtp}
                   onComplete={handleOTPComplete}
+                  disabled={loading}
                 />
               </div>
             </div>
-
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <p className="text-sm text-gray-500">Code will be verified automatically</p>
               </div>
             </div>
-
+            {(errorState || !phone) && (
+              <div className="text-center text-sm text-red-500">{errorState}</div>
+            )}
             <div className="text-center">
               {resendTimer > 0 ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -179,9 +173,29 @@ const OTPVerification = () => {
                 </button>
               )}
             </div>
+            {/* Fallback navigation if stuck */}
+            <div className="flex flex-col space-y-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  localStorage.removeItem('fyke_phone');
+                  navigate('/login');
+                }}
+                className="w-full"
+                disabled={loading}
+              >
+                Back to Login
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => window.location.reload()}
+                className="w-full"
+              >
+                Reload Page
+              </Button>
+            </div>
           </div>
         </Card>
-
         {/* Security Info */}
         <div className="text-center space-y-2 px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">
