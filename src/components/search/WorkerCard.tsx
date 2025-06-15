@@ -1,157 +1,102 @@
-
-import React, { useState } from 'react';
-import { ModernCard } from '@/components/ui/modern-card';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Clock, MessageCircle, Shield } from 'lucide-react';
-import WorkerProfileModal from '@/components/modals/WorkerProfileModal';
+import { MapPin, Star, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
-interface WorkerCardProps {
-  worker: any;
-  onHire?: (worker: any) => void;
-  onMessage?: (worker: any) => void;
-}
-
-const WorkerCard = ({ worker, onHire, onMessage }: WorkerCardProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleCardClick = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleQuickHire = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onHire) onHire(worker);
-  };
-
-  const handleQuickMessage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onMessage) onMessage(worker);
-  };
-
-  const handleViewDetails = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsModalOpen(true);
-  };
+const WorkerCard = ({ worker, onClick }: any) => {
+  const user = worker; // keep consistent variable names
+  const navigate = useNavigate();
 
   return (
-    <>
-      <ModernCard 
-        className="p-4 hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 bg-white rounded-2xl"
-        onClick={handleCardClick}
-      >
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex items-start space-x-3">
-            <div className="relative">
-              <Avatar className="w-12 h-12 border-2 border-gray-100">
-                <AvatarImage src="/placeholder.svg" alt={worker.name} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                  {worker.name?.split(' ').map((n: string) => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              {worker.verificationLevel && worker.verificationLevel !== 'basic' && (
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
-                  <Shield className="w-2.5 h-2.5 text-white" fill="currentColor" />
-                </div>
-              )}
-              {worker.isOnline && (
-                <div className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
-              )}
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900 truncate">{worker.name}</h3>
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
-                  <span className="font-bold text-sm">{worker.rating}</span>
-                </div>
-              </div>
-              
-              <div className="text-sm text-gray-600 mb-1">{worker.category}</div>
-              
-              <div className="flex items-center space-x-3 text-xs text-gray-500">
-                <span className="flex items-center space-x-1">
-                  <MapPin className="w-3 h-3" />
-                  <span>{worker.distance}</span>
-                </span>
-                <span className="flex items-center space-x-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{worker.responseTime}</span>
-                </span>
-              </div>
-            </div>
-            
-            <div className="text-right">
-              <div className="font-bold text-green-600">₹{worker.hourlyRate}</div>
-              <div className="text-xs text-gray-500">per hour</div>
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div className="flex flex-wrap gap-1">
-            {worker.skills?.slice(0, 3).map((skill: string, index: number) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
-              >
-                {skill}
-              </Badge>
-            ))}
-            {worker.skills?.length > 3 && (
-              <Badge variant="outline" className="text-xs px-2 py-0.5">
-                +{worker.skills.length - 3}
-              </Badge>
+    <div
+      className="rounded-2xl bg-white overflow-hidden shadow border border-gray-100 transition-transform hover:scale-[1.01] group cursor-pointer"
+      onClick={() => navigate(`/worker-profile/${user.id}`)}
+    >
+      <div className="p-4">
+        <div className="flex items-start">
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mr-3">
+            {user.photoURL ? (
+              <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-lg font-bold text-gray-500">{user.name?.[0] || user.phone?.[0] || '?'}</span>
             )}
           </div>
-
-          {/* Status */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${worker.isOnline ? 'bg-green-400' : 'bg-gray-300'}`}></div>
-              <span className={`text-sm font-medium ${worker.isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                {worker.isOnline ? 'Available' : 'Offline'}
-              </span>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900">{user.name || 'Worker'}</h3>
+            <p className="text-sm text-gray-500">{user.primaryCategory || 'General Worker'}</p>
+            <div className="flex items-center mt-1 text-xs text-gray-500">
+              <MapPin className="w-3 h-3 mr-1" />
+              <span>{user.location || 'Location not specified'}</span>
             </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs"
-                onClick={handleQuickMessage}
-              >
-                <MessageCircle className="w-3 h-3 mr-1" />
-                Chat
-              </Button>
-              <Button
-                size="sm"
-                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700"
-                onClick={handleQuickHire}
-              >
-                Hire
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs"
-                onClick={handleViewDetails}
-              >
-                View in Details
-              </Button>
+          </div>
+          <div className="flex items-center">
+            <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full">
+              <Star className="w-3 h-3 text-yellow-500 mr-1" />
+              <span className="text-xs font-medium text-yellow-700">
+                {user.rating || '4.5'} ({user.reviewCount || '0'})
+              </span>
             </div>
           </div>
         </div>
-      </ModernCard>
-      <WorkerProfileModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        worker={worker}
-      />
-    </>
+        
+        {user.subcategories && user.subcategories.length > 0 && (
+          <div className="mt-3">
+            <div className="flex flex-wrap gap-1">
+              {user.subcategories.slice(0, 3).map((sub: string) => (
+                <span key={sub} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                  {sub}
+                </span>
+              ))}
+              {user.subcategories.length > 3 && (
+                <span className="text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">
+                  +{user.subcategories.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {user.salaryBySubcategory && Object.keys(user.salaryBySubcategory).length > 0 && (
+          <div className="mt-2 text-sm">
+            <span className="font-medium text-gray-700">Rate: </span>
+            {Object.entries(user.salaryBySubcategory).slice(0, 1).map(([key, value]: [string, any]) => (
+              <span key={key} className="text-green-700">
+                ₹{value.amount}/{value.period}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        <div className="mt-2 flex items-center text-xs text-gray-500">
+          <Clock className="w-3 h-3 mr-1" />
+          <span>Last active {formatDistanceToNow(new Date(user.lastActive || Date.now()), { addSuffix: true })}</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between pt-4 px-4 pb-2">
+        <div>
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            user.availability === 'available' ? 'bg-green-100 text-green-800' :
+            user.availability === 'busy' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {user.availability === 'available' ? 'Available' :
+             user.availability === 'busy' ? 'Busy' : 'Unavailable'}
+          </span>
+        </div>
+        <Button
+          size="sm"
+          className="rounded-full bg-gradient-to-r from-green-600 to-teal-600 text-white font-medium px-4 ml-2"
+          onClick={e => {
+            e.stopPropagation();
+            navigate(`/worker-profile/${user.id}`);
+          }}
+        >
+          View Details
+        </Button>
+      </div>
+    </div>
   );
 };
-
 export default WorkerCard;

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,43 +23,41 @@ export const useProfileSetupForm = () => {
 
   const watchedSubcategories = form.watch('subcategories') || [];
 
-  // Update: Allow "Mason", "House Cleaning", and vehicle categories to be combined
-  const isVehicleCategory = (sub: string) => [
-    'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 'Tractor with Trailer',
-    'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 
-    'Private Bus (15–50 seats)', 'Water Tanker', 'Ambulance'
-  ].includes(sub);
+  // Allow combinations for Mason, House Cleaning, and vehicle
+  const isVehicleCategory = (sub: string) =>
+    [
+      'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 'Tractor with Trailer',
+      'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)',
+      'Private Bus (15–50 seats)', 'Water Tanker', 'Ambulance'
+    ].includes(sub);
 
   const hasVehicleOwnerCategory = watchedSubcategories.some(isVehicleCategory);
   const hasMason = watchedSubcategories.includes('Mason');
   const hasHouseCleaning = watchedSubcategories.includes('House Cleaning');
-  const hasNonVehicleOwnerCategory = watchedSubcategories.some(sub =>
-    !isVehicleCategory(sub)
+  const hasNonVehicleOwnerCategory = watchedSubcategories.some(
+    sub => !isVehicleCategory(sub)
   );
-  // (NEW logic) If categories are combined, allow progression
-  // -- allow combinations of "Mason", "House Cleaning", vehicle and others!
 
-  // If only vehicle owner, skip wages; if vehicle + other (incl. Mason/HouseCleaning), show partial wages
+  // If only vehicle owner, skip wages; if vehicle + other, show partial wages
   const shouldSkipWages = hasVehicleOwnerCategory && !hasNonVehicleOwnerCategory;
   const shouldShowPartialWages = hasVehicleOwnerCategory && hasNonVehicleOwnerCategory;
 
   const nextStep = async () => {
     if (currentStep === 0) {
-      // From category selection
       if (shouldSkipWages) {
-        setCurrentStep(2); // Skip to availability
+        setCurrentStep(2);
       } else {
-        setCurrentStep(1); // Go to wages
+        setCurrentStep(1);
       }
     } else if (currentStep === 1) {
-      setCurrentStep(2); // From wages to availability
+      setCurrentStep(2);
     }
     return true;
   };
 
   const prevStep = async () => {
     if (currentStep === 2 && shouldSkipWages) {
-      setCurrentStep(0); // From availability back to category
+      setCurrentStep(0);
     } else if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
@@ -70,28 +67,28 @@ export const useProfileSetupForm = () => {
   const submitProfile = async (data: ProfileSetupFormData) => {
     setIsSubmitting(true);
     try {
-      console.log('Submitting profile data:', data);
-      
-      // Filter out salary data for vehicle owner subcategories
-      const filteredSalaryData = shouldShowPartialWages 
+      // Only update with allowed fields
+      const filteredSalaryData = shouldShowPartialWages
         ? Object.fromEntries(
-            Object.entries(data.salaryBySubcategory || {}).filter(([subcategory]) =>
-              !['Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 
-                'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 
-                'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)', 
-                'Water Tanker', 'Ambulance'].includes(subcategory)
+            Object.entries(data.salaryBySubcategory || {}).filter(
+              ([subcategory]) =>
+                ![
+                  'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
+                  'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
+                  'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)',
+                  'Water Tanker', 'Ambulance'
+                ].includes(subcategory)
             )
           )
         : data.salaryBySubcategory;
 
-      // Convert optional properties to required for User type
-      const salaryBySubcategory = filteredSalaryData 
+      const salaryBySubcategory = filteredSalaryData
         ? Object.fromEntries(
             Object.entries(filteredSalaryData).map(([key, value]) => [
-              key, 
-              { 
-                amount: value.amount || '0', 
-                period: value.period || 'daily' 
+              key,
+              {
+                amount: value.amount || '0',
+                period: value.period || 'daily'
               }
             ])
           )
@@ -106,7 +103,6 @@ export const useProfileSetupForm = () => {
       await updateProfile(profileData);
       return true;
     } catch (error) {
-      console.error('Profile submission error:', error);
       return false;
     } finally {
       setIsSubmitting(false);

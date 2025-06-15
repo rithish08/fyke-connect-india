@@ -11,26 +11,56 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Briefcase, Settings, ToggleLeft, Pencil } from 'lucide-react';
 import { useState } from 'react';
 
+const AVAILABILITY_OPTIONS = [
+  { value: 'available', label: 'Available' },
+  { value: 'busy', label: 'Busy' },
+  { value: 'dnd', label: 'Do Not Disturb' }
+];
+
 const JobSeekerHome = () => {
   const { user, updateProfile } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
   const navigate = useNavigate();
-  const [isAvailable, setIsAvailable] = useState(user?.availability !== 'unavailable');
-  const [rate, setRate] = useState(user?.hourlyRate || '');
+  // Use only allowed availability values
+  const [availability, setAvailability] = useState<'available' | 'busy' | 'dnd'>(
+    (user?.availability as 'available' | 'busy' | 'dnd') || 'available'
+  );
+  // We'll show rate only if categories are non-vehicle, non-special, and have a salary entry
+  const isShowRate = Boolean(user?.salaryBySubcategory && Object.keys(user.salaryBySubcategory).length);
+
+  const [rateEdits, setRateEdits] = useState<{ [key: string]: string }>(() => {
+    if (user?.salaryBySubcategory) {
+      const result: { [key: string]: string } = {};
+      for (const sub in user.salaryBySubcategory) {
+        result[sub] = user.salaryBySubcategory[sub]?.amount || '';
+      }
+      return result;
+    }
+    return {};
+  });
 
   // Handler for availability toggle
-  const handleAvailabilityToggle = async () => {
-    const newStatus = isAvailable ? 'unavailable' : 'available';
-    setIsAvailable(!isAvailable);
-    await updateProfile({ availability: newStatus });
+  const handleAvailabilitySelect = async (status: 'available' | 'busy' | 'dnd') => {
+    setAvailability(status);
+    await updateProfile({ availability: status });
   };
 
-  // Handler for editing rate
-  const handleRateEdit = async () => {
-    const newRate = window.prompt('Enter your hourly rate (₹):', rate?.toString() || '');
-    if (newRate !== null && newRate !== rate) {
-      setRate(newRate);
-      await updateProfile({ hourlyRate: newRate });
+  // Handler for editing individual rate
+  const handleRateEdit = async (sub: string) => {
+    const current = rateEdits[sub] || '';
+    const newRate = window.prompt(`Enter rate (₹) for ${sub}:`, current);
+    if (newRate !== null && newRate !== current) {
+      const updated = { ...rateEdits, [sub]: newRate };
+      setRateEdits(updated);
+      await updateProfile({
+        salaryBySubcategory: {
+          ...user?.salaryBySubcategory,
+          [sub]: {
+            ...user?.salaryBySubcategory?.[sub],
+            amount: newRate
+          }
+        }
+      });
     }
   };
 
@@ -61,26 +91,45 @@ const JobSeekerHome = () => {
 
       {/* Availability & Rate Management */}
       <FloatingCard variant="elevated" size="sm" className="mb-2">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <ToggleLeft className="w-6 h-6 text-gray-500" />
-            <span className="font-semibold text-gray-800">Available for work</span>
-          </div>
-          <Button
-            size="sm"
-            variant={isAvailable ? "default" : "outline"}
-            className={isAvailable ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-            onClick={handleAvailabilityToggle}
-          >
-            {isAvailable ? "Available" : "Unavailable"}
-          </Button>
-          <div className="flex items-center gap-2 ml-1">
-            <Settings className="w-5 h-5 text-gray-500" />
-            <span className="font-semibold text-gray-800">Your Rate:</span>
-            <span className="ml-1 text-blue-700">₹{rate || user?.hourlyRate || '--'}/hr</span>
-            <Button size="icon" variant="ghost" onClick={handleRateEdit}>
-              <Pencil className="w-4 h-4" />
-            </Button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+          <div className="flex flex-col sm:flex-row gap-6 w-full justify-between">
+            <div className="flex items-center gap-3">
+              <ToggleLeft className="w-6 h-6 text-gray-500" />
+              <span className="font-semibold text-gray-800">Availability</span>
+              <div className="flex gap-2 ml-2">
+                {AVAILABILITY_OPTIONS.map(opt => (
+                  <Button
+                    key={opt.value}
+                    size="xs"
+                    className={`rounded-full border font-semibold ${
+                      availability === opt.value
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                    onClick={() => handleAvailabilitySelect(opt.value as any)}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {isShowRate && (
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-gray-500" />
+                <span className="font-semibold text-gray-800">Your Rates:</span>
+                <div className="flex gap-2">
+                  {Object.entries(user.salaryBySubcategory || {}).map(([sub, val]) => (
+                    <span key={sub} className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full text-xs">
+                      {sub}: ₹{val.amount || '--'}/{val.period}
+                      <Button size="icon" variant="ghost" onClick={() => handleRateEdit(sub)}>
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </FloatingCard>
@@ -100,7 +149,7 @@ const JobSeekerHome = () => {
       </FloatingCard>
 
       {/* Recommended Jobs */}
-      <div className="space-y-3">
+      <div className="space-y-3 pb-6">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-900 flex items-center">
             <Briefcase className="w-5 h-5 mr-2" />
