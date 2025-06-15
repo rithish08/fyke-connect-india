@@ -32,13 +32,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto border border-blue-100">
-            <span className="text-2xl font-bold text-blue-600">F</span>
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-xl flex items-center justify-center mx-auto">
+            <span className="text-3xl font-bold text-white">F</span>
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600 font-medium">Loading your experience...</p>
         </div>
       </div>
     );

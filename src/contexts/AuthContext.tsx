@@ -1,75 +1,63 @@
-
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;
-  name: string | null;
-  email: string | null;
-  phone: string | null;
-  role: 'jobseeker' | 'employer' | 'admin' | null;
-  verified: boolean;
-  profile_complete: boolean;
-  location: string | null;
-  bio: string | null;
-  availability: 'available' | 'busy' | 'offline';
-  primary_category?: string;
-  subcategories?: string[];
-  salaryBySubcategory?: { [key: string]: { amount: string; period: string } };
+  user_id: string;
+  role?: 'jobseeker' | 'employer' | 'admin';
+  profile_complete?: boolean;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  email?: string;
+  avatar_url?: string;
+  availability?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-interface AuthContextType {
+interface AuthContextProps {
   user: User | null;
   userProfile: UserProfile | null;
-  session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
-  sendOTP: (phoneNumber: string) => Promise<{ success: boolean; error?: string }>;
-  verifyOTP: (otpCode: string) => Promise<{ success: boolean; error?: string }>;
-  login: (phone: string, otp: string) => Promise<void>;
-  logout: () => Promise<void>;
+  signIn: (phone: string) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<{ error?: any }>;
-  signUp: (email: string, password: string, phone: string, name: string, role: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  switchRole: () => Promise<void>;
-  setRole: (role: 'jobseeker' | 'employer' | 'admin') => Promise<void>;
-  completeProfileSetup: (profileData: any) => Promise<void>;
+  verifyOTP: (phone: string, token: string) => Promise<{ error: any; data: any }>;
+  updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
-  const isAuthenticated = !!user && !!session;
-
-  const fetchUserProfile = useCallback(async (userId: string) => {
+  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      console.log('Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        return;
+        return null;
       }
 
-      console.log('User profile fetched:', data);
-      setUserProfile(data);
+      return data as UserProfile;
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('Exception fetching user profile:', error);
+      return null;
     }
-  }, []);
+  };
 
   useEffect(() => {
     console.log('[AuthContext] Setting up auth state listener');
@@ -77,345 +65,113 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          setUser(session.user);
+          try {
+            const profile = await fetchUserProfile(session.user.id);
+            setUserProfile(profile);
+          } catch (error) {
+            console.error('[AuthContext] Error fetching profile:', error);
+            setUserProfile(null);
+          }
         } else {
+          setUser(null);
           setUserProfile(null);
         }
         
+        // Always set loading to false after processing auth state
         setLoading(false);
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AuthContext] Initial session check:', session?.user?.id);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const signIn = async (phone: string) => {
+    return await supabase.auth.signInWithOtp({
+      phone,
     });
-
-    return () => subscription.unsubscribe();
-  }, [fetchUserProfile]);
-
-  const sendOTP = async (phoneNumber: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: '+91' + phoneNumber,
-      });
-      if (!error) {
-        toast({
-          title: "OTP Sent",
-          description: `Verification code sent to +91 ${phoneNumber}`
-        });
-        return { success: true };
-      } else {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to send OTP",
-          variant: "destructive"
-        });
-        return { success: false, error: error.message };
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to send OTP";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      return { success: false, error: errorMessage };
-    }
   };
 
-  const verifyOTP = async (otpCode: string) => {
-    try {
-      const phone = localStorage.getItem('fyke_phone');
-      if (!phone) {
-        return { success: false, error: "No phone found" };
-      }
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: '+91' + phone,
-        token: otpCode,
-        type: 'sms',
-      });
-      if (!error) {
-        toast({
-          title: "Phone Verified!",
-          description: "Successfully authenticated"
-        });
-        return { success: true };
-      } else {
-        toast({
-          title: "Verification Failed",
-          description: error.message || "Invalid OTP",
-          variant: "destructive"
-        });
-        return { success: false, error: error.message };
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to verify OTP";
-      toast({
-        title: "Verification Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      return { success: false, error: errorMessage };
-    }
+  const verifyOTP = async (phone: string, token: string) => {
+    return await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
+    });
   };
 
-  const login = async (phone: string, otp: string) => {
-    const result = await verifyOTP(otp);
-    if (!result.success) {
-      throw new Error(result.error || 'OTP verification failed');
-    }
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setUserProfile(null);
   };
 
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setUser(null);
-      setUserProfile(null);
-      setSession(null);
-      
-      localStorage.removeItem('fyke_phone');
-      localStorage.removeItem('fyke_selected_role');
-      localStorage.removeItem('fyke_selected_subcategories');
-      
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out"
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to logout",
-        variant: "destructive"
-      });
-    }
-  };
+  const updateUserProfile = async (profile: Partial<UserProfile>) => {
+    if (!user) throw new Error('No user logged in');
 
-  const signOut = logout;
-
-  const setRole = async (role: 'jobseeker' | 'employer' | 'admin') => {
-    if (!user) return;
-    
     try {
-      const { error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
-        .update({ 
-          role,
-          profile_complete: role === 'employer' ? true : false
-        })
-        .eq('id', user.id);
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-      if (error) throw error;
-
-      await fetchUserProfile(user.id);
-      
-      toast({
-        title: "Role Updated",
-        description: `Your role has been set to ${role}`
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update role",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const switchRole = async () => {
-    if (!userProfile) return;
-    const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
-    await setRole(newRole);
-  };
-
-  const completeProfileSetup = async (profileData: any) => {
-    if (!user) return;
-
-    try {
-      // Handle category and subcategory setup
-      if (profileData.subcategories && profileData.subcategories.length > 0) {
-        const { data: categoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('name', profileData.category)
-          .single();
-
-        if (categoryData) {
-          // Clear existing user categories
-          await supabase
-            .from('user_categories')
-            .delete()
-            .eq('user_id', user.id);
-
-          // Add new subcategories
-          for (const subcategory of profileData.subcategories) {
-            const { data: subcategoryData } = await supabase
-              .from('subcategories')
-              .select('id')
-              .eq('name', subcategory)
-              .eq('category_id', categoryData.id)
-              .single();
-
-            if (subcategoryData) {
-              await supabase
-                .from('user_categories')
-                .insert({
-                  user_id: user.id,
-                  category_id: categoryData.id,
-                  subcategory_id: subcategoryData.id,
-                  is_primary: profileData.subcategories[0] === subcategory
-                });
-            }
-          }
-        }
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 is the error code for no rows returned
+        console.error('Error checking for existing profile:', fetchError);
+        throw fetchError;
       }
 
-      // Handle wage setup
-      if (profileData.salaryBySubcategory) {
-        for (const [subcategory, salaryInfo] of Object.entries(profileData.salaryBySubcategory)) {
-          const salary = salaryInfo as { amount: string; period: string };
-          
-          const { data: subcategoryData } = await supabase
-            .from('subcategories')
-            .select('id, category_id')
-            .eq('name', subcategory)
-            .single();
+      let result;
 
-          if (subcategoryData) {
-            await supabase
-              .from('wages')
-              .upsert({
-                user_id: user.id,
-                category_id: subcategoryData.category_id,
-                subcategory_id: subcategoryData.id,
-                amount: parseFloat(salary.amount),
-                period: salary.period
-              });
-          }
-        }
+      if (!existingProfile) {
+        // Create new profile
+        result = await supabase.from('profiles').insert({
+          user_id: user.id,
+          ...profile,
+        });
+      } else {
+        // Update existing profile
+        result = await supabase
+          .from('profiles')
+          .update(profile)
+          .eq('user_id', user.id);
       }
 
-      // Update main profile
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: profileData.name,
-          location: profileData.location,
-          bio: profileData.bio,
-          profile_complete: true
-        })
-        .eq('id', user.id);
+      if (result.error) {
+        console.error('Error updating profile:', result.error);
+        throw result.error;
+      }
 
-      if (error) throw error;
-
-      await fetchUserProfile(user.id);
-      
-      toast({
-        title: "Profile Complete",
-        description: "Your profile has been successfully set up!"
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to complete profile setup",
-        variant: "destructive"
-      });
+      // Refresh the profile data
+      const updatedProfile = await fetchUserProfile(user.id);
+      setUserProfile(updatedProfile);
+    } catch (error) {
+      console.error('Exception in updateUserProfile:', error);
       throw error;
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user) return { error: 'Not logged in' };
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      setUserProfile(prev => prev ? { ...prev, ...updates } : null);
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated"
-      });
-      return { error: undefined };
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
-        variant: "destructive"
-      });
-      return { error };
-    }
-  };
-
-  const signUp = async (email: string, password: string, phone: string, name: string, role: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          phone,
-          role
-        }
-      }
-    });
-    return { error };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
-  };
-
-  const value: AuthContextType = {
+  const value = {
     user,
     userProfile,
-    session,
     loading,
-    isAuthenticated,
-    sendOTP,
-    verifyOTP,
-    login,
-    logout,
-    signOut,
-    updateProfile,
-    signUp,
+    isAuthenticated: !!user,
     signIn,
-    switchRole,
-    setRole,
-    completeProfileSetup
+    signOut,
+    verifyOTP,
+    updateUserProfile,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextProps => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
