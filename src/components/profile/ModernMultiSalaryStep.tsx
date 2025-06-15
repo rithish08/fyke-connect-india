@@ -27,14 +27,29 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
 
   // Form submission with validation (calls onNext if valid)
   const handleComplete = async () => {
+    console.log('Complete button clicked');
+    console.log('Non-vehicle subcategories:', nonVehicleSubcategories);
+    
     const salaryData = form.getValues('salaryBySubcategory') || {};
-    const allValid = nonVehicleSubcategories.every(sub =>
-      salaryData[sub]?.amount && salaryData[sub]?.period
-    );
+    console.log('Current salary data:', salaryData);
+    
+    // Check if all non-vehicle subcategories have salary data
+    const allValid = nonVehicleSubcategories.every(sub => {
+      const hasAmount = salaryData[sub]?.amount && salaryData[sub]?.amount.trim() !== '';
+      const hasPeriod = salaryData[sub]?.period;
+      console.log(`${sub}: amount=${salaryData[sub]?.amount}, period=${salaryData[sub]?.period}, valid=${hasAmount && hasPeriod}`);
+      return hasAmount && hasPeriod;
+    });
+    
+    console.log('All fields valid:', allValid);
+    
     if (allValid) {
+      console.log('Validation passed, calling onNext');
       onNext();
     } else {
-      await form.trigger('salaryBySubcategory');
+      console.log('Validation failed, triggering form validation');
+      const result = await form.trigger('salaryBySubcategory');
+      console.log('Form trigger result:', result);
     }
   };
 
@@ -119,4 +134,3 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
 };
 
 export default ModernMultiSalaryStep;
-
