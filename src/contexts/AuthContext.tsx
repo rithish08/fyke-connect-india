@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -313,7 +314,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           name: profileData.name,
           location: profileData.location,
           bio: profileData.bio,
-          primary_category: profileData.category,
           profile_complete: true
         })
         .eq('id', user.id);
