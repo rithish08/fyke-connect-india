@@ -21,11 +21,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     return (
       <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
         <div className="text-center">
-          <img 
-            src="/lovable-uploads/a6b5e9c4-3b2a-4c78-9d1e-f5e6a7b8c9d0.png" 
-            alt="fyke logo"
-            className="w-32 h-auto mx-auto"
-          />
+          <div className="text-4xl font-bold text-blue-600 mb-2">fyke</div>
+          <div className="text-sm text-gray-500">gig economy platform</div>
         </div>
       </div>
     );
@@ -34,11 +31,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300">
       <div className="text-center animate-pulse">
-        <img 
-          src="/lovable-uploads/a6b5e9c4-3b2a-4c78-9d1e-f5e6a7b8c9d0.png" 
-          alt="fyke logo"
-          className="w-32 h-auto mx-auto"
-        />
+        <div className="text-4xl font-bold text-blue-600 mb-2">fyke</div>
+        <div className="text-sm text-gray-500">gig economy platform</div>
       </div>
     </div>
   );
