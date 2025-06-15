@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,7 +41,12 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
       {/* Main Header */}
       <div className="flex items-center justify-between h-14 px-4 border-b border-gray-50">
         <div className="flex items-center space-x-3">
-          <span className="font-extrabold text-2xl sm:text-3xl text-black tracking-tight" style={{fontFamily: 'Montserrat, sans-serif', textTransform: 'lowercase', letterSpacing: '-0.015em'}}>fyke</span>
+          <img 
+            src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
+            alt="fyke logo"
+            className="h-9 w-auto"
+            style={{ maxWidth: "100px" }}
+          />
           <span className="text-gray-300 text-2xl font-light">/</span>
           <div 
             className="px-2 py-1 rounded-full bg-gray-100 font-medium text-gray-600 capitalize max-w-[100px] overflow-hidden"

@@ -13,6 +13,7 @@ const pageNames: Record<string, string> = {
   "/profile": "Profile",
   "/messages": "Messages",
   "/notifications": "Notifications"
+  // ...add others as needed...
 };
 
 const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
@@ -35,7 +36,12 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
       <div className="relative bg-white p-0 shadow-none w-full">
         {/* App Brand in top left */}
         <div className="flex items-center h-14 px-4 border-b border-gray-100">
-          <span className="font-extrabold text-2xl sm:text-3xl text-black tracking-tight" style={{fontFamily: 'Montserrat, sans-serif', textTransform: 'lowercase', letterSpacing: '-0.015em'}}>fyke</span>
+          <img 
+            src="/lovable-uploads/04598117-ef83-4524-a271-0eef4f86f3d8.png"
+            alt="fyke logo"
+            className="h-9 w-auto"
+            style={{ maxWidth: '100px' }}
+          />
         </div>
         {/* Page Name below app name */}
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
@@ -75,4 +81,3 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
 };
 
 export default HomeHeader;
-

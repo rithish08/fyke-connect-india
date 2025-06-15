@@ -11,8 +11,8 @@ const JobSeekerHomeHeader = ({ userPrimaryCategory }: JobSeekerHomeHeaderProps) 
 
   return (
     <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-bold text-black" style={{fontFamily: 'Montserrat, sans-serif', textTransform: 'lowercase', letterSpacing: '-0.015em'}}>
-        {userPrimaryCategory ? `${userPrimaryCategory} jobs` : 'jobs for you'}
+      <h2 className="text-lg font-bold text-gray-900">
+        {userPrimaryCategory ? `${userPrimaryCategory} Jobs` : 'Jobs for You'}
       </h2>
       <Button variant="outline" size="sm" onClick={() => navigate('/search')}>
         View All
