@@ -131,25 +131,7 @@ const ProfileSetup = () => {
 
     setLoading(true);
     try {
-      // Get saved subcategories
-      const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
-      const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
-
-      // Get salary data from form
-      const formData = form.getValues();
-      const salaryBySubcategory = formData.salaryBySubcategory || {};
-
-      const profileData = {
-        name: name.trim(),
-        location: location.trim(),
-        bio: bio.trim(),
-        category,
-        subcategories,
-        vehicle,
-        salaryBySubcategory
-      };
-
-      await completeProfileSetup(profileData);
+      await completeProfileSetup();
       
       // Clear localStorage
       localStorage.removeItem('fyke_selected_subcategories');

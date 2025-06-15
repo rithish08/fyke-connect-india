@@ -34,7 +34,7 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signIn(credentials.email, credentials.password);
+    const { error } = await signIn(credentials.email);
     
     if (!error) {
       // The useEffect will handle navigation after auth state updates

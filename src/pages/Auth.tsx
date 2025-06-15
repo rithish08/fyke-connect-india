@@ -42,7 +42,7 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signIn(signInData.email, signInData.password);
+    const { error } = await signIn(signInData.email);
     
     if (!error) {
       navigate('/home');
@@ -60,13 +60,11 @@ const Auth = () => {
 
     setIsLoading(true);
     
-    const { error } = await signUp(
-      signUpData.email,
-      signUpData.password,
-      signUpData.phone,
-      signUpData.name,
-      signUpData.role
-    );
+    const { error } = await signUp(signUpData.phone, {
+      name: signUpData.name,
+      email: signUpData.email,
+      role: signUpData.role
+    });
     
     if (!error) {
       navigate('/home');

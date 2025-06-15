@@ -37,7 +37,7 @@ interface AuthContextProps {
   updateProfile: (profile: Partial<UserProfile>) => Promise<{ error: any }>;
   switchRole: () => Promise<void>;
   setRole: (role: 'jobseeker' | 'employer') => Promise<void>;
-  completeProfileSetup: () => Promise<void>;
+  completeProfileSetup: (data?: any) => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -70,8 +70,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user_id: data.id,
         role: data.role,
         profile_complete: data.profile_complete,
-        first_name: data.first_name,
-        last_name: data.last_name,
         name: data.name,
         phone: data.phone,
         email: data.email,
@@ -79,8 +77,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         availability: data.availability as 'available' | 'busy' | 'offline',
         location: data.location,
         bio: data.bio,
-        primary_category: data.primary_category,
-        subcategories: data.subcategories,
         created_at: data.created_at,
         updated_at: data.updated_at,
       };
@@ -181,7 +177,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
@@ -191,7 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Map our interface to database fields
       const dbProfile: any = {
-        user_id: user.id,
+        id: user.id,
       };
 
       if (profile.role) dbProfile.role = profile.role;
@@ -202,8 +198,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (profile.availability) dbProfile.availability = profile.availability;
       if (profile.location) dbProfile.location = profile.location;
       if (profile.bio) dbProfile.bio = profile.bio;
-      if (profile.primary_category) dbProfile.primary_category = profile.primary_category;
-      if (profile.subcategories) dbProfile.subcategories = profile.subcategories;
 
       let result;
 
@@ -213,7 +207,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         result = await supabase
           .from('profiles')
           .update(dbProfile)
-          .eq('user_id', user.id);
+          .eq('id', user.id);
       }
 
       if (result.error) {
