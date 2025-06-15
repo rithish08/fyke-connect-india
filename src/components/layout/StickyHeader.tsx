@@ -1,13 +1,23 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
-import { Bell, Globe } from 'lucide-react';
+import { Bell, Globe, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
 interface StickyHeaderProps {
   currentTime: Date;
 }
+
+const languageList = [
+  { code: 'en', name: 'English', native: 'English', icon: "🇬🇧" },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी', icon: "🇮🇳" },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்', icon: "🇮🇳" },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు', icon: "🇮🇳" },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা', icon: "🇮🇳" },
+  { code: 'mr', name: 'Marathi', native: 'मराठी', icon: "🇮🇳" }
+];
 
 const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
   const { user } = useAuth();
@@ -22,10 +32,7 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
     });
   };
 
-  const toggleLanguage = () => {
-    const newLang = language === 'en' ? 'hi' : 'en';
-    setLanguage(newLang);
-  };
+  const currentLanguage = languageList.find(lang => lang.code === language) || languageList[0];
 
   return (
     <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
@@ -42,15 +49,31 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
 
         {/* Right: Actions */}
         <div className="flex items-center space-x-2">
-          {/* Language Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleLanguage}
-            className="h-8 w-8 p-0"
-          >
-            <Globe className="w-4 h-4" />
-          </Button>
+          {/* Language Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 px-2 flex items-center space-x-1">
+                <span className="text-sm">{currentLanguage.icon}</span>
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {languageList.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code)}
+                  className={`flex items-center space-x-3 ${language === lang.code ? 'bg-blue-50' : ''}`}
+                >
+                  <span>{lang.icon}</span>
+                  <div className="flex-1">
+                    <div className="font-medium">{lang.native}</div>
+                    <div className="text-xs text-gray-500">{lang.name}</div>
+                  </div>
+                  {language === lang.code && <span className="text-blue-600">✓</span>}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Notifications */}
           <Button

@@ -1,11 +1,15 @@
 
-import React, { useState } from "react";
-import { MapPin, Clock, CheckCircle, MessageCircle, Phone } from "lucide-react";
+import React from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "@/hooks/useTranslation";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Clock, Star, MessageCircle, Phone, Building2, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGlobalToast } from "@/hooks/useGlobalToast";
+import { handleJobApplication, handleEmployerContact } from "@/utils/communicationHandlers";
 
-interface JobCardProps {
+interface EnhancedJobCardProps {
   id?: string | number;
   title: string;
   category: string;
@@ -18,123 +22,200 @@ interface JobCardProps {
   description?: string;
   showCommunication?: boolean;
   employerId?: string;
+  salaryPeriod?: string;
 }
 
-const EnhancedJobCard: React.FC<JobCardProps> = ({
+const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
   id,
   title,
   category,
   skills = [],
   salary,
   urgent = false,
-  distance = "2.5km",
-  postedTime = "2h ago",
-  company = "Local Business",
-  description = "Looking for skilled worker for immediate start",
+  distance,
+  postedTime,
+  company,
+  description,
   showCommunication = true,
-  employerId = "employer1"
+  employerId,
+  salaryPeriod = 'day'
 }) => {
-  const { toast } = useToast();
-  const { translateCategory, translateText } = useTranslation();
-  const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');
-
-  const displayedSkills = skills.slice(0, 2);
-  const moreSkills = skills.length > 2 ? skills.length - 2 : 0;
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showSuccess, showError } = useGlobalToast();
 
   const handleApply = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setApplicationState('requested');
-    toast({
-      title: translateText('job.application_submitted', 'Application Submitted!'),
-      description: translateText('job.application_description', `Your application for ${title} has been submitted.`),
-    });
+    if (!id || !title) {
+      showError('Job information is incomplete');
+      return;
+    }
+
+    if (user?.role === 'employer') {
+      showError('Employers cannot apply for jobs');
+      return;
+    }
+
+    try {
+      handleJobApplication(id.toString(), title, navigate);
+      showSuccess(`Applied for ${title}!`);
+    } catch (error) {
+      showError('Failed to apply for job');
+    }
   };
 
-  const handleCommunication = (type: 'chat' | 'call', e: React.MouseEvent) => {
+  const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toast({ 
-      title: `${type === 'chat' ? 'Chat' : 'Call'} feature coming soon!`,
-      description: `${type === 'chat' ? 'Messaging' : 'Calling'} ${company} will be available soon.`
-    });
+    if (!employerId || !company) {
+      showError('Employer contact information not available');
+      return;
+    }
+
+    console.log('Initiating chat with employer:', { employerId, company });
+    handleEmployerContact(employerId, company, navigate, `Job: ${title}`);
+  };
+
+  const handleCall = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    showSuccess('Phone feature coming soon!');
+  };
+
+  const handleViewDetails = () => {
+    if (id) {
+      navigate(`/job/${id}`);
+    }
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm w-full max-w-2xl transition-all duration-200 hover:shadow-md cursor-pointer">
-      <div className="flex items-start gap-3">
-        <div className="relative shrink-0">
-          <div className="h-14 w-14 bg-gray-100 rounded-lg flex items-center justify-center">
-            <CheckCircle className={`w-7 h-7 ${urgent ? "text-red-400" : "text-green-400"}`} />
+    <Card className="p-4 hover:shadow-lg transition-all duration-300 border border-gray-100 bg-white rounded-2xl cursor-pointer" onClick={handleViewDetails}>
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2 mb-1">
+              <h3 className="font-bold text-gray-900 truncate">{title}</h3>
+              {urgent && (
+                <Badge variant="destructive" className="text-xs px-2 py-0.5">
+                  Urgent
+                </Badge>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-3 text-sm text-gray-600 mb-2">
+              {company && (
+                <span className="flex items-center space-x-1">
+                  <Building2 className="w-3 h-3" />
+                  <span className="truncate">{company}</span>
+                </span>
+              )}
+              {distance && (
+                <span className="flex items-center space-x-1">
+                  <MapPin className="w-3 h-3" />
+                  <span>{distance}</span>
+                </span>
+              )}
+            </div>
+
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
+              {category}
+            </Badge>
+          </div>
+          
+          <div className="text-right ml-4">
+            <div className="font-bold text-green-600">₹{salary}</div>
+            <div className="text-xs text-gray-500">per {salaryPeriod}</div>
           </div>
         </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex gap-2 items-center mb-1">
-            <span className="font-semibold leading-5 text-base text-gray-900 truncate">{title}</span>
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium whitespace-nowrap">
-              {translateCategory(category)}
-            </span>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600 mb-2">
-            <span>{company}</span>
-            <span className="text-gray-300">•</span>
-            <span className="flex items-center"><Clock className="w-3 h-3 mr-1" />{postedTime}</span>
-            <span className="text-gray-300">•</span>
-            <span className="flex items-center"><MapPin className="w-3 h-3 mr-1" />{distance}</span>
-          </div>
-          
-          <div className="flex flex-wrap gap-1 mb-3">
-            {displayedSkills.map((skill) => (
-              <span
-                key={skill}
-                className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium"
+
+        {/* Skills */}
+        {skills && skills.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {skills.slice(0, 3).map((skill: string, index: number) => (
+              <Badge 
+                key={index} 
+                variant="outline" 
+                className="text-xs px-2 py-0.5 bg-gray-50 text-gray-700 border-gray-200"
               >
                 {skill}
-              </span>
+              </Badge>
             ))}
-            {moreSkills > 0 && (
-              <span className="text-gray-500 text-xs font-medium">+{moreSkills} more</span>
+            {skills.length > 3 && (
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                +{skills.length - 3}
+              </Badge>
             )}
           </div>
+        )}
+
+        {/* Description */}
+        {description && (
+          <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className="flex items-center space-x-3 text-xs text-gray-500">
+            {postedTime && (
+              <span className="flex items-center space-x-1">
+                <Clock className="w-3 h-3" />
+                <span>{postedTime}</span>
+              </span>
+            )}
+            <div className="flex items-center space-x-1">
+              <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
+              <span>4.5</span>
+            </div>
+          </div>
           
-          <div className="flex items-center justify-between gap-3">
-            <Button
-              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
-                applicationState === 'requested' 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
-              }`}
-              onClick={handleApply}
-              disabled={applicationState === 'requested'}
-            >
-              {applicationState === 'requested' 
-                ? translateText('common.requested', 'Requested') 
-                : `₹${salary}/${translateText("common.apply", "Apply")}`
-              }
-            </Button>
-            
+          <div className="flex space-x-2">
             {showCommunication && (
-              <div className="flex gap-2">
-                <button
-                  onClick={(e) => handleCommunication('chat', e)}
-                  className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
-                  title="Chat"
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={handleChat}
                 >
-                  <MessageCircle className="w-4 h-4 text-blue-600" />
-                </button>
-                <button
-                  onClick={(e) => handleCommunication('call', e)}
-                  className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
-                  title="Call"
+                  <MessageCircle className="w-3 h-3 mr-1" />
+                  Chat
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={handleCall}
                 >
-                  <Phone className="w-4 h-4 text-green-600" />
-                </button>
-              </div>
+                  <Phone className="w-3 h-3" />
+                </Button>
+              </>
+            )}
+            
+            {user?.role === 'jobseeker' ? (
+              <Button
+                size="sm"
+                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700"
+                onClick={handleApply}
+              >
+                Apply
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewDetails();
+                }}
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                View
+              </Button>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
