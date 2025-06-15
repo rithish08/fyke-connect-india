@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Phone, MessageSquare, User } from "lucide-react";
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
-
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -17,18 +15,22 @@ const LoginScreen = () => {
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
-  const { t } = useLocalization();
-  const { login } = useAuth();
-  const { toast } = useToast();
+  const {
+    t
+  } = useLocalization();
+  const {
+    login
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [resendTimer]);
-
   const handleSendOTP = async () => {
     if (phone.length !== 10 || !name.trim()) {
       toast({
@@ -38,20 +40,16 @@ const LoginScreen = () => {
       });
       return;
     }
-
     setLoading(true);
-    
     try {
       // Store user data for later use
       localStorage.setItem('fyke_phone', phone);
       localStorage.setItem('fyke_name', name.trim());
-      
+
       // Simulate sending OTP
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
       setShowOTP(true);
       setResendTimer(60);
-      
       toast({
         title: "OTP Sent",
         description: `Verification code sent to +91 ${phone}`
@@ -66,7 +64,6 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
-
   const handleOTPComplete = async (otpCode: string) => {
     if (otpCode.length !== 6) {
       toast({
@@ -76,17 +73,14 @@ const LoginScreen = () => {
       });
       return;
     }
-
     setLoading(true);
-    
     try {
       await login(phone, otpCode);
-      
       toast({
         title: "Login Successful!",
         description: "Welcome to Fyke Connect"
       });
-      
+
       // Navigate to role selection after successful login
       navigate('/role-selection');
     } catch (error) {
@@ -100,7 +94,6 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
-
   const handleResend = () => {
     setResendTimer(60);
     toast({
@@ -108,15 +101,12 @@ const LoginScreen = () => {
       description: "New verification code sent to your phone"
     });
   };
-
   const handleBack = () => {
     setShowOTP(false);
     setOtp(['', '', '', '', '', '']);
   };
-
   if (showOTP) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+    return <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           {/* Header */}
           <div className="text-center space-y-4">
@@ -136,11 +126,7 @@ const LoginScreen = () => {
           <Card className="p-6 shadow border-gray-100 bg-white">
             <div className="space-y-6">
               {/* Enhanced OTP Input */}
-              <EnhancedOTPInput
-                value={otp}
-                onChange={setOtp}
-                onComplete={handleOTPComplete}
-              />
+              <EnhancedOTPInput value={otp} onChange={setOtp} onComplete={handleOTPComplete} />
 
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-2">
@@ -150,25 +136,15 @@ const LoginScreen = () => {
               </div>
 
               <div className="flex justify-between items-center">
-                <button
-                  onClick={handleBack}
-                  className="text-sm text-gray-600 hover:text-gray-800"
-                >
+                <button onClick={handleBack} className="text-sm text-gray-600 hover:text-gray-800">
                   ← Change Number
                 </button>
                 
-                {resendTimer > 0 ? (
-                  <p className="text-sm text-gray-400">
+                {resendTimer > 0 ? <p className="text-sm text-gray-400">
                     Resend in {resendTimer}s
-                  </p>
-                ) : (
-                  <button
-                    onClick={handleResend}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                  >
+                  </p> : <button onClick={handleResend} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                     Resend OTP
-                  </button>
-                )}
+                  </button>}
               </div>
             </div>
           </Card>
@@ -184,12 +160,9 @@ const LoginScreen = () => {
             </p>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
         <CardContent className="p-8 space-y-6">
           {/* Header */}
@@ -210,15 +183,9 @@ const LoginScreen = () => {
             {/* Name Input */}
             <div className="relative">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <User className="w-5 h-5" />
+                
               </div>
-              <Input
-                type="text"
-                placeholder="Your Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              
             </div>
             
             {/* Phone Input */}
@@ -226,20 +193,10 @@ const LoginScreen = () => {
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                 +91
               </div>
-              <Input
-                type="tel"
-                placeholder="9876543210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <Input type="tel" placeholder="9876543210" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
             
-            <Button 
-              onClick={handleSendOTP} 
-              disabled={phone.length !== 10 || !name.trim() || loading}
-              className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
-            >
+            <Button onClick={handleSendOTP} disabled={phone.length !== 10 || !name.trim() || loading} className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg">
               {loading ? 'Sending...' : 'Send OTP'}
             </Button>
           </div>
@@ -252,8 +209,6 @@ const LoginScreen = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default LoginScreen;
