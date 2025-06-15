@@ -1,105 +1,95 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocalization } from "@/contexts/LocalizationContext";
-import { supabaseService } from '@/services/supabaseService';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Edit, Check } from 'lucide-react';
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { toast } from "@/hooks/use-toast"
+
+import React from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import ProfileSummaryCard from "@/components/profile/ProfileSummaryCard";
+import ProfileEditableInfo from "@/components/profile/ProfileEditableInfo";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 const Profile = () => {
-  const { user, userProfile, updateProfile } = useAuth();
-  const { t } = useLocalization();
-  const navigate = useNavigate();
+  const { userProfile, updateProfile } = useAuth();
+  const [availability, setAvailability] = React.useState(userProfile?.availability || "available");
 
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>(userProfile?.availability || 'available');
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (userProfile) {
       setAvailability(userProfile.availability);
     }
   }, [userProfile]);
 
-  const handleAvailabilityChange = async (newAvailability: 'available' | 'busy' | 'offline') => {
-    setAvailability(newAvailability);
-    await updateProfile({ availability: newAvailability });
-    toast({
-      title: "Availability Updated",
-      description: `Your availability is now set to ${newAvailability}`
-    });
+  const handleAvailabilityChange = async (newVal: boolean) => {
+    const newStatus = newVal ? "available" : "busy";
+    setAvailability(newStatus);
+    try {
+      await updateProfile({ availability: newStatus });
+      toast({
+        title: "Availability Updated",
+        description: `Your availability is now set to "${newStatus}".`,
+      });
+    } catch (e: any) {
+      toast({ title: "Failed to Update", description: e.message, variant: "destructive" });
+    }
   };
 
   if (!userProfile) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 flex flex-col justify-center sm:py-12">
-      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-        <Card className="divide-y divide-gray-200">
-          <CardContent className="py-8 px-5">
-            {/* Avatar Section */}
-            <div className="mb-6 flex flex-col items-center">
-              <Avatar className="w-24 h-24 rounded-full border-4 border-white shadow-md">
-                <AvatarImage src={`https://avatar.iran.liara.run/public/${userProfile.name}`} alt={userProfile.name || "Avatar"} />
-                <AvatarFallback>{userProfile.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-              </Avatar>
-              <h2 className="mt-4 text-xl font-semibold text-gray-800">{userProfile.name || 'Update your name'}</h2>
-              <p className="text-sm text-gray-500">{userProfile.email || userProfile.phone}</p>
-            </div>
-
-            {/* Profile Info */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">{t('profile.location', 'Location')}</span>
-                <span className="font-medium">{userProfile.location || 'Add location'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">{t('profile.role', 'Role')}</span>
-                <span className="font-medium">{t(`role.${userProfile.role}`, userProfile.role)}</span>
-              </div>
-              {userProfile.role === 'jobseeker' && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700">{t('profile.experience', 'Experience')}</span>
-                  <span className="font-medium">{userProfile.bio || 'Add experience'}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Availability Switch */}
-            <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
-              <Label htmlFor="availability" className="text-sm font-medium text-gray-700">
-                {t('profile.availability', 'Availability')}
-              </Label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="availability"
-                  checked={availability === 'available'}
-                  onCheckedChange={(checked) => {
-                    const newAvailability = checked ? 'available' : 'busy';
-                    handleAvailabilityChange(newAvailability as 'available' | 'busy');
-                  }}
-                />
-                <span className="text-sm text-gray-500">{availability}</span>
-              </div>
-            </div>
-
-            {/* Edit Button */}
-            <Button
-              variant="outline"
-              className="mt-6 w-full justify-center"
-              onClick={() => navigate('/profile-setup')}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              {t('profile.edit_profile', 'Edit Profile')}
-            </Button>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col px-2 py-10 md:py-14">
+      <div className="w-full max-w-xl mx-auto space-y-6">
+        {/* Profile summary card */}
+        <ProfileSummaryCard
+          name={userProfile.name || ""}
+          primaryCategory={userProfile.category || ""}
+          rating={4.5}
+          reviewCount={19}
+          avatarUrl={userProfile.avatar_url || ""}
+          isVerified={true}
+          location={userProfile.location}
+          phone={userProfile.phone}
+          email={userProfile.email}
+        />
+        {/* Editable info card */}
+        <ProfileEditableInfo
+          initialName={userProfile.name || ""}
+          initialLocation={userProfile.location || ""}
+          initialBio={userProfile.bio || ""}
+          initialEmail={userProfile.email || ""}
+        />
+        {/* Availability switch */}
+        <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-md flex items-center justify-between">
+          <Label htmlFor="availability" className="text-base font-medium text-gray-800">
+            Availability
+          </Label>
+          <div className="flex items-center gap-3">
+            <Switch
+              id="availability"
+              checked={availability === "available"}
+              onCheckedChange={handleAvailabilityChange}
+            />
+            <span className={`font-semibold text-sm ${
+              availability === "available"
+                ? "text-green-600"
+                : "text-orange-500"
+            }`}>
+              {availability === "available" ? "Available" : "Busy"}
+            </span>
+          </div>
+        </div>
+        {/* Edit profile setup button */}
+        <Button
+          variant="outline"
+          className="w-full justify-center mt-2"
+          onClick={() => window.location.assign("/profile-setup")}
+        >
+          Edit Full Profile
+        </Button>
       </div>
     </div>
   );
