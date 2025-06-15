@@ -8,6 +8,8 @@ import { useLocalization } from '@/hooks/useLocalization';
 import { mockWorkers, mockJobs } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { handleJobApplication, handleHireRequest } from '@/utils/communicationHandlers';
+import { useGlobalToast } from '@/hooks/useGlobalToast';
 
 interface JobSearchResultsProps {
   results: any[];
@@ -29,6 +31,7 @@ const JobSearchResults = ({
   const { getLocalizedText } = useLocalization();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess } = useGlobalToast();
 
   // Enhanced mock data integration with user-specific filtering
   let displayResults = results;
@@ -98,8 +101,8 @@ const JobSearchResults = ({
   }
 
   const handleJobApply = (job: any) => {
-    console.log('Applying to job:', job);
-    // TODO: Implement job application functionality
+    handleJobApplication(job.id, job.title, navigate);
+    showSuccess('Applied successfully!');
   };
 
   const handleJobViewDetails = (job: any) => {
@@ -107,8 +110,8 @@ const JobSearchResults = ({
   };
 
   const handleWorkerHire = (worker: any) => {
-    console.log('Hiring worker:', worker);
-    // TODO: Implement quick hire functionality
+    handleHireRequest(worker.id, worker.name);
+    showSuccess(`Hire request sent to ${worker.name}!`);
   };
 
   const handleWorkerMessage = (worker: any) => {

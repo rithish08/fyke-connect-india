@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { mockWorkers } from '@/data/mockData';
 import { useCommunication } from '@/contexts/CommunicationContext';
 import { useGlobalToast } from '@/hooks/useGlobalToast';
+import { handleHireRequest } from '@/utils/communicationHandlers';
 
 interface Worker {
   id: string;
@@ -47,6 +48,7 @@ const NearbyWorkersSection = () => {
 
   const handleHire = (worker: Worker) => {
     setHiredWorkers(prev => new Set([...prev, worker.id]));
+    handleHireRequest(worker.id, worker.name);
     addHireRequest(worker.id);
     addSentRequest(worker.id);
     showSuccess(`Hire request sent to ${worker.name}!`);

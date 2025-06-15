@@ -1,31 +1,72 @@
 
-// Utility functions for handling communication actions
-export const handlePhoneCall = (phoneNumber?: string, workerName?: string) => {
+import { useGlobalToast } from '@/hooks/useGlobalToast';
+
+export const handlePhoneCall = (phoneNumber?: string, targetName?: string) => {
   if (phoneNumber) {
-    // Open device dialer with the phone number
-    window.open(`tel:${phoneNumber}`, '_self');
+    window.location.href = `tel:${phoneNumber}`;
   } else {
-    // Fallback - show contact info or redirect to profile
-    alert(`Contact information for ${workerName || 'worker'} is not available. Please use the chat feature.`);
+    // Show toast that phone call is not available
+    console.log(`Phone call to ${targetName} not available`);
   }
 };
 
-export const handleInAppChat = (workerId: string, workerName: string, navigate: any, context?: string) => {
-  const params = new URLSearchParams({
-    chatWith: workerId,
-    name: workerName,
-    type: 'worker',
-    ...(context && { context })
+export const handleInAppChat = (targetId: string, targetName: string, navigate: any, context?: string) => {
+  const chatParams = new URLSearchParams({
+    chatWith: targetId,
+    name: targetName,
+    type: 'worker'
   });
-  navigate(`/messages?${params.toString()}`);
+  
+  if (context) {
+    chatParams.append('context', context);
+  }
+  
+  navigate(`/messages?${chatParams.toString()}`);
 };
 
-export const handleEmployerContact = (employerId: string, employerName: string, navigate: any, jobTitle?: string) => {
-  const params = new URLSearchParams({
-    chatWith: employerId,
-    name: employerName,
-    type: 'employer',
-    ...(jobTitle && { context: jobTitle })
+export const handleEmployerContact = (targetId: string, targetName: string, navigate: any, context?: string) => {
+  const chatParams = new URLSearchParams({
+    chatWith: targetId,
+    name: targetName,
+    type: 'employer'
   });
-  navigate(`/messages?${params.toString()}`);
+  
+  if (context) {
+    chatParams.append('context', context);
+  }
+  
+  navigate(`/messages?${chatParams.toString()}`);
+};
+
+export const handleJobApplication = (jobId: string, jobTitle: string, navigate: any) => {
+  // Store application in local storage for now
+  const applications = JSON.parse(localStorage.getItem('fyke_applications') || '[]');
+  const newApplication = {
+    id: Date.now().toString(),
+    jobId,
+    jobTitle,
+    appliedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+  
+  applications.push(newApplication);
+  localStorage.setItem('fyke_applications', JSON.stringify(applications));
+  
+  // Navigate to my jobs page
+  navigate('/my-jobs');
+};
+
+export const handleHireRequest = (workerId: string, workerName: string) => {
+  // Store hire request in local storage for now
+  const hireRequests = JSON.parse(localStorage.getItem('fyke_hire_requests') || '[]');
+  const newRequest = {
+    id: Date.now().toString(),
+    workerId,
+    workerName,
+    requestedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+  
+  hireRequests.push(newRequest);
+  localStorage.setItem('fyke_hire_requests', JSON.stringify(hireRequests));
 };

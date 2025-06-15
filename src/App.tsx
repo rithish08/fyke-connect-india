@@ -17,6 +17,8 @@ import MyJobs from '@/pages/MyJobs';
 import Profile from '@/pages/Profile';
 import Messaging from '@/pages/Messaging';
 import Notifications from '@/pages/Notifications';
+import PostJob from '@/pages/PostJob';
+import JobDetails from '@/pages/JobDetails';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +102,22 @@ function App() {
                     element={
                       <RouteGuard>
                         <Notifications />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="/post-job"
+                    element={
+                      <RouteGuard>
+                        <PostJob />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="/job/:id"
+                    element={
+                      <RouteGuard>
+                        <JobDetails />
                       </RouteGuard>
                     }
                   />
