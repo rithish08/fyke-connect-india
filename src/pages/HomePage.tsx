@@ -31,21 +31,23 @@ const HomePage = () => {
   }, [userProfile, navigate]);
 
   if (!userProfile || !isFlowComplete) {
-    return null; // RouteGuard will handle redirects
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600" />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-white">
       <StickyHeader currentTime={currentTime} />
-      
-      {/* Dynamic Role Switcher */}
       <div className="px-4 py-2 bg-gray-50 border-b">
         <DynamicRoleSwitcher />
       </div>
-      
       <div className="flex justify-center">
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl px-2 sm:px-0">
           <div className="pt-4 pb-20">
+            <h1 className="sr-only">{t('home.title', 'Home')}</h1>
             {userProfile.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>
@@ -54,5 +56,4 @@ const HomePage = () => {
     </div>
   );
 };
-
 export default HomePage;

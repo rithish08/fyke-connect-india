@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileSummaryCard from "@/components/profile/ProfileSummaryCard";
@@ -7,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 const Profile = () => {
   const { userProfile, updateProfile } = useAuth();
@@ -32,9 +32,11 @@ const Profile = () => {
     }
   };
 
+  const { t } = useLocalization();
+
   if (!userProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -45,7 +47,7 @@ const Profile = () => {
       <div className="w-full max-w-xl mx-auto space-y-5 sm:space-y-6">
         <ProfileSummaryCard
           name={userProfile.name || ""}
-          primaryCategory={userProfile.primary_category || ""}
+          primaryCategory={userProfile.primary_category || t("profile.category", "Category")}
           rating={4.5}
           reviewCount={19}
           avatarUrl={userProfile.avatar_url || ""}
@@ -62,7 +64,7 @@ const Profile = () => {
         />
         <div className="p-4 sm:p-6 bg-white border border-gray-100 rounded-xl sm:rounded-2xl shadow-md flex items-center justify-between">
           <Label htmlFor="availability" className="text-base font-medium text-gray-800">
-            Availability
+            {t('profile.availability', "Availability")}
           </Label>
           <div className="flex items-center gap-2 sm:gap-3">
             <Switch
@@ -75,7 +77,7 @@ const Profile = () => {
                 ? "text-green-600"
                 : "text-orange-500"
             }`}>
-              {availability === "available" ? "Available" : "Busy"}
+              {availability === "available" ? t('profile.status.available',"Available") : t('profile.status.busy',"Busy")}
             </span>
           </div>
         </div>
@@ -84,7 +86,7 @@ const Profile = () => {
           className="w-full justify-center mt-2"
           onClick={() => window.location.assign("/profile-setup")}
         >
-          Edit Full Profile
+          {t('profile.editBtn', "Edit Full Profile")}
         </Button>
       </div>
     </div>

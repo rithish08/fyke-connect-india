@@ -1,30 +1,34 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { Users, Briefcase, Check } from 'lucide-react';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 const roles = [
   {
     id: 'jobseeker',
-    title: 'Job Seeker',
-    description: 'Looking for work opportunities',
+    titleKey: 'role.jobseeker',
+    descriptionKey: 'role.jobseeker.desc',
     icon: Users,
     gradient: 'from-blue-500 to-blue-600'
   },
   {
     id: 'employer',
-    title: 'Employer',
-    description: 'Hiring workers for jobs',
+    titleKey: 'role.employer',
+    descriptionKey: 'role.employer.desc',
     icon: Briefcase,
     gradient: 'from-purple-500 to-purple-600'
   }
 ];
+
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const { setRole } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLocalization();
 
   const handleContinue = async () => {
     if (!selectedRole) return;
@@ -36,7 +40,7 @@ const RoleSelection = () => {
         navigate('/home');
       }
     } catch (error) {
-      alert('Failed to set role. Please try again.');
+      alert(t('role.setFailed', 'Failed to set role. Please try again.'));
     }
   };
 
@@ -49,11 +53,15 @@ const RoleSelection = () => {
               <span className="text-xl sm:text-3xl font-bold text-white">F</span>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">What brings you here?</h1>
-              <p className="text-gray-600 text-base">Choose your role to get started</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                {t('role.chooseTitle', 'What brings you here?')}
+              </h1>
+              <p className="text-gray-600 text-base">
+                {t('role.chooseDesc', 'Choose your role to get started')}
+              </p>
             </div>
           </div>
-          <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {roles.map((role) => {
               const Icon = role.icon;
               const isSelected = selectedRole === role.id;
@@ -75,8 +83,12 @@ const RoleSelection = () => {
                         <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-base sm:text-lg text-gray-900">{role.title}</h3>
-                        <p className="text-gray-600 text-xs sm:text-sm">{role.description}</p>
+                        <h3 className="font-bold text-base sm:text-lg text-gray-900">
+                          {t(role.titleKey, role.id === "jobseeker" ? "Job Seeker" : "Employer")}
+                        </h3>
+                        <p className="text-gray-600 text-xs sm:text-sm">
+                          {t(role.descriptionKey, role.id === "jobseeker" ? "Looking for work opportunities" : "Hiring workers for jobs")}
+                        </p>
                       </div>
                     </div>
                     {isSelected && (
@@ -94,9 +106,9 @@ const RoleSelection = () => {
               onClick={handleContinue}
               disabled={!selectedRole}
               className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              aria-label="Continue with selected role"
+              aria-label={t('role.continue', 'Continue with selected role')}
             >
-              Continue
+              {t('role.continue', 'Continue')}
             </Button>
           </div>
         </div>

@@ -13,7 +13,7 @@ const languages = [
   { code: 'mr', name: 'Marathi', native: 'मराठी', flag: 'IN', color: 'bg-red-400' },
 ];
 const LanguageSelection = () => {
-  const { currentLanguage, setLanguage } = useLocalization();
+  const { currentLanguage, setLanguage, t } = useLocalization();
   const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage);
   const navigate = useNavigate();
 
@@ -31,10 +31,9 @@ const LanguageSelection = () => {
           </div>
         </div>
         <div className="text-center mb-2">
-          <h1 className="text-xl sm:text-3xl font-extrabold text-gray-900">Choose Your Language</h1>
-          <p className="text-gray-500 text-sm sm:text-base mt-1 sm:mt-2">Select your preferred language</p>
+          <h1 className="text-xl sm:text-3xl font-extrabold text-gray-900">{t('lang.choose', "Choose Your Language")}</h1>
+          <p className="text-gray-500 text-sm sm:text-base mt-1 sm:mt-2">{t('lang.sub', "Select your preferred language")}</p>
         </div>
-        {/* Responsive Language Grid */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-8">
           {languages.map((lang) => {
             const selected = selectedLanguage === lang.code;
@@ -62,7 +61,7 @@ const LanguageSelection = () => {
                   <div className="absolute bottom-2 left-0 w-full flex flex-col items-center">
                     <span className="flex items-center gap-1 text-xs font-medium text-blue-500">
                       <svg width={14} height={14} className="inline" fill="none" viewBox="0 0 20 20"><path d="M5 10.8l3.5 3.7 7-7.9" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Selected
+                      {t('lang.selected', 'Selected')}
                     </span>
                   </div>
                 )}
@@ -70,16 +69,15 @@ const LanguageSelection = () => {
             );
           })}
         </div>
-        {/* Continue Button */}
         <div className="mt-10 mb-2">
           <Button
             onClick={handleContinue}
             className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gray-900 text-white text-base sm:text-lg font-semibold shadow-xl hover:bg-gray-950 transition"
             style={{ letterSpacing: 0.2 }}
-            aria-label="Continue with selected language"
+            aria-label={t('lang.continue', 'Continue with selected language')}
             disabled={!selectedLanguage}
           >
-            Continue
+            {t('lang.continue', 'Continue')}
           </Button>
         </div>
       </div>

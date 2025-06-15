@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -83,17 +82,15 @@ const LoginScreen = () => {
               <Phone className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-3">Welcome to Fyke</h1>
-              <p className="text-gray-600 leading-relaxed text-base">Sign in with your phone number to continue</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-3">{t('login.title', 'Welcome to Fyke')}</h1>
+              <p className="text-gray-600 leading-relaxed text-base">{t('login.desc', 'Sign in with your phone number to continue')}</p>
             </div>
           </div>
-          {/* Divider for visual structure on mobile */}
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 border-t border-gray-200" />
-            <span className="mx-3 text-xs text-gray-400">OR</span>
+            <span className="mx-3 text-xs text-gray-400">{t('login.or', 'OR')}</span>
             <div className="w-12 border-t border-gray-200" />
           </div>
-          {/* Phone Input */}
           <div className="space-y-5">
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium select-none pointer-events-none text-base">+91</div>
@@ -101,14 +98,14 @@ const LoginScreen = () => {
                 type="tel"
                 inputMode="numeric"
                 maxLength={10}
-                placeholder="Enter your phone number"
+                placeholder={t('login.phonePlaceholder', 'Enter your phone number')}
                 value={phone}
                 onChange={handlePhoneChange}
                 className="pl-14 h-14 sm:h-16 text-lg border-gray-200 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none bg-gray-50 transition-all"
                 disabled={loading}
                 autoFocus
                 pattern="[6-9]{1}[0-9]{9}"
-                aria-label="Phone number"
+                aria-label={t('login.phoneLabel', 'Phone number')}
               />
             </div>
             {error && <div className="text-sm text-red-500 text-center min-h-[20px]">{error}</div>}
@@ -116,26 +113,25 @@ const LoginScreen = () => {
               onClick={handleSendOTP}
               disabled={phone.length !== 10 || loading}
               className="w-full h-14 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[.99] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
-              aria-label="Send OTP"
+              aria-label={t('login.sendOtpBtn', 'Send OTP')}
               style={{ minHeight: 56, fontSize: 18 }}
             >
               {loading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Sending…</span>
+                  <span>{t('login.sending', 'Sending…')}</span>
                 </div>
               ) : (
-                'Send OTP'
+                t('login.sendOtpBtn', 'Send OTP')
               )}
             </Button>
           </div>
-          {/* Accessibility: Add spacer for safe-tap zone on mobile */}
           <div className="h-5" />
           <div className="text-center mt-8">
             <p className="text-xs text-gray-500 leading-relaxed">
-              By continuing, you agree to our{" "}
-              <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and{" "}
-              <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+              {t('login.agree', 'By continuing, you agree to our')}
+              <a href="#" className="text-blue-600 hover:underline ml-1">{t('login.tos', 'Terms of Service')}</a> {t('login.and', 'and')}
+              <a href="#" className="text-blue-600 hover:underline ml-1">{t('login.privacy', 'Privacy Policy')}</a>
             </p>
           </div>
         </ModernCard>
@@ -144,4 +140,3 @@ const LoginScreen = () => {
   );
 };
 export default LoginScreen;
-

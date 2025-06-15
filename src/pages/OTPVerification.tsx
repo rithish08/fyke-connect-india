@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -14,6 +15,7 @@ const OTPVerification = () => {
   const navigate = useNavigate();
   const { verifyOTP, sendOTP, userProfile, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLocalization();
   const didAutoNavigate = useRef(false);
   const isVerifying = useRef(false);
 
@@ -137,9 +139,9 @@ const OTPVerification = () => {
             <span className="text-xl sm:text-2xl font-bold text-blue-600">F</span>
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Verify Your Phone</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('otp.title', 'Verify Your Phone')}</h1>
             <p className="text-gray-600 text-sm leading-relaxed px-2">
-              Enter the 6-digit code sent to<br />
+              {t('otp.enterCode', 'Enter the 6-digit code sent to')}<br />
               <span className="font-semibold text-gray-800">+91 {phone}</span>
             </p>
           </div>
@@ -160,7 +162,7 @@ const OTPVerification = () => {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <p className="text-xs sm:text-sm text-gray-500">Code will be verified automatically</p>
+                <p className="text-xs sm:text-sm text-gray-500">{t('otp.auto', 'Code will be verified automatically')}</p>
               </div>
             </div>
             {errorState && (
@@ -171,7 +173,7 @@ const OTPVerification = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
                   <p className="text-xs sm:text-sm text-gray-500">
-                    Resend in {resendTimer}s
+                    {t('otp.resendIn', 'Resend in')} {resendTimer}s
                   </p>
                 </div>
               ) : (
@@ -180,7 +182,7 @@ const OTPVerification = () => {
                   disabled={loading}
                   className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
                 >
-                  Resend OTP
+                  {t('otp.resendBtn', 'Resend OTP')}
                 </button>
               )}
             </div>
@@ -192,7 +194,7 @@ const OTPVerification = () => {
                 className="w-full"
                 disabled={loading}
               >
-                Back to Login
+                {t('otp.backToLogin', 'Back to Login')}
               </Button>
             </div>
           </div>
@@ -200,10 +202,10 @@ const OTPVerification = () => {
         <div className="text-center space-y-2 px-2 sm:px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">
             <span className="text-sm">🛡️</span>
-            <span className="text-xs sm:text-sm font-medium">Secure Verification</span>
+            <span className="text-xs sm:text-sm font-medium">{t('otp.secure', 'Secure Verification')}</span>
           </div>
           <p className="text-xs text-gray-500">
-            This helps us keep your account safe and secure
+            {t('otp.safe', 'This helps us keep your account safe and secure')}
           </p>
         </div>
       </div>
