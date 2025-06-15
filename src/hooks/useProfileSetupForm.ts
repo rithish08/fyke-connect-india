@@ -67,8 +67,8 @@ export const useProfileSetupForm = () => {
         vehicle: data.subcategories.some(sub =>
           ['Taxi Driver', 'Delivery Driver', 'Personal Driver', 'Tour Guide'].includes(sub)
         ) ? data.vehicle : undefined,
-        salaryExpectations: data.salaryBySubcategory,
         salaryExpectation: { min, max },
+        salaryBySubcategory: data.salaryBySubcategory,
         salaryPeriod: salaries[0]?.period,
         availability: data.availability,
         name: data.name,
