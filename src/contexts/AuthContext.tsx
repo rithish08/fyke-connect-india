@@ -10,7 +10,7 @@ interface UserProfile {
   name: string | null;
   email: string | null;
   phone: string | null;
-  role: 'jobseeker' | 'employer' | 'admin';
+  role: 'jobseeker' | 'employer' | 'admin' | null;
   verified: boolean;
   profile_complete: boolean;
   location: string | null;
@@ -133,6 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const result = await firebaseAuthService.verifyOTP(otpCode);
       if (result.success) {
+        console.log('[AuthContext] OTP verification successful');
         return { success: true };
       } else {
         toast({

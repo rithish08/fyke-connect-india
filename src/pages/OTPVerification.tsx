@@ -12,7 +12,7 @@ const OTPVerification = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const navigate = useNavigate();
-  const { login, sendOTP, userProfile, isAuthenticated } = useAuth();
+  const { verifyOTP, sendOTP, userProfile, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,36 +58,42 @@ const OTPVerification = () => {
     setLoading(true);
 
     try {
-      const phone = localStorage.getItem('fyke_phone') || '';
-      console.log('[OTPVerification] Submitting login for phone', phone, 'with OTP', otpCode);
+      console.log('[OTPVerification] Submitting OTP verification:', otpCode);
       
-      await login(phone, otpCode);
+      const result = await verifyOTP(otpCode);
       
-      console.log('[OTPVerification] Login succeeded');
-      
-      // Check if role was pre-selected
-      const selectedRole = localStorage.getItem('fyke_selected_role');
-      
-      if (selectedRole) {
-        // Role was already selected, go to appropriate screen
-        localStorage.removeItem('fyke_selected_role');
-        if (selectedRole === 'employer') {
-          navigate('/home');
+      if (result.success) {
+        console.log('[OTPVerification] OTP verification succeeded');
+        
+        // Clear phone from localStorage since we're now authenticated
+        localStorage.removeItem('fyke_phone');
+        
+        // Check if role was pre-selected
+        const selectedRole = localStorage.getItem('fyke_selected_role');
+        
+        if (selectedRole) {
+          // Role was already selected, go to appropriate screen
+          localStorage.removeItem('fyke_selected_role');
+          if (selectedRole === 'employer') {
+            navigate('/home');
+          } else {
+            navigate('/profile-setup');
+          }
         } else {
-          navigate('/profile-setup');
+          // No role selected, go to role selection
+          navigate('/role-selection');
         }
-      } else {
-        // No role selected, go to role selection
-        navigate('/role-selection');
-      }
 
-      toast({
-        title: "Phone Verified!",
-        description: "Successfully authenticated"
-      });
+        toast({
+          title: "Phone Verified!",
+          description: "Successfully authenticated"
+        });
+      } else {
+        setOtp(['', '', '', '', '', '']);
+        // Error toast is already shown by verifyOTP
+      }
     } catch (error: any) {
       console.error('[OTPVerification] Verification Failed:', error);
-
       toast({
         title: "Verification Failed",
         description: error?.message || "Invalid OTP. Please try again.",

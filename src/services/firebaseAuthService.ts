@@ -48,28 +48,24 @@ export class FirebaseAuthService {
       
       console.log('Firebase user authenticated:', firebaseUser.uid);
 
-      // Create user in Supabase manually instead of using Firebase token
       const phoneNumber = firebaseUser.phoneNumber;
       
       // Check if user already exists in Supabase
-      const { data: existingUser, error: checkError } = await supabase
+      const { data: existingProfiles } = await supabase
         .from('profiles')
         .select('*')
-        .eq('phone', phoneNumber)
-        .single();
+        .eq('phone', phoneNumber);
 
-      let userId = existingUser?.id;
+      let userId;
 
-      if (!existingUser) {
-        // Create new user in Supabase auth.users table using admin functions
-        // For now, we'll create a profile directly and let the trigger handle the rest
+      if (!existingProfiles || existingProfiles.length === 0) {
+        // User doesn't exist, create new user
         console.log('Creating new user profile for:', phoneNumber);
         
-        // Sign up the user with a dummy email (we'll use phone as identifier)
         const dummyEmail = `${phoneNumber.replace('+', '')}@fyke.local`;
         const { data: newUser, error: signUpError } = await supabase.auth.signUp({
           email: dummyEmail,
-          password: firebaseUser.uid, // Use Firebase UID as password
+          password: firebaseUser.uid,
           options: {
             data: {
               phone: phoneNumber,
@@ -85,8 +81,10 @@ export class FirebaseAuthService {
 
         userId = newUser.user?.id;
       } else {
-        // Sign in existing user
+        // User exists, sign them in
+        console.log('User exists, signing in:', phoneNumber);
         const dummyEmail = `${phoneNumber.replace('+', '')}@fyke.local`;
+        
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: dummyEmail,
           password: firebaseUser.uid
