@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,10 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BottomNavigation from '@/components/BottomNavigation';
 import CommunicationButtons from '@/components/communication/CommunicationButtons';
+import JobCalendar from '@/components/calendar/JobCalendar';
+import OfflineIndicator from '@/components/common/OfflineIndicator';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOfflineCapabilities } from '@/hooks/useOfflineCapabilities';
 
 const MyJobs = () => {
   const { user } = useAuth();
+  const { isOnline } = useOfflineCapabilities();
   const [activeTab, setActiveTab] = useState('applied');
 
   const appliedJobs = [
@@ -259,6 +264,9 @@ const MyJobs = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Offline Indicator */}
+      <OfflineIndicator />
+      
       {/* Header */}
       <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <h1 className="text-xl font-bold text-gray-900">
@@ -273,7 +281,54 @@ const MyJobs = () => {
       </div>
 
       <div className="p-4">
-        {user?.role === 'employer' ? <EmployerView /> : <JobSeekerView />}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="applied">{user?.role === 'employer' ? 'Active' : 'Applied'}</TabsTrigger>
+            <TabsTrigger value="saved">{user?.role === 'employer' ? 'Applications' : 'Saved'}</TabsTrigger>
+            <TabsTrigger value="calendar">Schedule</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="applied" className="space-y-4 mt-6">
+            {user?.role === 'employer' ? <EmployerView /> : <JobSeekerView />}
+          </TabsContent>
+
+          <TabsContent value="saved" className="space-y-4 mt-6">
+            {user?.role === 'employer' ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">📄</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Applications</h3>
+                <p className="text-gray-600">Review and respond to job applications</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">💾</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Saved Jobs</h3>
+                <p className="text-gray-600 mb-4">Save jobs you're interested in to view them here</p>
+                <Button>Browse Jobs</Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4 mt-6">
+            <JobCalendar />
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-4 mt-6">
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">{user?.role === 'employer' ? '✅' : '📋'}</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {user?.role === 'employer' ? 'Hired Workers' : 'No Work History'}
+              </h3>
+              <p className="text-gray-600">
+                {user?.role === 'employer' 
+                  ? 'View and manage your hired workers'
+                  : 'Your completed jobs will appear here'
+                }
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
       <BottomNavigation />
     </div>
