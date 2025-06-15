@@ -17,55 +17,25 @@ interface ModernMultiSalaryStepProps {
 
 const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onNext, onBack }) => {
   const subcategories = form.watch('subcategories') || [];
-  
-  // Vehicle owner subcategories that don't need salary input
   const vehicleOwnerSubs = [
     'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
     'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
     'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)',
     'Water Tanker', 'Ambulance'
   ];
-  
-  // Filter out vehicle owner subcategories - only show non-vehicle subcategories
   const nonVehicleSubcategories = subcategories.filter(sub => !vehicleOwnerSubs.includes(sub));
 
-  const handleComplete = () => {
-    console.log('Complete button clicked');
-    console.log('Subcategories requiring salary:', nonVehicleSubcategories);
-    
-    // Get current form values
-    const currentValues = form.getValues();
-    console.log('Current form values:', currentValues);
-    
-    // Check if we have salary data for all required subcategories
-    let isValid = true;
-    const salaryData = currentValues.salaryBySubcategory || {};
-    
-    for (const subcategory of nonVehicleSubcategories) {
-      const amount = salaryData[subcategory]?.amount;
-      const period = salaryData[subcategory]?.period;
-      
-      if (!amount || amount.trim() === '' || !period) {
-        console.log(`Missing data for ${subcategory}: amount=${amount}, period=${period}`);
-        isValid = false;
-        
-        // Set form errors manually
-        form.setError(`salaryBySubcategory.${subcategory}.amount`, {
-          type: 'required',
-          message: 'Please enter a salary amount'
-        });
-        form.setError(`salaryBySubcategory.${subcategory}.period`, {
-          type: 'required',
-          message: 'Please select a period'
-        });
-      }
-    }
-    
+  // On Complete, trigger form validation (schema will require salaries for non-vehicle subcategories)
+  const handleComplete = async () => {
+    // Only trigger validation for the relevant salary fields
+    // Form schema checks subcategories & salaryBySubcategory correctly
+    const isValid = await form.trigger(); // Full form validation, safe as we want completeness
+
     if (isValid) {
-      console.log('All validation passed, proceeding to next step');
       onNext();
     } else {
-      console.log('Validation failed, staying on current step');
+      // Errors are managed by RHF + FormMessage, nothing else to do!
+      // Optionally, scroll to first error if you'd like (not required for this prompt)
     }
   };
 
@@ -148,3 +118,4 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
 };
 
 export default ModernMultiSalaryStep;
+
