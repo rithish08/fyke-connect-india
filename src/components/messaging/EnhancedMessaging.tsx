@@ -1,303 +1,168 @@
-
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Send, MoreVertical, Phone, MessageCircle } from 'lucide-react';
-import { useGlobalToast } from '@/hooks/useGlobalToast';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
-  senderId: string;
   text: string;
-  timestamp: Date;
-  type: 'text' | 'system';
+  isMe: boolean;
 }
 
-interface Chat {
-  id: string;
-  name: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-  type: 'worker' | 'employer';
-  status: 'online' | 'offline';
+interface Conversation {
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  messages: Message[];
 }
 
 const EnhancedMessaging = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const { showSuccess } = useGlobalToast();
+  const [messageInput, setMessageInput] = useState('');
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [chats, setChats] = useState<Chat[]>([
-    {
-      id: 'chat-1',
-      name: 'Rajesh Kumar',
-      lastMessage: 'I can start tomorrow morning',
-      timestamp: '2 min ago',
-      unread: 2,
-      type: 'worker',
-      status: 'online'
-    },
-    {
-      id: 'chat-2',
-      name: 'Priya Construction Co.',
-      lastMessage: 'When can you visit the site?',
-      timestamp: '1 hour ago',
-      unread: 0,
-      type: 'employer',
-      status: 'offline'
-    }
-  ]);
-
-  // Check if opening chat from URL params
   useEffect(() => {
-    const chatWith = searchParams.get('chatWith');
-    const name = searchParams.get('name');
-    const type = searchParams.get('type');
-    const context = searchParams.get('context');
+    // Mock conversations - replace with actual data fetching
+    const mockConversations: Conversation[] = [
+      {
+        userId: 'user1',
+        userName: 'John Doe',
+        userAvatar: '/placeholder.svg',
+        messages: [
+          { id: '1', text: 'Hello!', isMe: false },
+          { id: '2', text: 'Hi there!', isMe: true },
+        ],
+      },
+      {
+        userId: 'user2',
+        userName: 'Jane Smith',
+        userAvatar: '/placeholder.svg',
+        messages: [
+          { id: '3', text: 'How are you?', isMe: false },
+          { id: '4', text: 'I am good, thanks!', isMe: true },
+        ],
+      },
+    ];
+    setConversations(mockConversations);
+  }, []);
 
-    if (chatWith && name) {
-      // Create new chat or find existing
-      const existingChat = chats.find(chat => chat.id === chatWith);
-      if (!existingChat) {
-        const newChat: Chat = {
-          id: chatWith,
-          name: name,
-          lastMessage: context ? `New conversation about ${context}` : 'New conversation',
-          timestamp: 'now',
-          unread: 0,
-          type: (type as 'worker' | 'employer') || 'worker',
-          status: 'online'
-        };
-        setChats(prev => [newChat, ...prev]);
-      }
-      setSelectedChat(chatWith);
-      
-      // Load initial messages
-      setMessages([
-        {
-          id: '1',
-          senderId: 'system',
-          text: context ? `Conversation started about ${context}` : 'Conversation started',
-          timestamp: new Date(),
-          type: 'system'
-        }
-      ]);
-    }
-  }, [searchParams]);
+  const handleSelectConversation = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+  };
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedChat) return;
+  const sendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageInput || !selectedConversation) return;
 
-    const message: Message = {
+    const newMessage: Message = {
       id: Date.now().toString(),
-      senderId: user?.id || 'current-user',
-      text: newMessage,
-      timestamp: new Date(),
-      type: 'text'
+      text: messageInput,
+      isMe: true,
     };
 
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
-
-    // Update chat last message
-    setChats(prev => prev.map(chat => 
-      chat.id === selectedChat 
-        ? { ...chat, lastMessage: newMessage, timestamp: 'now' }
-        : chat
-    ));
-
-    // Simulate response after 2 seconds
-    setTimeout(() => {
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        senderId: selectedChat,
-        text: 'Thanks for your message! I\'ll get back to you soon.',
-        timestamp: new Date(),
-        type: 'text'
+    // Update the selected conversation with the new message
+    setSelectedConversation((prevConversation) => {
+      if (!prevConversation) return null;
+      return {
+        ...prevConversation,
+        messages: [...prevConversation.messages, newMessage],
       };
-      setMessages(prev => [...prev, response]);
-    }, 2000);
+    });
+
+    // Update the conversations state
+    setConversations((prevConversations) => {
+      return prevConversations.map((conversation) => {
+        if (conversation.userId === selectedConversation.userId) {
+          return {
+            ...conversation,
+            messages: [...conversation.messages, newMessage],
+          };
+        }
+        return conversation;
+      });
+    });
+
+    setMessageInput('');
   };
 
-  const handlePhoneCall = () => {
-    showSuccess('Voice call feature coming soon!');
-  };
+  // Fix: Prevent duplicate conversations with same userId
+  const uniqueConversations = useMemo(() => {
+    const seen = new Set();
+    return conversations.filter((c) => {
+      if (seen.has(c.userId)) return false;
+      seen.add(c.userId);
+      return true;
+    });
+  }, [conversations]);
 
-  const ChatList = () => (
-    <div className="w-full lg:w-1/3 border-r border-gray-200 bg-white">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold">Messages</h2>
-      </div>
-      <div className="overflow-y-auto h-full">
-        {chats.map((chat) => (
-          <div
-            key={chat.id}
-            onClick={() => setSelectedChat(chat.id)}
-            className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-              selectedChat === chat.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                    {chat.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                {chat.status === 'online' && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-gray-900 truncate">{chat.name}</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500">{chat.timestamp}</span>
-                    {chat.unread > 0 && (
-                      <Badge className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        {chat.unread}
-                      </Badge>
-                    )}
+  // Also align the chat screen properly (justify chat bubble, fix spacing)
+  return (
+    <div className="flex flex-col h-full bg-white">
+      {/* Chat Sidebar */}
+      <aside className="w-full sm:w-80 border-r border-gray-100 bg-gray-50 h-full overflow-y-auto">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+        </div>
+        <ul>
+          {uniqueConversations.map((conversation) => (
+            <li
+              key={conversation.userId}
+              onClick={() => handleSelectConversation(conversation)}
+              className={`cursor-pointer px-4 py-3 flex items-center gap-2 hover:bg-blue-50 ${selectedConversation?.userId === conversation.userId ? "bg-blue-100 font-semibold" : ""}`}
+            >
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={conversation.userAvatar} alt={conversation.userName} />
+                <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span>{conversation.userName}</span>
+            </li>
+          ))}
+        </ul>
+      </aside>
+      {/* Chat Main Section */}
+      <main className="flex-1 flex flex-col">
+        {/* Header */}
+        {selectedConversation && (
+          <div className="p-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">{selectedConversation.userName}</h3>
+          </div>
+        )}
+        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-gray-50">
+          {/* Conversation messages (align bubbles) */}
+          {selectedConversation ? (
+            <div className="flex flex-col gap-2">
+              {selectedConversation.messages.map((msg, idx) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.isMe ? "justify-end" : "justify-start"}`}
+                >
+                  <div className={`max-w-xs px-3 py-2 rounded-lg ${msg.isMe ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-900"} shadow`}>
+                    <span className="text-sm">{msg.text}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
-                  <Badge variant="outline" className="text-xs ml-2">
-                    {chat.type}
-                  </Badge>
-                </div>
-              </div>
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const ChatWindow = () => {
-    const currentChat = chats.find(chat => chat.id === selectedChat);
-    
-    if (!selectedChat || !currentChat) {
-      return (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
-            <p className="text-gray-600">Choose a conversation from the list to start messaging</p>
-          </div>
+          ) : (
+            <div className="flex flex-1 items-center justify-center text-gray-400">
+              Select a chat to start messaging.
+            </div>
+          )}
         </div>
-      );
-    }
-
-    return (
-      <div className="flex-1 flex flex-col bg-white">
-        {/* Chat Header */}
-        <div className="p-4 border-b border-gray-200 bg-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedChat(null)}
-                className="lg:hidden"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-              <Avatar className="w-10 h-10">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                  {currentChat.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-medium text-gray-900">{currentChat.name}</h3>
-                <p className="text-sm text-gray-500 flex items-center">
-                  <div className={`w-2 h-2 rounded-full mr-2 ${currentChat.status === 'online' ? 'bg-green-400' : 'bg-gray-300'}`}></div>
-                  {currentChat.status === 'online' ? 'Online' : 'Offline'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={handlePhoneCall}>
-                <Phone className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.senderId === user?.id ? 'justify-end' : 
-                message.type === 'system' ? 'justify-center' : 'justify-start'
-              }`}
-            >
-              {message.type === 'system' ? (
-                <div className="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full">
-                  {message.text}
-                </div>
-              ) : (
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.senderId === user?.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <p>{message.text}</p>
-                  <p className={`text-xs mt-1 ${
-                    message.senderId === user?.id ? 'text-blue-100' : 'text-gray-500'
-                  }`}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Message Input */}
-        <div className="p-4 border-t border-gray-200 bg-white">
-          <div className="flex items-center space-x-2">
+        {/* Chat Input */}
+        {selectedConversation && (
+          <form onSubmit={sendMessage} className="p-3 bg-white flex gap-2 border-t border-gray-100">
             <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              value={messageInput}
+              onChange={e => setMessageInput(e.target.value)}
               className="flex-1"
+              placeholder="Type a message..."
             />
-            <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="h-full flex bg-white">
-      <div className={`${selectedChat ? 'hidden lg:block' : 'block'} w-full lg:w-auto`}>
-        <ChatList />
-      </div>
-      <div className={`${selectedChat ? 'block' : 'hidden lg:block'} flex-1`}>
-        <ChatWindow />
-      </div>
+            <Button type="submit" className="bg-blue-600 text-white">Send</Button>
+          </form>
+        )}
+      </main>
     </div>
   );
 };

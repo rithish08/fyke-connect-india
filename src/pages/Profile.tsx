@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -16,8 +15,62 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MapPin, Clock, User, Eye, Edit, Trash2, Briefcase, Star, Settings } from 'lucide-react';
+import { Plus, MapPin, Clock, User, Eye, Edit, Trash2, Briefcase, Star, Settings, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+
+const ProfileCategoryManager = ({
+  categories,
+  handleAdd,
+  handleRemove,
+}: {
+  categories: string[];
+  handleAdd: () => void;
+  handleRemove: (idx: number) => void;
+}) => {
+  return (
+    <Card className="p-6">
+      <h3 className="font-semibold text-lg mb-4 flex items-center">
+        <Settings className="w-5 h-5 mr-2" />
+        Work Categories
+      </h3>
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {categories.map((category: string, index: number) => (
+            <Badge key={index} variant="secondary" className="px-3 py-1 flex items-center gap-2">
+              {category}
+              <button
+                onClick={() => handleRemove(index)}
+                className="ml-1 text-red-500 hover:text-red-700 font-bold"
+                aria-label="Remove category"
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
+        </div>
+        {categories.length < 3 && (
+          <Button
+            variant="outline"
+            className="w-full flex gap-2 items-center justify-center"
+            onClick={handleAdd}
+            type="button"
+          >
+            <PlusCircle className="w-4 h-4" />
+            {categories.length === 0
+              ? "Add Your First Category"
+              : categories.length === 1
+                ? "Add Second Category"
+                : "Add Third Category"}
+          </Button>
+        )}
+        <p className="text-sm text-gray-500">
+          You can select up to 3 work categories to show your expertise areas.
+        </p>
+      </div>
+    </Card>
+  );
+};
 
 const Profile = () => {
   const { user, updateProfile, logout } = useAuth();
@@ -66,6 +119,15 @@ const Profile = () => {
     });
   };
 
+  const handleAddCategory = () => {
+    navigate('/profile-setup');
+  };
+  
+  const handleRemoveCategory = (idx: number) => {
+    const newCategories = profileData.categories.filter((_: any, i: number) => i !== idx);
+    handleProfileUpdate({ categories: newCategories });
+  };
+
   // Show loading state
   if (!user || isLoading) {
     return (
@@ -112,46 +174,6 @@ const Profile = () => {
     avgRating: 4.5,
     responseRate: 89
   };
-
-  const CategoryManagement = () => (
-    <Card className="p-6">
-      <h3 className="font-semibold text-lg mb-4 flex items-center">
-        <Settings className="w-5 h-5 mr-2" />
-        Work Categories
-      </h3>
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {profileData.categories?.map((category: string, index: number) => (
-            <Badge key={index} variant="secondary" className="px-3 py-1">
-              {category}
-              <button 
-                onClick={() => {
-                  const newCategories = profileData.categories.filter((_: any, i: number) => i !== index);
-                  handleProfileUpdate({ categories: newCategories });
-                }}
-                className="ml-2 text-red-500 hover:text-red-700"
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
-        </div>
-        {(!profileData.categories || profileData.categories.length < 3) && (
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/profile-setup')}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Work Category
-          </Button>
-        )}
-        <p className="text-sm text-gray-500">
-          You can select up to 3 work categories to show your expertise areas.
-        </p>
-      </div>
-    </Card>
-  );
 
   const EmployerProfileContent = () => (
     <div className="space-y-4">
@@ -205,6 +227,13 @@ const Profile = () => {
           </Button>
         </div>
       </Card>
+
+      {/* Work Category Management */}
+      <ProfileCategoryManager
+        categories={profileData.categories}
+        handleAdd={handleAddCategory}
+        handleRemove={handleRemoveCategory}
+      />
 
       {/* Company Information */}
       <Card className="p-6">
@@ -283,8 +312,12 @@ const Profile = () => {
         </div>
       </Card>
 
-      {/* Category Management for Job Seekers */}
-      <CategoryManagement />
+      {/* Categories and Skills */}
+      <ProfileCategoryManager
+        categories={profileData.categories}
+        handleAdd={handleAddCategory}
+        handleRemove={handleRemoveCategory}
+      />
 
       {/* Skills & Experience */}
       <ProfileSkills

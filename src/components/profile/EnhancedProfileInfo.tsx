@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +26,6 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
 }) => {
   const [editData, setEditData] = useState(profileData);
 
-  // Update editData when profileData changes
   React.useEffect(() => {
     setEditData(profileData);
   }, [profileData]);
@@ -36,22 +34,25 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
     onUpdate(editData);
   };
 
+  // Disable name field (protected, not editable)
   const editContent = (
     <div className="space-y-4">
+      {/* Name (Protected) */}
       <div>
         <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700 flex items-center">
           <Lock className="w-3 h-3 mr-1" />
-          Full Name (Protected)
+          Name (Protected)
         </Label>
         <Input
           id="edit-name"
-          value={editData.name || ''}
-          disabled={true}
+          value={editData.name}
+          disabled
           className="mt-1 rounded-xl border-gray-200 bg-gray-50 cursor-not-allowed"
           placeholder="Name cannot be changed"
         />
         <p className="text-xs text-gray-500 mt-1">Contact support to change your name</p>
       </div>
+      {/* Email (editable) */}
       <div>
         <Label htmlFor="edit-email" className="text-sm font-medium text-gray-700">Email</Label>
         <Input
@@ -63,6 +64,7 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
           placeholder="Enter your email"
         />
       </div>
+      {/* Location (editable) */}
       <div>
         <Label htmlFor="edit-location" className="text-sm font-medium text-gray-700">Location</Label>
         <Input
@@ -73,6 +75,7 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
           placeholder="Enter your location"
         />
       </div>
+      {/* Role-specific: Experience for jobseeker */}
       {userRole === 'jobseeker' && (
         <div>
           <Label htmlFor="edit-experience" className="text-sm font-medium text-gray-700">Experience</Label>
@@ -85,6 +88,7 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
           />
         </div>
       )}
+      {/* Bio (editable) */}
       <div>
         <Label htmlFor="edit-bio" className="text-sm font-medium text-gray-700">Bio</Label>
         <Textarea
