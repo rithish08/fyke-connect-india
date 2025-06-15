@@ -1,18 +1,17 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Form } from '@/components/ui/form';
-import { ArrowLeft, BadgeCheck, User } from "lucide-react";
+import { ArrowLeft, BadgeCheck } from "lucide-react";
 import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
 import ProfileSetupStepper from '@/components/profile/ProfileSetupStepper';
 import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
 import ModernSalaryStep from '@/components/profile/ModernSalaryStep';
 import ModernAvailabilityStep from '@/components/profile/ModernAvailabilityStep';
 import { AestheticCard } from '@/components/ui/aesthetic-card';
-import ShimmerLoader from '@/components/ui/ShimmerLoader';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import ProfileLoading from '@/components/profile/setup/ProfileLoading';
+import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
+import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
 
 const STEPS = [
   {
@@ -37,8 +36,8 @@ const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { form, currentStep, isSubmitting, nextStep, prevStep, submitProfile } = useProfileSetupForm();
-  const [localName, setLocalName] = useState('');
   const [nameStep, setNameStep] = useState(0);
+  const [initialName, setInitialName] = useState('');
 
   useEffect(() => {
     console.log('[ProfileSetup] Auth state:', { user: !!user, loading, role: user?.role, profileComplete: user?.profileComplete });
@@ -74,9 +73,9 @@ const ProfileSetup = () => {
 
     // Check if user needs to complete name
     if (!user.name?.trim()) {
-      const storedName = localStorage.getItem('fyke_name');
+      const storedName = localStorage.getItem('fyke_name') || '';
       if (storedName?.trim()) {
-        setLocalName(storedName.trim());
+        setInitialName(storedName.trim());
       }
       setNameStep(0);
     } else {
@@ -87,19 +86,15 @@ const ProfileSetup = () => {
   }, [user, loading, navigate]);
 
   const handleBack = () => {
-    if (nameStep === 0) {
-      navigate('/role-selection');
-    } else if (currentStep > 0) {
+    if (currentStep > 0) {
       prevStep();
     } else {
       setNameStep(0);
     }
   };
 
-  const handleNameSubmit = () => {
-    if (!localName.trim()) return;
-    
-    updateProfile({ name: localName.trim() });
+  const handleNameSubmit = (name: string) => {
+    updateProfile({ name: name });
     setNameStep(1);
   };
 
@@ -113,84 +108,21 @@ const ProfileSetup = () => {
 
   // Show loading while checking auth
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShimmerLoader height={60} width="200px" />
-          <p className="text-gray-600">Setting up your profile...</p>
-        </div>
-      </div>
-    );
+    return <ProfileLoading />;
   }
 
   // Show fallback if no user after loading
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600">Redirecting to login...</p>
-          <Button onClick={() => navigate('/')} variant="outline">
-            Go to Home
-          </Button>
-        </div>
-      </div>
-    );
+    return <ProfileRedirect />;
   }
 
   // Name input step
   if (nameStep === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-8">
-        <div className="w-full max-w-lg mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={handleBack}
-              className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Profile Setup
-              </span>
-            </div>
-            <div className="w-12 h-12"></div>
-          </div>
-
-          {/* Name Input Card */}
-          <AestheticCard variant="glass" className="shadow-xl border-0 p-6">
-            <div className="text-center space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">What's your name?</h2>
-                <p className="text-gray-600">This will help employers know who you are</p>
-              </div>
-              
-              <div className="space-y-4">
-                <Input
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={localName}
-                  onChange={(e) => setLocalName(e.target.value)}
-                  className="h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
-                />
-                
-                <Button 
-                  onClick={handleNameSubmit}
-                  disabled={!localName.trim()}
-                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
-                >
-                  Continue
-                </Button>
-              </div>
-            </div>
-          </AestheticCard>
-        </div>
-      </div>
+      <ProfileNameStep
+        onSubmit={handleNameSubmit}
+        initialName={initialName}
+      />
     );
   }
 
