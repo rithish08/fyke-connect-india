@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FloatingCard } from '@/components/ui/floating-card';
-import { DollarSign, ArrowRight, ArrowLeft } from 'lucide-react';
+import { DollarSign, ArrowLeft } from 'lucide-react';
 import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
+import StickyFooterButton from '@/components/ui/StickyFooterButton';
 
 interface ModernMultiSalaryStepProps {
   form: UseFormReturn<ProfileSetupFormData>;
@@ -17,31 +17,29 @@ interface ModernMultiSalaryStepProps {
 
 const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onNext, onBack }) => {
   const subcategories = form.watch('subcategories') || [];
-  
-  // Filter out vehicle owner subcategories
-  const vehicleOwnerSubs = ['Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)', 
-    'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi', 
-    'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)', 
-    'Water Tanker', 'Ambulance'];
-  
+  const vehicleOwnerSubs = [
+    'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
+    'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
+    'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)',
+    'Water Tanker', 'Ambulance'
+  ];
   const nonVehicleSubcategories = subcategories.filter(sub => !vehicleOwnerSubs.includes(sub));
 
-  const handleNext = () => {
-    // Validate all non-vehicle subcategories have salary data
+  // Form submission with validation (calls onNext if valid)
+  const handleComplete = async () => {
     const salaryData = form.getValues('salaryBySubcategory') || {};
-    const allValid = nonVehicleSubcategories.every(sub => 
+    const allValid = nonVehicleSubcategories.every(sub =>
       salaryData[sub]?.amount && salaryData[sub]?.period
     );
-
     if (allValid) {
       onNext();
     } else {
-      form.trigger('salaryBySubcategory');
+      await form.trigger('salaryBySubcategory');
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28"> {/* Add bottom padding so content clears the fixed button */}
       <FloatingCard variant="glow" size="sm">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
@@ -83,7 +81,6 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
                     </FormItem>
                   )}
                 />
-                
                 <FormField
                   control={form.control}
                   name={`salaryBySubcategory.${subcategory}.period`}
@@ -112,28 +109,14 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
         ))}
       </div>
 
-      {/* Navigation */}
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="button"
-          onClick={onBack}
-          variant="outline"
-          className="flex-1 h-12 rounded-xl border-gray-200"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <Button
-          type="button"
-          onClick={handleNext}
-          className="flex-1 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-        >
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
+      {/* Back button can stay at top or as a floating icon if needed; 
+          Move actionable "Complete" button to StickyFooterButton below */}
+      <StickyFooterButton onClick={handleComplete}>
+        Complete
+      </StickyFooterButton>
     </div>
   );
 };
 
 export default ModernMultiSalaryStep;
+
