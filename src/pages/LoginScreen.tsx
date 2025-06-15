@@ -34,30 +34,32 @@ const LoginScreen = () => {
     }
   }, [isAuthenticated, user, userProfile, navigate]);
 
+  // Clear phone field (for usability after back navigation)
+  useEffect(() => {
+    setPhone('');
+    setError(null);
+  }, []);
+
   const handleSendOTP = async () => {
-    if (phone.length !== 10) {
-      setError("Please enter a valid 10-digit phone number");
+    if (phone.length !== 10 || !/^[6-9]\d{9}$/.test(phone)) {
+      setError("Please enter a valid 10-digit phone number starting with 6-9");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      console.log('[LoginScreen] Sending OTP to:', phone);
       localStorage.setItem('fyke_phone', phone);
       const result = await sendOTP(phone);
-      
+
       if (result.success) {
-        console.log('[LoginScreen] OTP sent successfully');
         navigate('/otp-verification');
       } else {
-        console.error('[LoginScreen] Failed to send OTP:', result.error);
         setError(result.error?.message || "Failed to send OTP. Please try again.");
         localStorage.removeItem('fyke_phone');
       }
     } catch (error: any) {
-      console.error('[LoginScreen] Exception sending OTP:', error);
       setError("Something went wrong. Please try again.");
       localStorage.removeItem('fyke_phone');
     } finally {
@@ -68,60 +70,55 @@ const LoginScreen = () => {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 10);
     setPhone(value);
-    if (error) setError(null); // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center px-2 sm:px-4">
       <div className="max-w-sm mx-auto w-full">
-        <ModernCard variant="elevated" className="p-8 shadow-2xl">
-          {/* Header section with logo/icon */}
-          <div className="text-center space-y-6 mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center mx-auto shadow-xl">
-              <Phone className="w-10 h-10 text-white" />
+        <ModernCard variant="elevated" className="px-4 sm:px-8 py-8 shadow-2xl rounded-3xl">
+          <div className="text-center space-y-5 mb-8">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+              <Phone className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">Welcome to Fyke</h1>
-              <p className="text-gray-600 leading-relaxed">
-                Sign in with your phone number to continue
-              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-3">Welcome to Fyke</h1>
+              <p className="text-gray-600 leading-relaxed text-base">Sign in with your phone number to continue</p>
             </div>
           </div>
           {/* Phone Input */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="relative">
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-                +91
-              </div>
-              <Input 
-                type="tel" 
-                placeholder="Enter your phone number" 
-                value={phone} 
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium select-none pointer-events-none text-base">+91</div>
+              <Input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="Enter your phone number"
+                value={phone}
                 onChange={handlePhoneChange}
-                className="pl-14 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" 
+                className="pl-14 h-12 sm:h-14 text-lg border-gray-200 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all"
                 disabled={loading}
                 autoFocus
+                pattern="[6-9]{1}[0-9]{9}"
               />
             </div>
-            {error && (
-              <div className="text-sm text-red-500 text-center">{error}</div>
-            )}
-            <Button 
-              onClick={handleSendOTP} 
-              disabled={phone.length !== 10 || loading} 
-              className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+            {error && <div className="text-sm text-red-500 text-center min-h-[20px]">{error}</div>}
+            <Button
+              onClick={handleSendOTP}
+              disabled={phone.length !== 10 || loading}
+              className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {loading ? (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center space-x-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Sending...</span>
+                  <span>Sending…</span>
                 </div>
               ) : (
                 'Send OTP'
               )}
             </Button>
           </div>
-          {/* Footer */}
           <div className="text-center mt-8">
             <p className="text-xs text-gray-500 leading-relaxed">
               By continuing, you agree to our Terms of Service and Privacy Policy
@@ -132,5 +129,4 @@ const LoginScreen = () => {
     </div>
   );
 };
-
 export default LoginScreen;

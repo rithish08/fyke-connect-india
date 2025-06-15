@@ -123,16 +123,21 @@ const OTPVerification = () => {
     navigate('/login');
   };
 
+  // Accessibility: Focus on first OTP input on mount
+  useEffect(() => {
+    const el = document.querySelector('input[type="text"][inputmode="numeric"]');
+    if (el) (el as HTMLElement).focus();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center px-2 py-4">
       <div className="w-full max-w-sm space-y-6">
-        {/* Header and logo */}
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto border border-blue-100">
-            <span className="text-2xl font-bold text-blue-600">F</span>
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto border border-blue-100">
+            <span className="text-xl sm:text-2xl font-bold text-blue-600">F</span>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Phone</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Verify Your Phone</h1>
             <p className="text-gray-600 text-sm leading-relaxed px-2">
               Enter the 6-digit code sent to<br />
               <span className="font-semibold text-gray-800">+91 {phone}</span>
@@ -140,8 +145,8 @@ const OTPVerification = () => {
           </div>
         </div>
         {/* OTP Card */}
-        <Card className="p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-          <div className="space-y-6">
+        <Card className="p-4 sm:p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
+          <div className="space-y-5 sm:space-y-6">
             <div className="flex justify-center px-2">
               <div className="w-full max-w-xs">
                 <EnhancedOTPInput
@@ -155,17 +160,17 @@ const OTPVerification = () => {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <p className="text-sm text-gray-500">Code will be verified automatically</p>
+                <p className="text-xs sm:text-sm text-gray-500">Code will be verified automatically</p>
               </div>
             </div>
             {errorState && (
-              <div className="text-center text-sm text-red-500">{errorState}</div>
+              <div className="text-center text-xs sm:text-sm text-red-500 min-h-[20px]">{errorState}</div>
             )}
             <div className="text-center">
               {resendTimer > 0 ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs sm:text-sm text-gray-500">
                     Resend in {resendTimer}s
                   </p>
                 </div>
@@ -173,14 +178,14 @@ const OTPVerification = () => {
                 <button
                   onClick={handleResend}
                   disabled={loading}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
                 >
                   Resend OTP
                 </button>
               )}
             </div>
             {/* Navigation buttons */}
-            <div className="flex flex-col space-y-2 pt-4">
+            <div className="flex flex-col space-y-2 pt-2 sm:pt-4">
               <Button
                 variant="outline"
                 onClick={handleBackToLogin}
@@ -192,11 +197,10 @@ const OTPVerification = () => {
             </div>
           </div>
         </Card>
-        {/* Security Info */}
-        <div className="text-center space-y-2 px-4">
+        <div className="text-center space-y-2 px-2 sm:px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">
             <span className="text-sm">🛡️</span>
-            <span className="text-sm font-medium">Secure Verification</span>
+            <span className="text-xs sm:text-sm font-medium">Secure Verification</span>
           </div>
           <p className="text-xs text-gray-500">
             This helps us keep your account safe and secure
@@ -206,5 +210,4 @@ const OTPVerification = () => {
     </div>
   );
 };
-
 export default OTPVerification;

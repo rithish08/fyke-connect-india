@@ -35,15 +35,14 @@ const Profile = () => {
   if (!userProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col px-2 py-10 md:py-14">
-      <div className="w-full max-w-xl mx-auto space-y-6">
-        {/* Profile summary card */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col px-2 py-6 sm:py-10">
+      <div className="w-full max-w-xl mx-auto space-y-5 sm:space-y-6">
         <ProfileSummaryCard
           name={userProfile.name || ""}
           primaryCategory={userProfile.primary_category || ""}
@@ -55,25 +54,23 @@ const Profile = () => {
           phone={userProfile.phone}
           email={userProfile.email}
         />
-        {/* Editable info card */}
         <ProfileEditableInfo
           initialName={userProfile.name || ""}
           initialLocation={userProfile.location || ""}
           initialBio={userProfile.bio || ""}
           initialEmail={userProfile.email || ""}
         />
-        {/* Availability switch */}
-        <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-md flex items-center justify-between">
+        <div className="p-4 sm:p-6 bg-white border border-gray-100 rounded-xl sm:rounded-2xl shadow-md flex items-center justify-between">
           <Label htmlFor="availability" className="text-base font-medium text-gray-800">
             Availability
           </Label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Switch
               id="availability"
               checked={availability === "available"}
               onCheckedChange={handleAvailabilityChange}
             />
-            <span className={`font-semibold text-sm ${
+            <span className={`font-semibold text-xs sm:text-sm ${
               availability === "available"
                 ? "text-green-600"
                 : "text-orange-500"
@@ -82,7 +79,6 @@ const Profile = () => {
             </span>
           </div>
         </div>
-        {/* Edit profile setup button */}
         <Button
           variant="outline"
           className="w-full justify-center mt-2"
@@ -94,5 +90,4 @@ const Profile = () => {
     </div>
   );
 };
-
 export default Profile;
