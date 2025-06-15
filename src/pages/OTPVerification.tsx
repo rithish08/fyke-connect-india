@@ -45,7 +45,7 @@ const OTPVerification = () => {
       const phone = localStorage.getItem('fyke_phone') || '';
       await login(phone, otpCode);
       
-      // Navigate to role selection after successful OTP verification
+      // Navigate to role selection after successful login
       navigate('/role-selection');
       
       toast({

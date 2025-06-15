@@ -4,16 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { Phone, MessageSquare, User } from "lucide-react";
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const { login, updateProfile, user } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
 
@@ -21,23 +17,7 @@ const LoginScreen = () => {
     console.log('Sending OTP to:', phone);
     localStorage.setItem('fyke_phone', phone || '');
     localStorage.setItem('fyke_name', name || '');
-    setOtpSent(true);
-  };
-
-  const handleVerifyOTP = async () => {
-    try {
-      await login(phone, otp);
-      
-      // Update user profile with name
-      updateProfile({
-        name: name,
-      });
-      
-      // Navigate to OTP verification page instead of handling role selection here
-      navigate('/otp-verification');
-    } catch (error) {
-      console.error('Login Failed:', error);
-    }
+    navigate('/otp-verification');
   };
 
   return (
@@ -52,85 +32,49 @@ const LoginScreen = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{t('login.title', 'Welcome to Fyke')}</h1>
               <p className="text-gray-500 text-sm">
-                {otpSent ? 'Verify your number' : 'Enter your details to get started'}
+                Enter your details to get started
               </p>
             </div>
           </div>
 
           {/* Name and Phone Input */}
-          {!otpSent ? (
-            <div className="space-y-4">
-              {/* Name Input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <User className="w-5 h-5" />
-                </div>
-                <Input
-                  type="text"
-                  placeholder="Your Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              
-              {/* Phone Input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  +91
-                </div>
-                <Input
-                  type="tel"
-                  placeholder="9876543210"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              
-              <Button 
-                onClick={handleSendOTP} 
-                disabled={phone.length !== 10 || !name.trim()}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
-              >
-                Send OTP
-              </Button>
-            </div>
-          ) : (
-            /* OTP Input */
-            <div className="space-y-4">
-              <div className="text-center">
-                <MessageSquare className="w-12 h-12 text-blue-500 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">
-                  OTP sent to +91 {phone}
-                </p>
+          <div className="space-y-4">
+            {/* Name Input */}
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <User className="w-5 h-5" />
               </div>
               <Input
                 type="text"
-                placeholder="Enter 6-digit OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="h-14 text-lg text-center tracking-wider border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                maxLength={6}
+                placeholder="Your Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setOtpSent(false)}
-                  className="flex-1 h-12 rounded-xl border-gray-200"
-                >
-                  Change Number
-                </Button>
-                <Button 
-                  onClick={handleVerifyOTP}
-                  disabled={otp.length !== 6}
-                  className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl"
-                >
-                  Verify
-                </Button>
-              </div>
             </div>
-          )}
+            
+            {/* Phone Input */}
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                +91
+              </div>
+              <Input
+                type="tel"
+                placeholder="9876543210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <Button 
+              onClick={handleSendOTP} 
+              disabled={phone.length !== 10 || !name.trim()}
+              className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+            >
+              Send OTP
+            </Button>
+          </div>
 
           {/* Footer */}
           <div className="text-center">

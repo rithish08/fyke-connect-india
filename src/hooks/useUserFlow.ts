@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 
 export const useUserFlow = () => {
   const { user, isAuthenticated } = useAuth();
@@ -30,14 +30,12 @@ export const useUserFlow = () => {
     // Don't redirect if already on the correct screen
     if (currentPath === nextScreen) return;
     
-    // Allow certain paths during flow
-    const allowedPaths = ['/', '/role-selection', '/login', '/otp-verification', '/profile-setup'];
+    // Allow access to certain screens without redirecting
+    const allowedPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
     if (allowedPaths.includes(currentPath)) return;
     
-    // Prevent navigation loops by checking if we're already trying to navigate
-    if (!window.location.href.includes(nextScreen)) {
-      goTo(nextScreen);
-    }
+    // Only redirect if we're not already navigating
+    goTo(nextScreen);
   }, [determineNextScreen, goTo]);
 
   const isFlowComplete = isAuthenticated && user?.role && (user.role === 'employer' || user.profileComplete);

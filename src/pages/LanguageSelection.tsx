@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import OnboardingSlides from '@/components/OnboardingSlides';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,7 +18,6 @@ const languageList = [
 
 const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const { setLanguage, t } = useLocalization();
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
@@ -27,7 +25,7 @@ const LanguageSelection = () => {
   const handleContinue = () => {
     setLanguage(selectedLanguage);
     
-    // If user is already authenticated, go to appropriate screen
+    // If user is already authenticated, determine next screen based on flow
     if (isAuthenticated && user) {
       if (!user.role) {
         navigate('/role-selection');
@@ -39,33 +37,9 @@ const LanguageSelection = () => {
       return;
     }
 
-    // For new users, show onboarding or go to role selection
-    const hasSeenOnboarding = localStorage.getItem('fyke_onboarding_seen');
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true);
-    } else {
-      navigate('/login');
-    }
-  };
-
-  const handleOnboardingComplete = () => {
-    localStorage.setItem('fyke_onboarding_seen', 'true');
+    // For new/unauthenticated users, go directly to login
     navigate('/login');
   };
-
-  const handleSkipOnboarding = () => {
-    localStorage.setItem('fyke_onboarding_seen', 'true');
-    navigate('/login');
-  };
-
-  if (showOnboarding) {
-    return (
-      <OnboardingSlides 
-        onComplete={handleOnboardingComplete}
-        onSkip={handleSkipOnboarding}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-6">
