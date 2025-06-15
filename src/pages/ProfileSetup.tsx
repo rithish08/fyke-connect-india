@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { ArrowLeft, BadgeCheck } from "lucide-react";
 import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
@@ -10,6 +9,7 @@ import ProfileSetupStepper from '@/components/profile/ProfileSetupStepper';
 import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
 import ModernSalaryStep from '@/components/profile/ModernSalaryStep';
 import ModernAvailabilityStep from '@/components/profile/ModernAvailabilityStep';
+import { AestheticCard } from '@/components/ui/aesthetic-card';
 import ShimmerLoader from '@/components/ui/ShimmerLoader';
 
 const STEPS = [
@@ -86,7 +86,7 @@ const ProfileSetup = () => {
   // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <ShimmerLoader height={60} width="200px" />
           <p className="text-gray-600">Setting up your profile...</p>
@@ -98,7 +98,7 @@ const ProfileSetup = () => {
   // Show fallback if no user after loading
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-gray-600">Redirecting to login...</p>
@@ -109,30 +109,34 @@ const ProfileSetup = () => {
 
   // Main profile setup UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-8">
       <div className="w-full max-w-lg mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <button
             onClick={handleBack}
-            className="w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-shadow"
+            className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <div className="flex items-center space-x-2">
-            <BadgeCheck className="w-6 h-6 text-blue-500" />
-            <span className="text-lg font-bold text-gray-900">Profile Setup</span>
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+              <BadgeCheck className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Profile Setup
+            </span>
           </div>
-          <div className="w-10 h-10"></div>
+          <div className="w-12 h-12"></div>
         </div>
 
         {/* Progress Stepper */}
-        <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
+        <AestheticCard variant="glass" className="shadow-xl border-0">
           <ProfileSetupStepper currentStep={currentStep} steps={STEPS} />
-        </Card>
+        </AestheticCard>
 
         {/* Step Content */}
-        <Card className="p-6 shadow-xl rounded-3xl bg-white border-0">
+        <AestheticCard variant="glass" className="shadow-xl border-0">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(() => {})}>
               {currentStep === 0 && (
@@ -151,11 +155,13 @@ const ProfileSetup = () => {
               )}
             </form>
           </Form>
-        </Card>
+        </AestheticCard>
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-400 px-4">
-          Complete your profile to get verified and access better job opportunities
+        <div className="text-center text-sm text-gray-500 px-4">
+          <p className="bg-white/80 backdrop-blur-sm rounded-xl py-3 px-4 shadow-sm">
+            Complete your profile to get verified and access better job opportunities
+          </p>
         </div>
       </div>
     </div>

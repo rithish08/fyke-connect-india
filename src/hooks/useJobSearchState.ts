@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { workersDb } from '@/data/workersDb';
-import { mockJobs, searchJobs } from '@/data/mockJobs';
+import { mockWorkers, mockJobs } from '@/data/mockData';
 import { useLocalization } from './useLocalization';
 
 interface FilterState {
@@ -36,28 +35,35 @@ export const useJobSearchState = () => {
   const loadResults = () => {
     setTimeout(() => {
       if (user?.role === 'employer') {
-        // Filter workers based on criteria
-        const filteredWorkers = workersDb.filter(worker => {
-          const categoryMatch = selectedCategory 
-            ? worker.category.toLowerCase() === selectedCategory.name.toLowerCase()
-            : true;
-          
-          const ratingMatch = worker.rating ? worker.rating >= filters.minRating : true;
+        // Get workers for selected category
+        const categoryKey = selectedCategory?.name.toLowerCase() || '';
+        const categoryWorkers = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
+        
+        // Apply filters
+        const filteredWorkers = categoryWorkers.filter(worker => {
+          const ratingMatch = worker.rating >= filters.minRating;
           const urgentMatch = urgentOnly ? worker.isOnline : true;
-          
-          return categoryMatch && ratingMatch && urgentMatch;
+          return ratingMatch && urgentMatch;
         });
         
         setResults(filteredWorkers);
       } else {
-        // Search jobs for job seekers
-        const categoryName = selectedCategory?.name || '';
-        const locationQuery = location?.name || '';
+        // Get jobs for selected category
+        const categoryKey = selectedCategory?.name.toLowerCase() || '';
+        const categoryJobs = mockJobs[categoryKey as keyof typeof mockJobs] || [];
         
-        const jobResults = searchJobs(searchQuery, categoryName, locationQuery, urgentOnly);
-        setResults(jobResults);
+        // Apply filters
+        const filteredJobs = categoryJobs.filter(job => {
+          const urgentMatch = urgentOnly ? job.urgent : true;
+          const queryMatch = searchQuery ? 
+            job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            job.company.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+          return urgentMatch && queryMatch;
+        });
+        
+        setResults(filteredJobs);
       }
-    }, 1000);
+    }, 500);
   };
 
   useEffect(() => {
