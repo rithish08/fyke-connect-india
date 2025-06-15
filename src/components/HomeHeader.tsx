@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AnimatedWrapper from './AnimatedWrapper';
@@ -35,7 +36,11 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
       <div className="relative bg-white p-0 shadow-none w-full">
         {/* App Brand in top left */}
         <div className="flex items-center h-14 px-4 border-b border-gray-100">
-          <span className="font-black text-2xl text-gray-900 tracking-tight">fyke</span>
+          <img 
+            src="/lovable-uploads/40cea67e-eb44-489e-8b99-b85acc26c4e4.png" 
+            alt="fyke logo"
+            className="h-8 w-auto"
+          />
         </div>
         {/* Page Name below app name */}
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">

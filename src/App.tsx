@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LocalizationProvider } from "./contexts/LocalizationContext";
 import RouteGuard from "./components/RouteGuard";
+import SplashScreen from "./components/SplashScreen";
 import LanguageSelection from "./pages/LanguageSelection";
 import RoleSelection from "./pages/RoleSelection";
 import LoginScreen from "./pages/LoginScreen";
@@ -22,100 +23,109 @@ import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
 import PostJob from "./pages/PostJob";
 import WorkerProfile from "./pages/WorkerProfile";
+import { useState } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <LocalizationProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Default route - always start at language selection */}
-              <Route path="/" element={<LanguageSelection />} />
-              
-              {/* Public routes */}
-              <Route path="/role-selection" element={
-                <RouteGuard requireAuth={false}>
-                  <RoleSelection />
-                </RouteGuard>
-              } />
-              <Route path="/login" element={
-                <RouteGuard requireAuth={false}>
-                  <LoginScreen />
-                </RouteGuard>
-              } />
-              <Route path="/otp-verification" element={
-                <RouteGuard requireAuth={false}>
-                  <OTPVerification />
-                </RouteGuard>
-              } />
-              
-              {/* Semi-protected routes */}
-              <Route path="/profile-setup" element={
-                <RouteGuard requireAuth={true} requireProfile={false}>
-                  <ProfileSetup />
-                </RouteGuard>
-              } />
-              
-              {/* Protected routes */}
-              <Route path="/home" element={
-                <RouteGuard>
-                  <HomePage />
-                </RouteGuard>
-              } />
-              <Route path="/search" element={
-                <RouteGuard>
-                  <JobSearch />
-                </RouteGuard>
-              } />
-              <Route path="/job/:id" element={
-                <RouteGuard>
-                  <JobDetails />
-                </RouteGuard>
-              } />
-              <Route path="/worker/:id" element={
-                <RouteGuard>
-                  <WorkerProfile />
-                </RouteGuard>
-              } />
-              <Route path="/post-job" element={
-                <RouteGuard>
-                  <PostJob />
-                </RouteGuard>
-              } />
-              <Route path="/my-jobs" element={
-                <RouteGuard>
-                  <MyJobs />
-                </RouteGuard>
-              } />
-              <Route path="/profile" element={
-                <RouteGuard>
-                  <Profile />
-                </RouteGuard>
-              } />
-              <Route path="/messages" element={
-                <RouteGuard>
-                  <Messaging />
-                </RouteGuard>
-              } />
-              <Route path="/notifications" element={
-                <RouteGuard>
-                  <Notifications />
-                </RouteGuard>
-              } />
-              
-              {/* Fallback for unknown routes */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </LocalizationProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <LocalizationProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Default route - always start at language selection */}
+                <Route path="/" element={<LanguageSelection />} />
+                
+                {/* Public routes */}
+                <Route path="/role-selection" element={
+                  <RouteGuard requireAuth={false}>
+                    <RoleSelection />
+                  </RouteGuard>
+                } />
+                <Route path="/login" element={
+                  <RouteGuard requireAuth={false}>
+                    <LoginScreen />
+                  </RouteGuard>
+                } />
+                <Route path="/otp-verification" element={
+                  <RouteGuard requireAuth={false}>
+                    <OTPVerification />
+                  </RouteGuard>
+                } />
+                
+                {/* Semi-protected routes */}
+                <Route path="/profile-setup" element={
+                  <RouteGuard requireAuth={true} requireProfile={false}>
+                    <ProfileSetup />
+                  </RouteGuard>
+                } />
+                
+                {/* Protected routes */}
+                <Route path="/home" element={
+                  <RouteGuard>
+                    <HomePage />
+                  </RouteGuard>
+                } />
+                <Route path="/search" element={
+                  <RouteGuard>
+                    <JobSearch />
+                  </RouteGuard>
+                } />
+                <Route path="/job/:id" element={
+                  <RouteGuard>
+                    <JobDetails />
+                  </RouteGuard>
+                } />
+                <Route path="/worker/:id" element={
+                  <RouteGuard>
+                    <WorkerProfile />
+                  </RouteGuard>
+                } />
+                <Route path="/post-job" element={
+                  <RouteGuard>
+                    <PostJob />
+                  </RouteGuard>
+                } />
+                <Route path="/my-jobs" element={
+                  <RouteGuard>
+                    <MyJobs />
+                  </RouteGuard>
+                } />
+                <Route path="/profile" element={
+                  <RouteGuard>
+                    <Profile />
+                  </RouteGuard>
+                } />
+                <Route path="/messages" element={
+                  <RouteGuard>
+                    <Messaging />
+                  </RouteGuard>
+                } />
+                <Route path="/notifications" element={
+                  <RouteGuard>
+                    <Notifications />
+                  </RouteGuard>
+                } />
+                
+                {/* Fallback for unknown routes */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </LocalizationProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

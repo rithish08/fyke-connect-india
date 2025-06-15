@@ -21,9 +21,11 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     return (
       <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
         <div className="text-center">
-          <h1 className="text-6xl font-black tracking-tight text-gray-900" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-            fyke
-          </h1>
+          <img 
+            src="/lovable-uploads/40cea67e-eb44-489e-8b99-b85acc26c4e4.png" 
+            alt="fyke logo"
+            className="w-32 h-auto mx-auto"
+          />
         </div>
       </div>
     );
@@ -32,9 +34,11 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300">
       <div className="text-center animate-pulse">
-        <h1 className="text-6xl font-black tracking-tight text-gray-900" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-          fyke
-        </h1>
+        <img 
+          src="/lovable-uploads/40cea67e-eb44-489e-8b99-b85acc26c4e4.png" 
+          alt="fyke logo"
+          className="w-32 h-auto mx-auto"
+        />
       </div>
     </div>
   );
