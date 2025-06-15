@@ -2,52 +2,98 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, MapPin, DollarSign, Clock, AlertCircle } from 'lucide-react';
 import { useGlobalToast } from '@/hooks/useGlobalToast';
-import { ArrowLeft, MapPin, Clock, DollarSign } from 'lucide-react';
 import BottomNavigation from '@/components/BottomNavigation';
 
 const PostJob = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { showSuccess } = useGlobalToast();
-  const [loading, setLoading] = useState(false);
+  const { showSuccess, showError } = useGlobalToast();
+  
   const [formData, setFormData] = useState({
     title: '',
+    company: user?.name || '',
     category: '',
+    location: user?.location || '',
     description: '',
-    location: '',
-    salary: '',
-    salaryPeriod: 'daily',
-    urgent: false,
     requirements: '',
-    workType: 'on-site'
+    salary: '',
+    salaryPeriod: 'day',
+    urgent: false,
+    contactPhone: '',
+    contactEmail: ''
   });
 
+  const [loading, setLoading] = useState(false);
+
   const categories = [
-    'Construction', 'Delivery', 'Cleaning', 'Security', 'Kitchen', 
-    'Retail', 'Manufacturing', 'Agriculture', 'Transportation'
+    'Construction', 'Delivery', 'Cleaning', 'Security', 
+    'Driver', 'Cooking', 'Gardening', 'Beauty'
   ];
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.title || !formData.category || !formData.description || !formData.salary) {
+      showError('Please fill in all required fields');
+      return;
+    }
+
     setLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    showSuccess('Job posted successfully!');
-    setLoading(false);
-    navigate('/my-jobs');
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Store job post (in real app, this would be API call)
+      const newJob = {
+        id: `job-${Date.now()}`,
+        ...formData,
+        postedTime: 'Just now',
+        employerId: user?.id || 'current-user',
+        postedDate: new Date().toISOString()
+      };
+
+      // Save to localStorage for demo
+      const existingJobs = JSON.parse(localStorage.getItem('fyke_posted_jobs') || '[]');
+      existingJobs.push(newJob);
+      localStorage.setItem('fyke_posted_jobs', JSON.stringify(existingJobs));
+
+      showSuccess('Job posted successfully!');
+      navigate('/my-jobs');
+    } catch (error) {
+      showError('Failed to post job. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  if (user?.role !== 'employer') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-4">Only employers can post jobs</p>
+          <Button onClick={() => navigate('/home')}>Go to Home</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -59,143 +105,189 @@ const PostJob = () => {
           </button>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Post a Job</h1>
-            <p className="text-sm text-gray-500">Find the right worker for your needs</p>
+            <p className="text-sm text-gray-500">Find the right workers for your job</p>
           </div>
         </div>
       </div>
 
-      {/* Form */}
-      <div className="p-4 max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Job Details</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Job Title</label>
+      <form onSubmit={handleSubmit} className="p-4 max-w-2xl mx-auto space-y-6">
+        {/* Basic Information */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Job Information</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Job Title *</Label>
+              <Input
+                id="title"
+                placeholder="e.g., Construction Worker, Delivery Partner"
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="company">Company Name</Label>
+              <Input
+                id="company"
+                placeholder="Your company name"
+                value={formData.company}
+                onChange={(e) => handleInputChange('company', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="category">Category *</Label>
+              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select job category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <Input
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="e.g., Construction Worker Needed"
+                  id="location"
+                  placeholder="Job location"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Job Description */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Job Details</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="description">Job Description *</Label>
+              <Textarea
+                id="description"
+                placeholder="Describe the job responsibilities, working conditions, and any specific requirements..."
+                rows={4}
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="requirements">Requirements</Label>
+              <Textarea
+                id="requirements"
+                placeholder="List the skills, experience, or qualifications needed..."
+                rows={3}
+                value={formData.requirements}
+                onChange={(e) => handleInputChange('requirements', e.target.value)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Salary Information */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Compensation</h2>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="salary">Salary Amount *</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <Input
+                  id="salary"
+                  type="number"
+                  placeholder="Amount"
+                  value={formData.salary}
+                  onChange={(e) => handleInputChange('salary', e.target.value)}
+                  className="pl-10"
                   required
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Category</label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat} value={cat.toLowerCase()}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe the work needed..."
-                  rows={4}
-                  required
-                />
-              </div>
             </div>
-          </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Location & Pay</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Location</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    value={formData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    placeholder="Enter job location"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Salary</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <Input
-                      type="number"
-                      value={formData.salary}
-                      onChange={(e) => handleInputChange('salary', e.target.value)}
-                      placeholder="Amount"
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Period</label>
-                  <Select value={formData.salaryPeriod} onValueChange={(value) => handleInputChange('salaryPeriod', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hourly">Per Hour</SelectItem>
-                      <SelectItem value="daily">Per Day</SelectItem>
-                      <SelectItem value="weekly">Per Week</SelectItem>
-                      <SelectItem value="monthly">Per Month</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div>
+              <Label htmlFor="salaryPeriod">Payment Period</Label>
+              <Select value={formData.salaryPeriod} onValueChange={(value) => handleInputChange('salaryPeriod', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hour">Per Hour</SelectItem>
+                  <SelectItem value="day">Per Day</SelectItem>
+                  <SelectItem value="week">Per Week</SelectItem>
+                  <SelectItem value="month">Per Month</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Additional Requirements</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Skills & Requirements</label>
-                <Textarea
-                  value={formData.requirements}
-                  onChange={(e) => handleInputChange('requirements', e.target.value)}
-                  placeholder="List any specific skills or requirements..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.urgent}
-                    onChange={(e) => handleInputChange('urgent', e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm">Urgent hiring</span>
-                </label>
-              </div>
+        {/* Contact & Options */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Contact & Options</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="contactPhone">Contact Phone</Label>
+              <Input
+                id="contactPhone"
+                placeholder="Your contact number"
+                value={formData.contactPhone}
+                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+              />
             </div>
-          </Card>
 
-          <Button
-            type="submit"
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-            disabled={loading}
-          >
-            {loading ? 'Posting...' : 'Post Job'}
-          </Button>
-        </form>
-      </div>
+            <div>
+              <Label htmlFor="contactEmail">Contact Email</Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                placeholder="your@email.com"
+                value={formData.contactEmail}
+                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="urgent"
+                checked={formData.urgent}
+                onCheckedChange={(checked) => handleInputChange('urgent', checked)}
+              />
+              <Label htmlFor="urgent" className="flex items-center space-x-2">
+                <span>Mark as Urgent</span>
+                <AlertCircle className="w-4 h-4 text-orange-500" />
+              </Label>
+            </div>
+          </div>
+        </Card>
+
+        {/* Submit Button */}
+        <div className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t">
+          <div className="max-w-2xl mx-auto">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? 'Posting Job...' : 'Post Job'}
+            </Button>
+          </div>
+        </div>
+      </form>
 
       <BottomNavigation />
     </div>

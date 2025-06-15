@@ -1,11 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MapPin, Clock, DollarSign, User, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, MapPin, Clock, User, Eye, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '@/components/BottomNavigation';
 import { mockJobs } from '@/data/mockData';
@@ -14,16 +14,31 @@ const MyJobs = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('active');
+  const [applications, setApplications] = useState<any[]>([]);
+  const [hireRequests, setHireRequests] = useState<any[]>([]);
 
   const isEmployer = user?.role === 'employer';
-  
+
+  useEffect(() => {
+    // Load applications and hire requests from localStorage
+    const storedApplications = JSON.parse(localStorage.getItem('fyke_applications') || '[]');
+    const storedHireRequests = JSON.parse(localStorage.getItem('fyke_hire_requests') || '[]');
+    
+    setApplications(storedApplications);
+    setHireRequests(storedHireRequests);
+  }, []);
+
   // Mock data based on user role
   const jobsData = isEmployer ? {
     active: Object.values(mockJobs).flat().slice(0, 3),
     completed: Object.values(mockJobs).flat().slice(3, 5),
     draft: Object.values(mockJobs).flat().slice(5, 6)
   } : {
-    applied: Object.values(mockJobs).flat().slice(0, 4),
+    applied: applications.map(app => {
+      const allJobs = Object.values(mockJobs).flat();
+      const job = allJobs.find(j => j.id === app.jobId);
+      return job ? { ...job, applicationStatus: app.status, appliedAt: app.appliedAt } : null;
+    }).filter(Boolean),
     active: Object.values(mockJobs).flat().slice(4, 6),
     completed: Object.values(mockJobs).flat().slice(6, 8)
   };
@@ -32,27 +47,32 @@ const MyJobs = () => {
     <Card className="p-4 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
+          <h3 className="font-semibold text-gray-900 mb-1">{job.title || 'Job Title'}</h3>
           <div className="flex items-center space-x-3 text-sm text-gray-600 mb-2">
             <span className="flex items-center space-x-1">
               <User className="w-3 h-3" />
-              <span>{job.company}</span>
+              <span>{job.company || 'Company'}</span>
             </span>
             <span className="flex items-center space-x-1">
               <MapPin className="w-3 h-3" />
-              <span>{job.location}</span>
+              <span>{job.location || 'Location'}</span>
             </span>
           </div>
           <div className="flex items-center space-x-2">
             <Badge variant={job.urgent ? "destructive" : "secondary"} className="text-xs">
               {job.urgent ? 'Urgent' : 'Regular'}
             </Badge>
-            <Badge variant="outline" className="text-xs">{job.category}</Badge>
+            <Badge variant="outline" className="text-xs">{job.category || 'General'}</Badge>
+            {job.applicationStatus && (
+              <Badge variant="outline" className="text-xs">
+                {job.applicationStatus}
+              </Badge>
+            )}
           </div>
         </div>
         <div className="text-right">
-          <div className="font-bold text-green-600">₹{job.salary}</div>
-          <div className="text-xs text-gray-500">per {job.salaryPeriod}</div>
+          <div className="font-bold text-green-600">₹{job.salary || '0'}</div>
+          <div className="text-xs text-gray-500">per {job.salaryPeriod || 'day'}</div>
         </div>
       </div>
       
@@ -60,7 +80,7 @@ const MyJobs = () => {
         <div className="flex justify-between items-center pt-3 border-t border-gray-100">
           <span className="text-xs text-gray-500 flex items-center space-x-1">
             <Clock className="w-3 h-3" />
-            <span>Posted {job.postedTime}</span>
+            <span>Posted {job.postedTime || 'recently'}</span>
           </span>
           <div className="flex space-x-2">
             <Button variant="outline" size="sm" onClick={() => navigate(`/job/${job.id}`)}>
@@ -127,8 +147,8 @@ const MyJobs = () => {
           {Object.entries(jobsData).map(([key, jobs]) => (
             <TabsContent key={key} value={key} className="space-y-4 mt-6">
               {jobs && jobs.length > 0 ? (
-                jobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
+                jobs.map((job, index) => (
+                  <JobCard key={job?.id || index} job={job} />
                 ))
               ) : (
                 <div className="text-center py-12">

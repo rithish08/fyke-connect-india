@@ -5,12 +5,16 @@ export const handlePhoneCall = (phoneNumber?: string, targetName?: string) => {
   if (phoneNumber) {
     window.location.href = `tel:${phoneNumber}`;
   } else {
-    // Show toast that phone call is not available
-    console.log(`Phone call to ${targetName} not available`);
+    console.log(`Phone call to ${targetName || 'contact'} not available`);
   }
 };
 
 export const handleInAppChat = (targetId: string, targetName: string, navigate: any, context?: string) => {
+  if (!targetId || !targetName || !navigate) {
+    console.error('Missing required parameters for chat');
+    return;
+  }
+
   const chatParams = new URLSearchParams({
     chatWith: targetId,
     name: targetName,
@@ -25,6 +29,11 @@ export const handleInAppChat = (targetId: string, targetName: string, navigate: 
 };
 
 export const handleEmployerContact = (targetId: string, targetName: string, navigate: any, context?: string) => {
+  if (!targetId || !targetName || !navigate) {
+    console.error('Missing required parameters for employer contact');
+    return;
+  }
+
   const chatParams = new URLSearchParams({
     chatWith: targetId,
     name: targetName,
@@ -39,7 +48,12 @@ export const handleEmployerContact = (targetId: string, targetName: string, navi
 };
 
 export const handleJobApplication = (jobId: string, jobTitle: string, navigate: any) => {
-  // Store application in local storage for now
+  if (!jobId || !jobTitle || !navigate) {
+    console.error('Missing required parameters for job application');
+    return;
+  }
+
+  // Store application in local storage
   const applications = JSON.parse(localStorage.getItem('fyke_applications') || '[]');
   const newApplication = {
     id: Date.now().toString(),
@@ -57,7 +71,12 @@ export const handleJobApplication = (jobId: string, jobTitle: string, navigate: 
 };
 
 export const handleHireRequest = (workerId: string, workerName: string) => {
-  // Store hire request in local storage for now
+  if (!workerId || !workerName) {
+    console.error('Missing required parameters for hire request');
+    return;
+  }
+
+  // Store hire request in local storage
   const hireRequests = JSON.parse(localStorage.getItem('fyke_hire_requests') || '[]');
   const newRequest = {
     id: Date.now().toString(),
