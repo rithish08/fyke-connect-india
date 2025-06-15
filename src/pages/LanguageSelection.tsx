@@ -50,6 +50,8 @@ const LanguageSelection = () => {
                   "focus:outline-none"
                 ].join(' ')}
                 type="button"
+                aria-pressed={selected}
+                tabIndex={0}
               >
                 <span className={`mb-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-base sm:text-lg font-bold text-white ${lang.color} rounded-full border border-white shadow`}>
                   {lang.flag}
@@ -74,6 +76,8 @@ const LanguageSelection = () => {
             onClick={handleContinue}
             className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gray-900 text-white text-base sm:text-lg font-semibold shadow-xl hover:bg-gray-950 transition"
             style={{ letterSpacing: 0.2 }}
+            aria-label="Continue with selected language"
+            disabled={!selectedLanguage}
           >
             Continue
           </Button>

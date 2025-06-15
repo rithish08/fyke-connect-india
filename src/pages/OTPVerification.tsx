@@ -144,7 +144,7 @@ const OTPVerification = () => {
             </p>
           </div>
         </div>
-        {/* OTP Card */}
+        {/* OTP Card with improved spacing and clarity */}
         <Card className="p-4 sm:p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
           <div className="space-y-5 sm:space-y-6">
             <div className="flex justify-center px-2">
@@ -159,7 +159,7 @@ const OTPVerification = () => {
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <p className="text-xs sm:text-sm text-gray-500">Code will be verified automatically</p>
               </div>
             </div>
@@ -169,7 +169,7 @@ const OTPVerification = () => {
             <div className="text-center">
               {resendTimer > 0 ? (
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
                   <p className="text-xs sm:text-sm text-gray-500">
                     Resend in {resendTimer}s
                   </p>

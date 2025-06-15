@@ -21,7 +21,6 @@ const roles = [
     gradient: 'from-purple-500 to-purple-600'
   }
 ];
-
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const { setRole } = useAuth();
@@ -66,6 +65,9 @@ const RoleSelection = () => {
                     isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                   }`}
                   onClick={() => setSelectedRole(role.id)}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-4">
@@ -92,6 +94,7 @@ const RoleSelection = () => {
               onClick={handleContinue}
               disabled={!selectedRole}
               className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              aria-label="Continue with selected role"
             >
               Continue
             </Button>
@@ -101,5 +104,4 @@ const RoleSelection = () => {
     </div>
   );
 };
-
 export default RoleSelection;
