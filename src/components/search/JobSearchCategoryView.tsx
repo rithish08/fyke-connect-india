@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { categories } from '@/data/categories';
@@ -26,7 +26,7 @@ const JobSearchCategoryView = ({ onSelectionComplete }: JobSearchCategoryViewPro
   const handleCategorySelect = (categoryId: string) => {
     const category = categories.find(cat => cat.name.toLowerCase() === categoryId);
     if (category) {
-      const allSubcategories = category.subcategories.map(sub => sub.name);
+      const allSubcategories = category.subcategories;
       setSelectedCategories(prev => ({
         ...prev,
         [categoryId]: allSubcategories

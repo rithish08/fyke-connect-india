@@ -182,8 +182,8 @@ const PostJob = () => {
               >
                 <option value="">Select specialization (optional)</option>
                 {getSubcategories().map((sub) => (
-                  <option key={sub.name} value={sub.name}>
-                    {sub.name}
+                  <option key={sub} value={sub}>
+                    {sub}
                   </option>
                 ))}
               </select>
