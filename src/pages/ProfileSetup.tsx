@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +11,6 @@ import { FloatingCard } from '@/components/ui/floating-card';
 import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
-import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 
 const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
@@ -64,15 +64,30 @@ const ProfileSetup = () => {
   };
 
   const handleFinish = async () => {
-    // Directly submit profile without an availability step.
-    const data = form.getValues();
-    const isValid = await form.trigger();
-    if (!isValid) return false;
-    const success = await submitProfile(data);
-    if (success) {
+    console.log('handleFinish called');
+    
+    // Get all form data
+    const formData = form.getValues();
+    console.log('Form data:', formData);
+    
+    // Force completion by directly updating profile
+    try {
+      const profileData = {
+        ...formData,
+        profileComplete: true,
+        availability: formData.availability || 'available'
+      };
+      
+      console.log('Updating profile with:', profileData);
+      await updateProfile(profileData);
+      
+      console.log('Profile updated successfully, navigating to home');
       navigate('/home');
+      return true;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return false;
     }
-    return success;
   };
 
   if (loading) return <ProfileLoading />;
