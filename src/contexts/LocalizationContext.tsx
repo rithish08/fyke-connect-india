@@ -3,12 +3,14 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface LocalizationContextProps {
   language: string;
+  currentLanguage: string;
   setLanguage: (lang: string) => void;
   t: (key: string, fallback?: string) => string;
 }
 
 const LocalizationContext = createContext<LocalizationContextProps>({
   language: 'en',
+  currentLanguage: 'en',
   setLanguage: () => {},
   t: (key: string, fallback?: string) => fallback || key,
 });
@@ -476,7 +478,12 @@ export const LocalizationProvider: React.FC<LocalizationProviderProps> = ({ chil
   }, [language]);
 
   return (
-    <LocalizationContext.Provider value={{ language, setLanguage: setLanguageAndUpdateStorage, t }}>
+    <LocalizationContext.Provider value={{ 
+      language, 
+      currentLanguage: language, 
+      setLanguage: setLanguageAndUpdateStorage, 
+      t 
+    }}>
       {children}
     </LocalizationContext.Provider>
   );

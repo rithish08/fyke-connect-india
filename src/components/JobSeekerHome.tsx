@@ -11,12 +11,14 @@ import { Search, MapPin, Clock, TrendingUp, Zap, Star } from 'lucide-react';
 const JobSeekerHome = () => {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
-  const [availability, setAvailability] = useState(userProfile?.availability || 'available');
+  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>(
+    (userProfile?.availability as 'available' | 'busy' | 'offline') || 'available'
+  );
 
   const availabilityOptions = [
-    { value: 'available', label: 'Available', color: 'bg-green-500', textColor: 'text-green-700' },
-    { value: 'busy', label: 'Busy', color: 'bg-yellow-500', textColor: 'text-yellow-700' },
-    { value: 'offline', label: 'Offline', color: 'bg-gray-500', textColor: 'text-gray-700' }
+    { value: 'available' as const, label: 'Available', color: 'bg-green-500', textColor: 'text-green-700' },
+    { value: 'busy' as const, label: 'Busy', color: 'bg-yellow-500', textColor: 'text-yellow-700' },
+    { value: 'offline' as const, label: 'Offline', color: 'bg-gray-500', textColor: 'text-gray-700' }
   ];
 
   const currentAvailability = availabilityOptions.find(opt => opt.value === availability);
