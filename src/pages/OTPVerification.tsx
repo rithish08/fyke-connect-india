@@ -12,31 +12,42 @@ const OTPVerification = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const navigate = useNavigate();
-  const { verifyOTP, sendOTP, userProfile, isAuthenticated } = useAuth();
+  const { verifyOTP, sendOTP, userProfile, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     const phone = localStorage.getItem('fyke_phone');
+    console.log('[OTPVerification] Component mounted, phone:', phone);
+    console.log('[OTPVerification] Auth state:', { isAuthenticated, user: !!user, userProfile: !!userProfile });
+    
     if (!phone) {
+      console.log('[OTPVerification] No phone found, redirecting to login');
       navigate('/login');
       return;
     }
+  }, [navigate]);
 
-    // If user is already authenticated, redirect appropriately
-    if (isAuthenticated && userProfile) {
-      const selectedRole = localStorage.getItem('fyke_selected_role');
+  // Handle successful authentication
+  useEffect(() => {
+    if (isAuthenticated && user && userProfile) {
+      console.log('[OTPVerification] User authenticated, profile:', userProfile);
       
-      if (!userProfile.role && selectedRole) {
+      // Clear phone from localStorage since we're now authenticated
+      localStorage.removeItem('fyke_phone');
+      
+      // Check role and redirect appropriately
+      if (!userProfile.role) {
+        console.log('[OTPVerification] No role, redirecting to role selection');
         navigate('/role-selection');
       } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+        console.log('[OTPVerification] Jobseeker incomplete profile, redirecting to profile setup');
         navigate('/profile-setup');
-      } else if (userProfile.role) {
-        navigate('/home');
       } else {
-        navigate('/role-selection');
+        console.log('[OTPVerification] Complete profile, redirecting to home');
+        navigate('/home');
       }
     }
-  }, [navigate, isAuthenticated, userProfile]);
+  }, [isAuthenticated, user, userProfile, navigate]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -65,32 +76,15 @@ const OTPVerification = () => {
       if (result.success) {
         console.log('[OTPVerification] OTP verification succeeded');
         
-        // Clear phone from localStorage since we're now authenticated
-        localStorage.removeItem('fyke_phone');
-        
-        // Check if role was pre-selected
-        const selectedRole = localStorage.getItem('fyke_selected_role');
-        
-        if (selectedRole) {
-          // Role was already selected, go to appropriate screen
-          localStorage.removeItem('fyke_selected_role');
-          if (selectedRole === 'employer') {
-            navigate('/home');
-          } else {
-            navigate('/profile-setup');
-          }
-        } else {
-          // No role selected, go to role selection
-          navigate('/role-selection');
-        }
-
         toast({
           title: "Phone Verified!",
           description: "Successfully authenticated"
         });
+        
+        // Navigation will be handled by the useEffect above
       } else {
+        console.log('[OTPVerification] OTP verification failed:', result.error);
         setOtp(['', '', '', '', '', '']);
-        // Error toast is already shown by verifyOTP
       }
     } catch (error: any) {
       console.error('[OTPVerification] Verification Failed:', error);
@@ -111,6 +105,7 @@ const OTPVerification = () => {
 
     setLoading(true);
     try {
+      console.log('[OTPVerification] Resending OTP to:', phone);
       await sendOTP(phone);
       setResendTimer(60);
       toast({

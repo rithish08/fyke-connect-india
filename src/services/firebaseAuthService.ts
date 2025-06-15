@@ -8,8 +8,14 @@ export class FirebaseAuthService {
 
   async initializeAuth() {
     try {
+      // Clear any existing recaptcha first
+      if (this.recaptchaVerifier) {
+        this.recaptchaVerifier.clear();
+      }
+      
       // Initialize recaptcha for phone authentication
       this.recaptchaVerifier = initializeRecaptcha('recaptcha-container');
+      console.log('Recaptcha initialized successfully');
     } catch (error) {
       console.error('Firebase initialization error:', error);
       throw error;
@@ -18,16 +24,21 @@ export class FirebaseAuthService {
 
   async sendOTP(phoneNumber: string) {
     try {
+      console.log('Starting OTP send process for:', phoneNumber);
+      
       if (!this.recaptchaVerifier) {
+        console.log('Initializing recaptcha...');
         await this.initializeAuth();
       }
 
       // Format phone number for Firebase (must include country code)
       const formattedPhone = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
       
-      console.log('Sending OTP to:', formattedPhone);
+      console.log('Sending OTP to formatted number:', formattedPhone);
       
       this.confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, this.recaptchaVerifier);
+      
+      console.log('OTP sent successfully, verification ID:', this.confirmationResult.verificationId);
       
       return { success: true, verificationId: this.confirmationResult.verificationId };
     } catch (error: any) {
@@ -38,34 +49,45 @@ export class FirebaseAuthService {
 
   async verifyOTP(otpCode: string) {
     try {
+      console.log('Starting OTP verification with code:', otpCode);
+      
       if (!this.confirmationResult) {
         throw new Error('No OTP request found. Please request OTP first.');
       }
 
       // Verify the OTP with Firebase
+      console.log('Confirming OTP with Firebase...');
       const result = await this.confirmationResult.confirm(otpCode);
       const firebaseUser = result.user;
       
       console.log('Firebase user authenticated:', firebaseUser.uid);
+      console.log('Phone number:', firebaseUser.phoneNumber);
 
       const phoneNumber = firebaseUser.phoneNumber;
       
-      // Check if user already exists in Supabase
-      const { data: existingProfiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('phone', phoneNumber);
+      if (!phoneNumber) {
+        throw new Error('No phone number found in Firebase user');
+      }
 
-      let userId;
+      // Create a simple email from phone number for Supabase
+      const email = `${phoneNumber.replace('+', '')}@temp.local`;
+      const password = firebaseUser.uid; // Use Firebase UID as password
+      
+      console.log('Attempting Supabase authentication with email:', email);
 
-      if (!existingProfiles || existingProfiles.length === 0) {
+      // Try to sign in first (existing user)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (signInError && signInError.message.includes('Invalid login credentials')) {
         // User doesn't exist, create new user
-        console.log('Creating new user profile for:', phoneNumber);
+        console.log('User not found, creating new user...');
         
-        const dummyEmail = `${phoneNumber.replace('+', '')}@fyke.local`;
-        const { data: newUser, error: signUpError } = await supabase.auth.signUp({
-          email: dummyEmail,
-          password: firebaseUser.uid,
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: email,
+          password: password,
           options: {
             data: {
               phone: phoneNumber,
@@ -79,30 +101,23 @@ export class FirebaseAuthService {
           throw signUpError;
         }
 
-        userId = newUser.user?.id;
+        console.log('New user created successfully:', signUpData.user?.id);
+        return {
+          success: true,
+          userId: signUpData.user?.id,
+          phone: phoneNumber
+        };
+      } else if (signInError) {
+        console.error('Unexpected sign in error:', signInError);
+        throw signInError;
       } else {
-        // User exists, sign them in
-        console.log('User exists, signing in:', phoneNumber);
-        const dummyEmail = `${phoneNumber.replace('+', '')}@fyke.local`;
-        
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: dummyEmail,
-          password: firebaseUser.uid
-        });
-
-        if (signInError) {
-          console.error('Error signing in user:', signInError);
-          throw signInError;
-        }
-
-        userId = signInData.user?.id;
+        console.log('Existing user signed in successfully:', signInData.user?.id);
+        return {
+          success: true,
+          userId: signInData.user?.id,
+          phone: phoneNumber
+        };
       }
-
-      return {
-        success: true,
-        userId: userId,
-        phone: phoneNumber
-      };
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       return { success: false, error: error.message };

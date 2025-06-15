@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,6 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -64,6 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
+      console.log('User profile fetched:', data);
       setUserProfile(data);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -71,6 +72,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    console.log('[AuthContext] Setting up auth state listener');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
@@ -78,7 +81,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          // Fetch profile after user is set
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 100);
         } else {
           setUserProfile(null);
         }
@@ -87,7 +93,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AuthContext] Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -103,6 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const sendOTP = async (phoneNumber: string) => {
     try {
+      console.log('[AuthContext] Sending OTP to:', phoneNumber);
       const result = await firebaseAuthService.sendOTP(phoneNumber);
       if (result.success) {
         toast({
@@ -120,6 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error: any) {
       const errorMessage = error.message || "Failed to send OTP";
+      console.error('[AuthContext] Send OTP error:', errorMessage);
       toast({
         title: "Error",
         description: errorMessage,
@@ -131,11 +141,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const verifyOTP = async (otpCode: string) => {
     try {
+      console.log('[AuthContext] Verifying OTP:', otpCode);
       const result = await firebaseAuthService.verifyOTP(otpCode);
       if (result.success) {
         console.log('[AuthContext] OTP verification successful');
+        // The auth state change will be handled by the listener
         return { success: true };
       } else {
+        console.error('[AuthContext] OTP verification failed:', result.error);
         toast({
           title: "Verification Failed",
           description: result.error || "Invalid OTP",
@@ -145,6 +158,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error: any) {
       const errorMessage = error.message || "Failed to verify OTP";
+      console.error('[AuthContext] Verify OTP error:', errorMessage);
       toast({
         title: "Verification Failed",
         description: errorMessage,
@@ -171,7 +185,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserProfile(null);
       setSession(null);
       
-      // Clear any stored data
       localStorage.removeItem('fyke_phone');
       localStorage.removeItem('fyke_selected_role');
       localStorage.removeItem('fyke_selected_subcategories');
@@ -230,9 +243,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return;
 
     try {
-      // Save subcategories to user_categories table
       if (profileData.subcategories && profileData.subcategories.length > 0) {
-        // First, get the category ID
         const { data: categoryData } = await supabase
           .from('categories')
           .select('id')
@@ -240,13 +251,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .single();
 
         if (categoryData) {
-          // Delete existing user categories
           await supabase
             .from('user_categories')
             .delete()
             .eq('user_id', user.id);
 
-          // Insert new categories
           for (const subcategory of profileData.subcategories) {
             const { data: subcategoryData } = await supabase
               .from('subcategories')
@@ -269,7 +278,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      // Save wage information if provided
       if (profileData.salaryBySubcategory) {
         for (const [subcategory, salaryInfo] of Object.entries(profileData.salaryBySubcategory)) {
           const salary = salaryInfo as { amount: string; period: string };
@@ -294,7 +302,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      // Update profile
       const { error } = await supabase
         .from('profiles')
         .update({

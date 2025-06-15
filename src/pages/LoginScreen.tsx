@@ -7,21 +7,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { useAuth } from '@/contexts/AuthContext';
 import { Phone } from "lucide-react";
-import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
-  const { sendOTP, verifyOTP, userProfile, isAuthenticated } = useAuth();
+  const { sendOTP, userProfile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     // If user is already authenticated, redirect them
     if (isAuthenticated && userProfile) {
+      console.log('[LoginScreen] User already authenticated, redirecting...');
       if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
         navigate('/profile-setup');
       } else if (userProfile.role) {
@@ -32,13 +29,6 @@ const LoginScreen = () => {
     }
   }, [isAuthenticated, userProfile, navigate]);
 
-  useEffect(() => {
-    if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendTimer]);
-
   const handleSendOTP = async () => {
     if (phone.length !== 10) {
       return;
@@ -46,13 +36,15 @@ const LoginScreen = () => {
     
     setLoading(true);
     try {
+      console.log('[LoginScreen] Sending OTP to:', phone);
+      
       // Store phone for later use
       localStorage.setItem('fyke_phone', phone);
 
       const result = await sendOTP(phone);
       if (result.success) {
-        setShowOTP(true);
-        setResendTimer(60);
+        console.log('[LoginScreen] OTP sent successfully, navigating to verification');
+        navigate('/otp-verification');
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -60,132 +52,6 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
-
-  const handleOTPComplete = async (otpCode: string) => {
-    if (otpCode.length !== 6) {
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const result = await verifyOTP(otpCode);
-      if (result.success) {
-        // Get the selected role from localStorage if it exists
-        const selectedRole = localStorage.getItem('fyke_selected_role') as 'jobseeker' | 'employer' | null;
-        
-        if (selectedRole) {
-          // Role was already selected, navigate based on role
-          if (selectedRole === 'employer') {
-            navigate('/home');
-          } else {
-            navigate('/profile-setup');
-          }
-          // Clear the stored role
-          localStorage.removeItem('fyke_selected_role');
-        } else {
-          // No role selected, go to role selection
-          navigate('/role-selection');
-        }
-      } else {
-        setOtp(['', '', '', '', '', '']);
-      }
-    } catch (error) {
-      console.error('Error verifying OTP:', error);
-      setOtp(['', '', '', '', '', '']);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setLoading(true);
-    try {
-      const result = await sendOTP(phone);
-      if (result.success) {
-        setResendTimer(60);
-      }
-    } catch (error) {
-      console.error('Error resending OTP:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBack = () => {
-    setShowOTP(false);
-    setOtp(['', '', '', '', '', '']);
-  };
-
-  if (showOTP) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        {/* Hidden recaptcha container for Firebase */}
-        <div id="recaptcha-container"></div>
-        
-        <div className="w-full max-w-md space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
-              <span className="text-2xl font-bold text-gray-800">F</span>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Verify Your Phone</h1>
-              <p className="text-gray-500">
-                Enter the 6-digit code sent to<br />
-                <span className="font-semibold text-gray-700">+91 {phone}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* OTP Card */}
-          <Card className="p-6 shadow border-gray-100 bg-white">
-            <div className="space-y-6">
-              {/* Enhanced OTP Input */}
-              <EnhancedOTPInput value={otp} onChange={setOtp} onComplete={handleOTPComplete} />
-
-              <div className="text-center">
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm text-gray-500">Code will be verified automatically</p>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <button onClick={handleBack} className="text-sm text-gray-600 hover:text-gray-800">
-                  ← Change Number
-                </button>
-                
-                {resendTimer > 0 ? (
-                  <p className="text-sm text-gray-400">
-                    Resend in {resendTimer}s
-                  </p>
-                ) : (
-                  <button 
-                    onClick={handleResend} 
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    disabled={loading}
-                  >
-                    Resend OTP
-                  </button>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* Security Info */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2 text-green-600">
-              <span className="text-sm">🛡️</span>
-              <span className="text-sm font-medium">Secure Verification</span>
-            </div>
-            <p className="text-xs text-gray-400">
-              This helps us keep your account safe and secure
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
