@@ -5,7 +5,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FloatingCard } from '@/components/ui/floating-card';
-import { DollarSign, ArrowLeft } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 import StickyFooterButton from '@/components/ui/StickyFooterButton';
 
@@ -17,44 +17,60 @@ interface ModernMultiSalaryStepProps {
 
 const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onNext, onBack }) => {
   const subcategories = form.watch('subcategories') || [];
+  
+  // Vehicle owner subcategories that don't need salary input
   const vehicleOwnerSubs = [
     'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
     'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
     'Taxi (Sedan/Hatchback)', 'Passenger Van (Eeco, Force)', 'Private Bus (15–50 seats)',
     'Water Tanker', 'Ambulance'
   ];
+  
+  // Filter out vehicle owner subcategories - only show non-vehicle subcategories
   const nonVehicleSubcategories = subcategories.filter(sub => !vehicleOwnerSubs.includes(sub));
 
-  // Form submission with validation (calls onNext if valid)
-  const handleComplete = async () => {
+  const handleComplete = () => {
     console.log('Complete button clicked');
-    console.log('Non-vehicle subcategories:', nonVehicleSubcategories);
+    console.log('Subcategories requiring salary:', nonVehicleSubcategories);
     
-    const salaryData = form.getValues('salaryBySubcategory') || {};
-    console.log('Current salary data:', salaryData);
+    // Get current form values
+    const currentValues = form.getValues();
+    console.log('Current form values:', currentValues);
     
-    // Check if all non-vehicle subcategories have salary data
-    const allValid = nonVehicleSubcategories.every(sub => {
-      const hasAmount = salaryData[sub]?.amount && salaryData[sub]?.amount.trim() !== '';
-      const hasPeriod = salaryData[sub]?.period;
-      console.log(`${sub}: amount=${salaryData[sub]?.amount}, period=${salaryData[sub]?.period}, valid=${hasAmount && hasPeriod}`);
-      return hasAmount && hasPeriod;
-    });
+    // Check if we have salary data for all required subcategories
+    let isValid = true;
+    const salaryData = currentValues.salaryBySubcategory || {};
     
-    console.log('All fields valid:', allValid);
+    for (const subcategory of nonVehicleSubcategories) {
+      const amount = salaryData[subcategory]?.amount;
+      const period = salaryData[subcategory]?.period;
+      
+      if (!amount || amount.trim() === '' || !period) {
+        console.log(`Missing data for ${subcategory}: amount=${amount}, period=${period}`);
+        isValid = false;
+        
+        // Set form errors manually
+        form.setError(`salaryBySubcategory.${subcategory}.amount`, {
+          type: 'required',
+          message: 'Please enter a salary amount'
+        });
+        form.setError(`salaryBySubcategory.${subcategory}.period`, {
+          type: 'required',
+          message: 'Please select a period'
+        });
+      }
+    }
     
-    if (allValid) {
-      console.log('Validation passed, calling onNext');
+    if (isValid) {
+      console.log('All validation passed, proceeding to next step');
       onNext();
     } else {
-      console.log('Validation failed, triggering form validation');
-      const result = await form.trigger('salaryBySubcategory');
-      console.log('Form trigger result:', result);
+      console.log('Validation failed, staying on current step');
     }
   };
 
   return (
-    <div className="space-y-6 pb-28"> {/* Add bottom padding so content clears the fixed button */}
+    <div className="space-y-6 pb-28">
       <FloatingCard variant="glow" size="sm">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
@@ -124,8 +140,6 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
         ))}
       </div>
 
-      {/* Back button can stay at top or as a floating icon if needed; 
-          Move actionable "Complete" button to StickyFooterButton below */}
       <StickyFooterButton onClick={handleComplete}>
         Complete
       </StickyFooterButton>
