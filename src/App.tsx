@@ -7,16 +7,16 @@ import { LocalizationProvider } from '@/contexts/LocalizationContext';
 import { CommunicationProvider } from '@/contexts/CommunicationContext';
 import RouteGuard from '@/components/RouteGuard';
 import LanguageSelection from '@/pages/LanguageSelection';
-import Login from '@/pages/Login';
+import LoginScreen from '@/pages/LoginScreen';
 import OTPVerification from '@/pages/OTPVerification';
 import RoleSelection from '@/pages/RoleSelection';
 import ProfileSetup from '@/pages/ProfileSetup';
 import HomePage from '@/pages/HomePage';
-import SearchPage from '@/pages/SearchPage';
-import MyJobsPage from '@/pages/MyJobsPage';
-import ProfilePage from '@/pages/ProfilePage';
+import JobSearch from '@/pages/JobSearch';
+import MyJobs from '@/pages/MyJobs';
+import Profile from '@/pages/Profile';
 import Messaging from '@/pages/Messaging';
-import NotificationsPage from '@/pages/NotificationsPage';
+import Notifications from '@/pages/Notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +37,7 @@ function App() {
               <div className="App">
                 <Routes>
                   <Route path="/language" element={<LanguageSelection />} />
-                  <Route path="/login" element={<Login />} />
+                  <Route path="/login" element={<LoginScreen />} />
                   <Route path="/otp-verification" element={<OTPVerification />} />
                   <Route
                     path="/role-selection"
@@ -67,7 +67,7 @@ function App() {
                     path="/search"
                     element={
                       <RouteGuard>
-                        <SearchPage />
+                        <JobSearch />
                       </RouteGuard>
                     }
                   />
@@ -75,7 +75,7 @@ function App() {
                     path="/my-jobs"
                     element={
                       <RouteGuard>
-                        <MyJobsPage />
+                        <MyJobs />
                       </RouteGuard>
                     }
                   />
@@ -83,7 +83,7 @@ function App() {
                     path="/profile"
                     element={
                       <RouteGuard>
-                        <ProfilePage />
+                        <Profile />
                       </RouteGuard>
                     }
                   />
@@ -99,7 +99,7 @@ function App() {
                     path="/notifications"
                     element={
                       <RouteGuard>
-                        <NotificationsPage />
+                        <Notifications />
                       </RouteGuard>
                     }
                   />
