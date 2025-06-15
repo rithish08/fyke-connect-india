@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface LocalizationContextProps {
   currentLanguage: string;
+  language: string;
   setLanguage: (language: string) => void;
   t: (key: string, fallback?: string) => string;
 }
@@ -18,7 +19,6 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const t = (key: string, fallback?: string) => {
-    // Simple translation function - in a real app you'd load translation files
     return fallback || key;
   };
 
@@ -31,6 +31,7 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const value = {
     currentLanguage,
+    language: currentLanguage,
     setLanguage,
     t,
   };

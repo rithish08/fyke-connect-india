@@ -36,9 +36,7 @@ const AdminLogin = () => {
     
     const { error } = await signIn(credentials.email);
     
-    if (!error) {
-      // The useEffect will handle navigation after auth state updates
-    } else {
+    if (error) {
       toast.error('Invalid admin credentials');
     }
     

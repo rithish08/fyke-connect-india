@@ -2,51 +2,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-
-interface UserProfile {
-  id: string;
-  user_id: string;
-  role?: 'jobseeker' | 'employer' | 'admin';
-  profile_complete?: boolean;
-  first_name?: string;
-  last_name?: string;
-  name?: string;
-  phone?: string;
-  email?: string;
-  avatar_url?: string;
-  availability?: 'available' | 'busy' | 'offline';
-  location?: string;
-  bio?: string;
-  primary_category?: string;
-  subcategories?: string[];
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface AuthContextProps {
-  user: User | null;
-  userProfile: UserProfile | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  signIn: (phone: string) => Promise<{ error: any; data: any }>;
-  signUp: (phone: string, additionalData?: any) => Promise<{ error: any; data: any }>;
-  signOut: () => Promise<void>;
-  verifyOTP: (phone: string, token: string) => Promise<{ error: any; data: any; success?: boolean }>;
-  sendOTP: (phone: string) => Promise<{ error: any; data: any; success?: boolean }>;
-  updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
-  updateProfile: (profile: Partial<UserProfile>) => Promise<{ error: any }>;
-  switchRole: () => Promise<void>;
-  setRole: (role: 'jobseeker' | 'employer') => Promise<void>;
-  completeProfileSetup: (data?: any) => Promise<void>;
-}
-
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
+import { UserProfile, AuthContextProps } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +24,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return null;
       }
 
-      // Map database fields to our interface
       const profile: UserProfile = {
         id: data.id,
         user_id: data.id,
@@ -74,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         phone: data.phone,
         email: data.email,
         avatar_url: data.profile_photo,
-        availability: data.availability as 'available' | 'busy' | 'offline',
+        availability: data.availability,
         location: data.location,
         bio: data.bio,
         created_at: data.created_at,
@@ -119,36 +78,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (phone: string) => {
-    const result = await supabase.auth.signInWithOtp({
-      phone,
-    });
-    return {
-      ...result,
-      success: !result.error
-    };
+    const result = await supabase.auth.signInWithOtp({ phone });
+    return { ...result, success: !result.error };
   };
 
   const signUp = async (phone: string, additionalData?: any) => {
     const result = await supabase.auth.signInWithOtp({
       phone,
-      options: {
-        data: additionalData
-      }
+      options: { data: additionalData }
     });
-    return {
-      ...result,
-      success: !result.error
-    };
+    return { ...result, success: !result.error };
   };
 
   const sendOTP = async (phone: string) => {
-    const result = await supabase.auth.signInWithOtp({
-      phone,
-    });
-    return {
-      ...result,
-      success: !result.error
-    };
+    const result = await supabase.auth.signInWithOtp({ phone });
+    return { ...result, success: !result.error };
   };
 
   const verifyOTP = async (phone: string, token: string) => {
@@ -157,11 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       token,
       type: 'sms',
     });
-    
-    return {
-      ...result,
-      success: !result.error
-    };
+    return { ...result, success: !result.error };
   };
 
   const signOut = async () => {
@@ -185,11 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw fetchError;
       }
 
-      // Map our interface to database fields
-      const dbProfile: any = {
-        id: user.id,
-      };
-
+      const dbProfile: any = { id: user.id };
       if (profile.role) dbProfile.role = profile.role;
       if (profile.profile_complete !== undefined) dbProfile.profile_complete = profile.profile_complete;
       if (profile.name) dbProfile.name = profile.name;
@@ -200,20 +136,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (profile.bio) dbProfile.bio = profile.bio;
 
       let result;
-
       if (!existingProfile) {
         result = await supabase.from('profiles').insert(dbProfile);
       } else {
-        result = await supabase
-          .from('profiles')
-          .update(dbProfile)
-          .eq('id', user.id);
+        result = await supabase.from('profiles').update(dbProfile).eq('id', user.id);
       }
 
-      if (result.error) {
-        console.error('Error updating profile:', result.error);
-        throw result.error;
-      }
+      if (result.error) throw result.error;
 
       const updatedProfile = await fetchUserProfile(user.id);
       setUserProfile(updatedProfile);
@@ -234,7 +163,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const switchRole = async () => {
     if (!userProfile) return;
-    
     const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
     await updateUserProfile({ role: newRole });
   };
