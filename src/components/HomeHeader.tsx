@@ -37,7 +37,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
         {/* App Brand in top left */}
         <div className="flex items-center h-14 px-4 border-b border-gray-100">
           <img 
-            src="/lovable-uploads/40cea67e-eb44-489e-8b99-b85acc26c4e4.png" 
+            src="/lovable-uploads/a6b5e9c4-3b2a-4c78-9d1e-f5e6a7b8c9d0.png" 
             alt="fyke logo"
             className="h-8 w-auto"
           />
