@@ -25,12 +25,36 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // If authentication is required but user is not authenticated
   if (requireAuth && !user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/language-selection" replace />;
   }
 
+  // If admin access is required but user is not admin
   if (requireAdmin && userProfile?.role !== 'admin') {
     return <Navigate to="/home" replace />;
+  }
+
+  // If user is authenticated but no profile exists, redirect to role selection
+  if (requireAuth && user && !userProfile) {
+    return <Navigate to="/role-selection" replace />;
+  }
+
+  // If user is authenticated but no role selected, redirect to role selection
+  if (requireAuth && user && userProfile && !userProfile.role) {
+    return <Navigate to="/role-selection" replace />;
+  }
+
+  // If jobseeker hasn't completed profile setup, redirect to profile setup
+  if (
+    requireAuth && 
+    user && 
+    userProfile && 
+    userProfile.role === 'jobseeker' && 
+    !userProfile.profile_complete && 
+    location.pathname !== '/profile-setup'
+  ) {
+    return <Navigate to="/profile-setup" replace />;
   }
 
   return <>{children}</>;

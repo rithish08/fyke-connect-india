@@ -8,10 +8,14 @@ import { LocalizationProvider } from "@/contexts/LocalizationContext";
 import { CommunicationProvider } from "@/contexts/CommunicationContext";
 import { useOfflineCapabilities } from "@/hooks/useOfflineCapabilities";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+import { useState, useEffect } from "react";
+
+// Import all pages and components
+import SplashScreen from "./components/SplashScreen";
 import LanguageSelection from "./pages/LanguageSelection";
 import RoleSelection from "./pages/RoleSelection";
+import LoginScreen from "./pages/LoginScreen";
+import OTPVerification from "./pages/OTPVerification";
 import HomePage from "./pages/HomePage";
 import ProfileSetup from "./pages/ProfileSetup";
 import JobSearch from "./pages/JobSearch";
@@ -28,16 +32,33 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   useOfflineCapabilities();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Show splash screen for 2 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
+        {/* Public Routes */}
+        <Route path="/" element={<Navigate to="/language-selection" replace />} />
         <Route path="/language-selection" element={<LanguageSelection />} />
         <Route path="/role-selection" element={<RoleSelection />} />
-        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/otp-verification" element={<OTPVerification />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         
+        {/* Protected Routes */}
         <Route 
           path="/home" 
           element={
@@ -103,8 +124,8 @@ const AppContent = () => {
           } 
         />
         
-        {/* Redirect any unknown routes to home */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        {/* Redirect any unknown routes to language selection */}
+        <Route path="*" element={<Navigate to="/language-selection" replace />} />
       </Routes>
       <OfflineIndicator />
     </div>

@@ -16,8 +16,21 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
-  const { sendOTP, verifyOTP } = useAuth();
+  const { sendOTP, verifyOTP, userProfile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user is already authenticated, redirect them
+    if (isAuthenticated && userProfile) {
+      if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+        navigate('/profile-setup');
+      } else if (userProfile.role) {
+        navigate('/home');
+      } else {
+        navigate('/role-selection');
+      }
+    }
+  }, [isAuthenticated, userProfile, navigate]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -57,7 +70,22 @@ const LoginScreen = () => {
     try {
       const result = await verifyOTP(otpCode);
       if (result.success) {
-        navigate('/role-selection');
+        // Get the selected role from localStorage if it exists
+        const selectedRole = localStorage.getItem('fyke_selected_role') as 'jobseeker' | 'employer' | null;
+        
+        if (selectedRole) {
+          // Role was already selected, navigate based on role
+          if (selectedRole === 'employer') {
+            navigate('/home');
+          } else {
+            navigate('/profile-setup');
+          }
+          // Clear the stored role
+          localStorage.removeItem('fyke_selected_role');
+        } else {
+          // No role selected, go to role selection
+          navigate('/role-selection');
+        }
       } else {
         setOtp(['', '', '', '', '', '']);
       }

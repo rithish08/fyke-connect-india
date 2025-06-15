@@ -24,13 +24,13 @@ const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(language);
 
   useEffect(() => {
-    // If user is authenticated and has completed setup, redirect to home
+    // If user is authenticated, redirect them to appropriate screen
     if (isAuthenticated && userProfile) {
-      if (userProfile.role && userProfile.profile_complete) {
-        navigate('/home');
-      } else if (userProfile.role && !userProfile.profile_complete) {
+      if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
         navigate('/profile-setup');
-      } else if (!userProfile.role) {
+      } else if (userProfile.role) {
+        navigate('/home');
+      } else {
         navigate('/role-selection');
       }
     }
@@ -42,14 +42,16 @@ const LanguageSelection = () => {
   };
 
   const handleContinue = () => {
-    if (isAuthenticated) {
-      if (userProfile?.role) {
-        navigate('/home');
-      } else {
-        navigate('/role-selection');
-      }
+    // Check if user is already authenticated
+    if (isAuthenticated && userProfile?.role) {
+      // User is logged in, redirect to home
+      navigate('/home');
+    } else if (isAuthenticated && !userProfile?.role) {
+      // User is logged in but no role selected
+      navigate('/role-selection');
     } else {
-      navigate('/auth');
+      // User not authenticated, go to role selection first
+      navigate('/role-selection');
     }
   };
 

@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Defer profile fetching to avoid blocking auth state changes
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
@@ -135,7 +136,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const result = await firebaseAuthService.verifyOTP(otpCode);
       if (result.success) {
-        // Firebase auth successful, user should now be authenticated in Supabase too
+        // Check if we need to assign a role from localStorage
+        const selectedRole = localStorage.getItem('fyke_selected_role') as 'jobseeker' | 'employer' | null;
+        
+        if (selectedRole && user) {
+          // Update the user profile with the selected role
+          await updateProfile({ 
+            role: selectedRole,
+            profile_complete: selectedRole === 'employer' ? true : false
+          });
+          localStorage.removeItem('fyke_selected_role');
+        }
+        
         toast({
           title: "Phone Verified!",
           description: "Successfully authenticated"

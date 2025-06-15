@@ -11,25 +11,30 @@ import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const { setRole, updateProfile } = useAuth();
+  const { setRole, updateProfile, isAuthenticated } = useAuth();
   const { t } = useLocalization();
-  const { goTo } = useScreenNavigation();
+  const navigate = useNavigate();
 
   const handleContinue = () => {
     if (selectedRole) {
-      setRole(selectedRole);
+      if (isAuthenticated) {
+        // User is already logged in, just update their role
+        setRole(selectedRole);
+        updateProfile({
+          role: selectedRole,
+          profile_complete: selectedRole === 'employer' ? true : false
+        });
 
-      // Update profile with the selected role
-      updateProfile({
-        role: selectedRole,
-        profile_complete: selectedRole === 'employer' ? true : false
-      });
-
-      // Navigate based on role
-      if (selectedRole === 'employer') {
-        goTo('/home');
+        // Navigate based on role
+        if (selectedRole === 'employer') {
+          navigate('/home');
+        } else {
+          navigate('/profile-setup');
+        }
       } else {
-        goTo('/profile-setup');
+        // User not logged in, store role choice in localStorage and go to login
+        localStorage.setItem('fyke_selected_role', selectedRole);
+        navigate('/login');
       }
     }
   };
