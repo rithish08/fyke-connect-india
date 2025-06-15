@@ -29,15 +29,16 @@ export const handleInAppChat = (targetId: string, targetName: string, navigate: 
   navigate(`/messages?${chatParams.toString()}`);
 };
 
-export const handleEmployerContact = (targetId: string, targetName: string, navigate: any, context?: string) => {
-  if (!targetId || !targetName || !navigate) {
+export const handleEmployerContact = (employerId: string, employerName: string, navigate: any, context?: string) => {
+  if (!employerId || !employerName || !navigate) {
     console.error('Missing required parameters for employer contact');
     return;
   }
 
+  // Direct navigation to specific employer chat
   const chatParams = new URLSearchParams({
-    chatWith: targetId,
-    name: targetName,
+    chatWith: employerId,
+    name: employerName,
     type: 'employer'
   });
   
@@ -45,7 +46,7 @@ export const handleEmployerContact = (targetId: string, targetName: string, navi
     chatParams.append('context', context);
   }
   
-  console.log('Navigating to employer chat with params:', chatParams.toString());
+  console.log('Opening direct chat with employer:', { employerId, employerName, context });
   navigate(`/messages?${chatParams.toString()}`);
 };
 

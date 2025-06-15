@@ -66,13 +66,23 @@ const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
 
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!employerId || !company) {
+    
+    // Use company name as employer ID if employerId is not provided
+    const chatEmployerId = employerId || company || `employer_${id}`;
+    const chatEmployerName = company || 'Employer';
+    
+    if (!chatEmployerId || !chatEmployerName) {
       showError('Employer contact information not available');
       return;
     }
 
-    console.log('Initiating chat with employer:', { employerId, company });
-    handleEmployerContact(employerId, company, navigate, `Job: ${title}`);
+    console.log('Initiating chat with employer:', { 
+      employerId: chatEmployerId, 
+      employerName: chatEmployerName,
+      jobTitle: title 
+    });
+    
+    handleEmployerContact(chatEmployerId, chatEmployerName, navigate, `Job: ${title}`);
   };
 
   const handleCall = (e: React.MouseEvent) => {

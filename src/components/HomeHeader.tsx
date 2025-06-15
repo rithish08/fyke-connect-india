@@ -33,33 +33,27 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
   return (
     <>
       <div className="relative bg-white p-0 shadow-none w-full">
-        {/* App Brand - replace logo image with fyke text */}
-        <div className="flex items-center h-14 px-4 border-b border-gray-100">
-          <span 
-            className="font-extrabold text-2xl tracking-tight text-black"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >fyke</span>
-        </div>
-        <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
-          <span>{showPage}</span>
-        </div>
-        {/* Greeting and Profile */}
-        <div className="flex items-center justify-between px-6 pt-2 pb-3">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{getGreeting()}! 👋</h1>
-            <p className="text-gray-600 text-sm mt-0.5">
-              {user?.name ?? user?.phone}
-            </p>
-            <p className="text-gray-400 text-xs">
-              {user?.role === 'jobseeker'
-                ? t('home.jobseeker_subtitle', 'Ready to find work?')
-                : t('home.employer_subtitle', 'Ready to hire?')}
-            </p>
+        {/* App Brand and User Info */}
+        <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <span 
+              className="font-extrabold text-3xl tracking-tight text-black"
+              style={{ fontFamily: "Inter, sans-serif" }}
+            >fyke</span>
+            <div className="flex flex-col">
+              <span className="text-lg font-semibold text-gray-900">
+                {getGreeting()}! 👋
+              </span>
+              <span className="text-sm text-gray-600">
+                {user?.name ?? user?.phone}
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <button onClick={() => navigate('/notifications')}
               className="relative">
-              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100"><span className="text-xl">🔔</span>
+              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100">
+                <span className="text-xl">🔔</span>
                 <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
               </span>
             </button>
@@ -69,6 +63,19 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
               </span>
             </div>
           </div>
+        </div>
+        
+        <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
+          <span>{showPage}</span>
+        </div>
+        
+        {/* Subtitle */}
+        <div className="px-6 pb-3">
+          <p className="text-gray-400 text-xs">
+            {user?.role === 'jobseeker'
+              ? t('home.jobseeker_subtitle', 'Ready to find work?')
+              : t('home.employer_subtitle', 'Ready to hire?')}
+          </p>
         </div>
       </div>
       <CompactRoleSwitcher />

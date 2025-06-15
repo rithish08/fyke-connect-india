@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import EditableProfileCard from './EditableProfileCard';
-import { MapPin, Briefcase, Mail, User } from 'lucide-react';
+import { MapPin, Briefcase, Mail, User, Lock } from 'lucide-react';
 
 interface ProfileData {
   name: string;
@@ -39,14 +39,18 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
   const editContent = (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700">Full Name</Label>
+        <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700 flex items-center">
+          <Lock className="w-3 h-3 mr-1" />
+          Full Name (Protected)
+        </Label>
         <Input
           id="edit-name"
           value={editData.name || ''}
-          onChange={(e) => setEditData({...editData, name: e.target.value})}
-          className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
-          placeholder="Enter your full name"
+          disabled={true}
+          className="mt-1 rounded-xl border-gray-200 bg-gray-50 cursor-not-allowed"
+          placeholder="Name cannot be changed"
         />
+        <p className="text-xs text-gray-500 mt-1">Contact support to change your name</p>
       </div>
       <div>
         <Label htmlFor="edit-email" className="text-sm font-medium text-gray-700">Email</Label>

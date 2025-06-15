@@ -16,7 +16,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MapPin, Clock, User, Eye, Edit, Trash2, Briefcase, Star } from 'lucide-react';
+import { Plus, MapPin, Clock, User, Eye, Edit, Trash2, Briefcase, Star, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
@@ -29,7 +29,8 @@ const Profile = () => {
     location: user?.location || 'Mumbai, Maharashtra',
     experience: '2 years',
     bio: user?.bio || '',
-    skills: user?.skills || ['Construction', 'Manual Labor', 'Team Work']
+    skills: user?.skills || ['Construction', 'Manual Labor', 'Team Work'],
+    categories: user?.categories || []
   });
   const [showBanner, setShowBanner] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +112,46 @@ const Profile = () => {
     avgRating: 4.5,
     responseRate: 89
   };
+
+  const CategoryManagement = () => (
+    <Card className="p-6">
+      <h3 className="font-semibold text-lg mb-4 flex items-center">
+        <Settings className="w-5 h-5 mr-2" />
+        Work Categories
+      </h3>
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {profileData.categories?.map((category: string, index: number) => (
+            <Badge key={index} variant="secondary" className="px-3 py-1">
+              {category}
+              <button 
+                onClick={() => {
+                  const newCategories = profileData.categories.filter((_: any, i: number) => i !== index);
+                  handleProfileUpdate({ categories: newCategories });
+                }}
+                className="ml-2 text-red-500 hover:text-red-700"
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
+        </div>
+        {(!profileData.categories || profileData.categories.length < 3) && (
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/profile-setup')}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Work Category
+          </Button>
+        )}
+        <p className="text-sm text-gray-500">
+          You can select up to 3 work categories to show your expertise areas.
+        </p>
+      </div>
+    </Card>
+  );
 
   const EmployerProfileContent = () => (
     <div className="space-y-4">
@@ -235,12 +276,15 @@ const Profile = () => {
           <Button variant="outline" onClick={() => navigate('/messages')} className="h-12">
             Messages
           </Button>
-          <Button variant="outline" className="h-12">
+          <Button variant="outline" onClick={() => navigate('/profile-setup')} className="h-12">
             <Edit className="w-4 h-4 mr-2" />
             Edit Skills
           </Button>
         </div>
       </Card>
+
+      {/* Category Management for Job Seekers */}
+      <CategoryManagement />
 
       {/* Skills & Experience */}
       <ProfileSkills
