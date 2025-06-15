@@ -12,32 +12,25 @@ import { CheckCircle, X } from 'lucide-react';
 interface ModernCategoryStepProps {
   form: UseFormReturn<ProfileSetupFormData>;
   onNext: () => Promise<boolean>;
+  userName: string;
 }
 
-const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext }) => {
+const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, userName }) => {
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
     form.getValues('subcategories') || []
   );
 
   const handleSubcategoryToggle = (subcategory: string) => {
     setSelectedSubcategories(prev => {
-      const isSelected = prev.includes(subcategory);
       let newSelection;
-      
+      const isSelected = prev.includes(subcategory);
       if (isSelected) {
-        // Remove if already selected
         newSelection = prev.filter(sub => sub !== subcategory);
+      } else if (prev.length < 3) {
+        newSelection = [...prev, subcategory];
       } else {
-        // Add if not selected and under limit
-        if (prev.length < 3) {
-          newSelection = [...prev, subcategory];
-        } else {
-          // Replace last selection if at limit
-          newSelection = [...prev.slice(0, 2), subcategory];
-        }
+        newSelection = prev;
       }
-      
-      // Update form
       form.setValue('subcategories', newSelection);
       return newSelection;
     });
@@ -52,24 +45,29 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext })
   const handleNext = async () => {
     const isValid = await onNext();
     if (!isValid) {
-      console.log('Validation failed, staying on current step');
+      // Optionally show toast or feedback
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          Choose Your Specializations
+      {/* Welcome user */}
+      <div className="text-center mb-2">
+        <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
+          {userName ? `Welcome, ${userName}!` : "Welcome!"}
         </h2>
-        <p className="text-gray-600">Select 1-3 specializations from any category that match your skills</p>
+        <div className="text-gray-700 text-base mb-4 font-medium">
+          Select your work category type
+        </div>
       </div>
 
-      {/* Selected Subcategories Display */}
+      {/* Selected specializations panel */}
       {selectedSubcategories.length > 0 && (
         <AestheticCard variant="glass" className="p-4 bg-blue-50 border-blue-200">
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Selected Specializations ({selectedSubcategories.length}/3)</h3>
+          <div>
+            <div className="font-semibold text-blue-900 text-sm mb-2">
+              Selected Specializations ({selectedSubcategories.length}/3)
+            </div>
             <div className="flex flex-wrap gap-2">
               {selectedSubcategories.map(sub => (
                 <Badge 
@@ -92,51 +90,50 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext })
         </AestheticCard>
       )}
 
+      {/* Categories & subcategories */}
       <FormField
         control={form.control}
         name="subcategories"
-        render={({ field }) => (
+        render={() => (
           <FormItem>
             <FormLabel className="sr-only">Specializations</FormLabel>
             <FormControl>
               <div className="space-y-6">
                 {categories.map((category) => (
-                  <AestheticCard key={category.name} variant="elevated" className="p-4">
+                  <AestheticCard
+                    key={category.name}
+                    variant="elevated"
+                    className="p-4 border-2 border-transparent hover:border-blue-200"
+                  >
                     <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 mb-1">
                         <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center shadow-lg`}>
                           <span className="text-white text-xl">{category.icon}</span>
                         </div>
                         <h3 className="font-bold text-gray-900">{category.name}</h3>
                       </div>
-                      
                       <div className="grid grid-cols-1 gap-2">
                         {category.subcategories.map((subcategory) => {
                           const isSelected = selectedSubcategories.includes(subcategory);
                           const isDisabled = !isSelected && selectedSubcategories.length >= 3;
-                          
                           return (
                             <button
                               key={subcategory}
                               type="button"
                               onClick={() => !isDisabled && handleSubcategoryToggle(subcategory)}
                               disabled={isDisabled}
-                              className={`p-3 rounded-lg text-left transition-all duration-200 border ${
-                                isSelected 
-                                  ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500' 
+                              className={`p-3 rounded-lg text-left transition-all duration-200 border flex items-center justify-between ${
+                                isSelected
+                                  ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500'
                                   : isDisabled
                                     ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                               }`}
                             >
-                              <div className="flex items-center justify-between">
-                                <span className={`font-medium ${isSelected ? 'text-blue-900' : isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
-                                  {subcategory}
-                                </span>
-                                {isSelected && (
-                                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                                )}
-                              </div>
+                              <span className={`font-medium ${isSelected ? 'text-blue-900' : isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
+                                {subcategory}
+                              </span>
+                              {isSelected && <CheckCircle className="w-5 h-5 text-blue-600" />}
                             </button>
                           );
                         })}
@@ -151,15 +148,14 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext })
         )}
       />
 
-      {/* Continue Button */}
       <Button
         type="button"
         onClick={handleNext}
         disabled={selectedSubcategories.length === 0}
-        className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold shadow-lg"
+        className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold shadow-xl"
       >
-        {selectedSubcategories.length === 0 
-          ? 'Select at least 1 specialization' 
+        {selectedSubcategories.length === 0
+          ? 'Select at least 1 specialization'
           : `Continue with ${selectedSubcategories.length} specialization${selectedSubcategories.length !== 1 ? 's' : ''}`
         }
       </Button>

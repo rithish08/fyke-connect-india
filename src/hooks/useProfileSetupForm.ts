@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +9,6 @@ export const useProfileSetupForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load saved data from localStorage or user profile
   const getInitialData = useCallback((): ProfileSetupFormData => {
     const savedData = localStorage.getItem('fyke_profile_setup_draft');
     const parsedData = savedData ? JSON.parse(savedData) : {};
@@ -19,11 +17,9 @@ export const useProfileSetupForm = () => {
       category: user?.primaryCategory || parsedData.category || '',
       subcategories: parsedData.subcategories || [],
       vehicle: parsedData.vehicle || '',
-      salary: {
-        amount: parsedData.salary?.amount || '',
-        period: parsedData.salary?.period || 'daily'
-      },
-      availability: user?.availability || parsedData.availability || 'available'
+      salaryBySubcategory: parsedData.salaryBySubcategory || {},
+      availability: user?.availability || parsedData.availability || 'available',
+      name: user?.name || parsedData.name || '',
     };
   }, [user]);
 
@@ -42,20 +38,15 @@ export const useProfileSetupForm = () => {
   const nextStep = useCallback(async () => {
     const currentData = form.getValues();
     saveDraft(currentData);
-    
-    // Validate current step before proceeding
     let isValid = false;
-    
     if (currentStep === 0) {
       isValid = await form.trigger(['category', 'subcategories', 'vehicle']);
     } else if (currentStep === 1) {
-      isValid = await form.trigger(['salary']);
+      isValid = await form.trigger(['salaryBySubcategory']);
     }
-    
     if (isValid) {
       setCurrentStep(prev => Math.min(prev + 1, 2));
     }
-    
     return isValid;
   }, [currentStep, form, saveDraft]);
 
@@ -65,26 +56,26 @@ export const useProfileSetupForm = () => {
 
   const submitProfile = useCallback(async (data: ProfileSetupFormData) => {
     setIsSubmitting(true);
-    
     try {
+      const salaries = Object.values(data.salaryBySubcategory || {});
+      const min = Math.min(...salaries.map(s => Number(s.amount)));
+      const max = Math.max(...salaries.map(s => Number(s.amount)));
       await updateProfile({
         primaryCategory: data.category,
         categories: [data.category],
         subcategories: data.subcategories,
-        vehicle: data.category === 'Driver' ? data.vehicle : undefined,
-        salaryExpectation: { 
-          min: Number(data.salary.amount), 
-          max: Number(data.salary.amount) 
-        },
-        salaryPeriod: data.salary.period,
+        vehicle: data.subcategories.some(sub =>
+          ['Taxi Driver', 'Delivery Driver', 'Personal Driver', 'Tour Guide'].includes(sub)
+        ) ? data.vehicle : undefined,
+        salaryExpectations: data.salaryBySubcategory,
+        salaryExpectation: { min, max },
+        salaryPeriod: salaries[0]?.period,
         availability: data.availability,
+        name: data.name,
         profileComplete: true
       });
-      
-      // Clean up saved draft
       localStorage.removeItem('fyke_profile_setup_draft');
       localStorage.removeItem('fyke_selected_subcategories');
-      
       return true;
     } catch (error) {
       console.error('Profile update failed:', error);

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +12,7 @@ import { AestheticCard } from '@/components/ui/aesthetic-card';
 import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
+import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep'; // new
 
 const STEPS = [
   {
@@ -21,11 +21,11 @@ const STEPS = [
   },
   {
     title: "Choose Specializations",
-    description: "Select 1-3 specializations that match your skills"
+    description: "Select up to 3 specializations from any category"
   },
   {
     title: "Set Your Rate",
-    description: "Tell us your expected salary to match with right opportunities"
+    description: "Enter your wage expectations for each work type"
   },
   {
     title: "Set Availability",
@@ -102,12 +102,9 @@ const ProfileSetup = () => {
     return success;
   };
 
-  // Show loading while checking auth
   if (loading) {
     return <ProfileLoading />;
   }
-
-  // Show fallback if no user after loading
   if (!user) {
     return <ProfileRedirect />;
   }
@@ -155,10 +152,20 @@ const ProfileSetup = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(() => {})}>
               {currentStep === 0 && (
-                <ModernCategoryStep form={form} onNext={nextStep} />
+                // Pass username for welcome
+                <ModernCategoryStep
+                  form={form}
+                  onNext={nextStep}
+                  userName={user?.name || ""}
+                />
               )}
               {currentStep === 1 && (
-                <ModernSalaryStep form={form} onNext={nextStep} onBack={prevStep} />
+                // Multi-wage for each subcategory
+                <ModernMultiSalaryStep
+                  form={form}
+                  onNext={nextStep}
+                  onBack={prevStep}
+                />
               )}
               {currentStep === 2 && (
                 <ModernAvailabilityStep 
@@ -172,7 +179,6 @@ const ProfileSetup = () => {
           </Form>
         </AestheticCard>
 
-        {/* Footer */}
         <div className="text-center text-sm text-gray-500 px-4">
           <p className="bg-white/80 backdrop-blur-sm rounded-xl py-3 px-4 shadow-sm">
             Complete your profile to get verified and access better job opportunities
