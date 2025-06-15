@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +12,7 @@ import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
 import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
+import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 
 const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
@@ -52,8 +54,11 @@ const ProfileSetup = () => {
   };
 
   const handleFinish = async (data: ProfileSetupFormData) => {
+    console.log('Profile setup data:', data);
     const success = await submitProfile(data);
+    console.log('Profile submission result:', success);
     if (success) {
+      console.log('Navigating to home after successful profile setup');
       navigate('/home');
     }
     return success;
