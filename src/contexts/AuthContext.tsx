@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 interface UserProfile {
@@ -9,10 +10,15 @@ interface UserProfile {
   profile_complete?: boolean;
   first_name?: string;
   last_name?: string;
+  name?: string;
   phone?: string;
   email?: string;
   avatar_url?: string;
   availability?: string;
+  location?: string;
+  bio?: string;
+  primary_category?: string;
+  subcategories?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -23,9 +29,15 @@ interface AuthContextProps {
   loading: boolean;
   isAuthenticated: boolean;
   signIn: (phone: string) => Promise<{ error: any; data: any }>;
+  signUp: (phone: string, additionalData?: any) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
-  verifyOTP: (phone: string, token: string) => Promise<{ error: any; data: any }>;
+  verifyOTP: (phone: string, token: string) => Promise<{ error: any; data: any; success?: boolean }>;
+  sendOTP: (phone: string) => Promise<{ error: any; data: any }>;
   updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (profile: Partial<UserProfile>) => Promise<{ error: any }>;
+  switchRole: () => Promise<void>;
+  setRole: (role: 'jobseeker' | 'employer') => Promise<void>;
+  completeProfileSetup: () => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -80,7 +92,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUserProfile(null);
         }
         
-        // Always set loading to false after processing auth state
         setLoading(false);
       }
     );
@@ -96,12 +107,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
+  const signUp = async (phone: string, additionalData?: any) => {
+    return await supabase.auth.signInWithOtp({
+      phone,
+      options: {
+        data: additionalData
+      }
+    });
+  };
+
+  const sendOTP = async (phone: string) => {
+    return await supabase.auth.signInWithOtp({
+      phone,
+    });
+  };
+
   const verifyOTP = async (phone: string, token: string) => {
-    return await supabase.auth.verifyOtp({
+    const result = await supabase.auth.verifyOtp({
       phone,
       token,
       type: 'sms',
     });
+    
+    return {
+      ...result,
+      success: !result.error
+    };
   };
 
   const signOut = async () => {
@@ -114,7 +145,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) throw new Error('No user logged in');
 
     try {
-      // First check if profile exists
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
@@ -122,7 +152,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 is the error code for no rows returned
         console.error('Error checking for existing profile:', fetchError);
         throw fetchError;
       }
@@ -130,13 +159,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let result;
 
       if (!existingProfile) {
-        // Create new profile
         result = await supabase.from('profiles').insert({
           user_id: user.id,
           ...profile,
         });
       } else {
-        // Update existing profile
         result = await supabase
           .from('profiles')
           .update(profile)
@@ -148,7 +175,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw result.error;
       }
 
-      // Refresh the profile data
       const updatedProfile = await fetchUserProfile(user.id);
       setUserProfile(updatedProfile);
     } catch (error) {
@@ -157,15 +183,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateProfile = async (profile: Partial<UserProfile>) => {
+    try {
+      await updateUserProfile(profile);
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const switchRole = async () => {
+    if (!userProfile) return;
+    
+    const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
+    await updateUserProfile({ role: newRole });
+  };
+
+  const setRole = async (role: 'jobseeker' | 'employer') => {
+    await updateUserProfile({ role });
+  };
+
+  const completeProfileSetup = async () => {
+    await updateUserProfile({ profile_complete: true });
+  };
+
   const value = {
     user,
     userProfile,
     loading,
     isAuthenticated: !!user,
     signIn,
+    signUp,
     signOut,
     verifyOTP,
+    sendOTP,
     updateUserProfile,
+    updateProfile,
+    switchRole,
+    setRole,
+    completeProfileSetup,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
