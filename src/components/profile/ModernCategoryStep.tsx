@@ -50,18 +50,16 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
   };
 
   return (
-    <div className="space-y-6">
-      {/* Welcome user */}
-      <div className="text-center mb-2">
+    <div className="space-y-7">
+      {/* Welcome user's name */}
+      <div className="text-center mb-3">
         <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
           {userName ? `Welcome, ${userName}!` : "Welcome!"}
         </h2>
-        <div className="text-gray-700 text-base mb-4 font-medium">
+        <div className="text-gray-700 text-base mb-3 font-medium">
           Select your work category type
         </div>
       </div>
-
-      {/* Selected specializations panel */}
       {selectedSubcategories.length > 0 && (
         <AestheticCard variant="glass" className="p-4 bg-blue-50 border-blue-200">
           <div>
@@ -89,7 +87,6 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
           </div>
         </AestheticCard>
       )}
-
       {/* Categories & subcategories */}
       <FormField
         control={form.control}
@@ -147,7 +144,6 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
           </FormItem>
         )}
       />
-
       <Button
         type="button"
         onClick={handleNext}

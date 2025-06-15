@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -6,13 +7,12 @@ import { ArrowLeft, BadgeCheck } from "lucide-react";
 import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
 import ProfileSetupStepper from '@/components/profile/ProfileSetupStepper';
 import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
-import ModernSalaryStep from '@/components/profile/ModernSalaryStep';
 import ModernAvailabilityStep from '@/components/profile/ModernAvailabilityStep';
 import { AestheticCard } from '@/components/ui/aesthetic-card';
 import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
-import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep'; // new
+import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
 
 const STEPS = [
   {
@@ -40,53 +40,31 @@ const ProfileSetup = () => {
   const [nameStep, setNameStep] = useState(0);
 
   useEffect(() => {
-    console.log('[ProfileSetup] Auth state:', { user: !!user, loading, role: user?.role, profileComplete: user?.profileComplete });
-
-    if (loading) {
-      console.log('[ProfileSetup] Still loading auth...');
-      return;
-    }
-
+    if (loading) return;
     if (!user) {
-      console.log('[ProfileSetup] No user, redirecting to login...');
       navigate('/');
       return;
     }
-
     if (user.role === 'employer') {
-      console.log('[ProfileSetup] Employer detected, redirecting to home...');
       navigate('/home');
       return;
     }
-
     if (!user.role) {
-      console.log('[ProfileSetup] No role set, redirecting to role selection...');
       navigate('/role-selection');
       return;
     }
-
     if (user.profileComplete) {
-      console.log('[ProfileSetup] Profile already complete, redirecting to home...');
       navigate('/home');
       return;
     }
-
-    // Check if user needs to complete name - always start with name step for profile setup
-    if (!user.name?.trim()) {
-      setNameStep(0);
-    } else {
-      setNameStep(1); // Skip name step if already has name
-    }
-
-    console.log('[ProfileSetup] Ready to show profile setup form');
+    // Always start with name step if not present
+    if (!user.name?.trim()) setNameStep(0);
+    else setNameStep(1);
   }, [user, loading, navigate]);
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      prevStep();
-    } else {
-      setNameStep(0);
-    }
+    if (currentStep > 0) prevStep();
+    else setNameStep(0);
   };
 
   const handleNameSubmit = (name: string) => {
@@ -96,18 +74,12 @@ const ProfileSetup = () => {
 
   const handleFinish = async (data: any) => {
     const success = await submitProfile(data);
-    if (success) {
-      navigate('/home');
-    }
+    if (success) navigate('/home');
     return success;
   };
 
-  if (loading) {
-    return <ProfileLoading />;
-  }
-  if (!user) {
-    return <ProfileRedirect />;
-  }
+  if (loading) return <ProfileLoading />;
+  if (!user) return <ProfileRedirect />;
 
   // Name input step
   if (nameStep === 0) {
@@ -152,7 +124,6 @@ const ProfileSetup = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(() => {})}>
               {currentStep === 0 && (
-                // Pass username for welcome
                 <ModernCategoryStep
                   form={form}
                   onNext={nextStep}
@@ -160,7 +131,6 @@ const ProfileSetup = () => {
                 />
               )}
               {currentStep === 1 && (
-                // Multi-wage for each subcategory
                 <ModernMultiSalaryStep
                   form={form}
                   onNext={nextStep}
