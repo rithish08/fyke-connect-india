@@ -1,69 +1,68 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   Briefcase, 
   FileText, 
   MessageSquare, 
   Shield, 
-  AlertTriangle,
   Settings,
-  LogOut,
+  Search,
+  Eye,
   Edit,
   Trash2,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Download,
-  Search
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminDashboard = () => {
-  const { signOut, userProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { userProfile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-
+  const [searchTerm, setSearchTerm] = useState('');
+  
   // Data states
+  const [users, setUsers] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [verificationRequests, setVerificationRequests] = useState([]);
+  const [reports, setReports] = useState([]);
+  
+  // Stats
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalJobs: 0,
     totalApplications: 0,
-    pendingVerifications: 0,
-    activeReports: 0
+    pendingVerifications: 0
   });
 
-  const [users, setUsers] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [reports, setReports] = useState([]);
-  const [verifications, setVerifications] = useState([]);
-
   useEffect(() => {
+    if (!userProfile || userProfile.role !== 'admin') {
+      navigate('/admin');
+      return;
+    }
     fetchAllData();
-  }, []);
+  }, [userProfile, navigate]);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
       await Promise.all([
-        fetchStats(),
         fetchUsers(),
         fetchJobs(),
         fetchApplications(),
+        fetchMessages(),
+        fetchVerificationRequests(),
         fetchReports(),
-        fetchVerifications()
+        fetchStats()
       ]);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -71,24 +70,6 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchStats = async () => {
-    const [usersCount, jobsCount, applicationsCount, verificationsCount, reportsCount] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('jobs').select('*', { count: 'exact', head: true }),
-      supabase.from('applications').select('*', { count: 'exact', head: true }),
-      supabase.from('verification_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending')
-    ]);
-
-    setStats({
-      totalUsers: usersCount.count || 0,
-      totalJobs: jobsCount.count || 0,
-      totalApplications: applicationsCount.count || 0,
-      pendingVerifications: verificationsCount.count || 0,
-      activeReports: reportsCount.count || 0
-    });
   };
 
   const fetchUsers = async () => {
@@ -99,9 +80,9 @@ const AdminDashboard = () => {
     
     if (error) {
       console.error('Error fetching users:', error);
-      return;
+    } else {
+      setUsers(data || []);
     }
-    setUsers(data || []);
   };
 
   const fetchJobs = async () => {
@@ -109,17 +90,17 @@ const AdminDashboard = () => {
       .from('jobs')
       .select(`
         *,
-        profiles:employer_id (name, email),
-        categories (name),
-        subcategories (name)
+        profiles:employer_id(name, email),
+        categories(name),
+        subcategories(name)
       `)
       .order('created_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching jobs:', error);
-      return;
+    } else {
+      setJobs(data || []);
     }
-    setJobs(data || []);
   };
 
   const fetchApplications = async () => {
@@ -127,16 +108,49 @@ const AdminDashboard = () => {
       .from('applications')
       .select(`
         *,
-        jobs (title),
-        profiles:applicant_id (name, email)
+        jobs(title),
+        profiles:applicant_id(name, email)
       `)
       .order('applied_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching applications:', error);
-      return;
+    } else {
+      setApplications(data || []);
     }
-    setApplications(data || []);
+  };
+
+  const fetchMessages = async () => {
+    const { data, error } = await supabase
+      .from('conversation_messages')
+      .select(`
+        *,
+        profiles:sender_id(name, email)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    if (error) {
+      console.error('Error fetching messages:', error);
+    } else {
+      setMessages(data || []);
+    }
+  };
+
+  const fetchVerificationRequests = async () => {
+    const { data, error } = await supabase
+      .from('verification_requests')
+      .select(`
+        *,
+        profiles:user_id(name, email)
+      `)
+      .order('submitted_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching verification requests:', error);
+    } else {
+      setVerificationRequests(data || []);
+    }
   };
 
   const fetchReports = async () => {
@@ -144,101 +158,99 @@ const AdminDashboard = () => {
       .from('reports')
       .select(`
         *,
-        profiles:reporter_id (name, email),
-        reported_profiles:reported_user_id (name, email),
-        jobs:reported_job_id (title)
+        reporter:profiles!reporter_id(name, email),
+        reported_user:profiles!reported_user_id(name, email)
       `)
       .order('created_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching reports:', error);
-      return;
+    } else {
+      setReports(data || []);
     }
-    setReports(data || []);
   };
 
-  const fetchVerifications = async () => {
-    const { data, error } = await supabase
-      .from('verification_requests')
-      .select(`
-        *,
-        profiles:user_id (name, email)
-      `)
-      .order('submitted_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching verifications:', error);
-      return;
+  const fetchStats = async () => {
+    try {
+      const [usersCount, jobsCount, applicationsCount, verificationsCount] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact' }),
+        supabase.from('jobs').select('id', { count: 'exact' }),
+        supabase.from('applications').select('id', { count: 'exact' }),
+        supabase.from('verification_requests').select('id', { count: 'exact' }).eq('status', 'pending')
+      ]);
+
+      setStats({
+        totalUsers: usersCount.count || 0,
+        totalJobs: jobsCount.count || 0,
+        totalApplications: applicationsCount.count || 0,
+        pendingVerifications: verificationsCount.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
-    setVerifications(data || []);
   };
 
-  const updateUserStatus = async (userId: string, updates: any) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId);
-
-    if (error) {
-      toast.error('Error updating user');
-      return;
-    }
-
-    toast.success('User updated successfully');
-    fetchUsers();
-  };
-
-  const updateJobStatus = async (jobId: string, status: string) => {
+  const updateJobStatus = async (jobId: string, status: 'active' | 'filled' | 'expired' | 'draft') => {
     const { error } = await supabase
       .from('jobs')
       .update({ status })
       .eq('id', jobId);
 
     if (error) {
-      toast.error('Error updating job');
-      return;
+      toast.error('Error updating job status');
+    } else {
+      toast.success('Job status updated');
+      fetchJobs();
     }
-
-    toast.success('Job updated successfully');
-    fetchJobs();
   };
 
-  const updateVerificationStatus = async (verificationId: string, status: string, adminNotes?: string) => {
+  const updateVerificationStatus = async (requestId: string, status: 'pending' | 'verified' | 'rejected') => {
     const { error } = await supabase
       .from('verification_requests')
       .update({ 
-        status, 
-        admin_notes: adminNotes,
+        status,
         reviewed_at: new Date().toISOString(),
         reviewed_by: userProfile?.id
       })
-      .eq('id', verificationId);
+      .eq('id', requestId);
 
     if (error) {
-      toast.error('Error updating verification');
-      return;
+      toast.error('Error updating verification status');
+    } else {
+      toast.success('Verification status updated');
+      fetchVerificationRequests();
     }
-
-    toast.success('Verification updated successfully');
-    fetchVerifications();
-    fetchStats();
   };
 
-  const StatusBadge = ({ status }: { status: string }) => {
-    const variants: Record<string, string> = {
-      active: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      rejected: 'bg-red-100 text-red-800',
-      verified: 'bg-blue-100 text-blue-800',
-      filled: 'bg-purple-100 text-purple-800',
-      expired: 'bg-gray-100 text-gray-800'
-    };
+  const deleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
 
-    return (
-      <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      toast.error('Error deleting user');
+    } else {
+      toast.success('User deleted');
+      fetchUsers();
+    }
+  };
+
+  const exportData = (data: any[], filename: string) => {
+    const csv = [
+      Object.keys(data[0] || {}).join(','),
+      ...data.map(row => Object.values(row).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -250,205 +262,200 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Fyke Platform Management</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {userProfile?.name}</span>
-              <Button onClick={signOut} variant="outline" size="sm">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600">Manage your Fyke platform</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Input
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+            <Button onClick={signOut} variant="outline">
+              Logout
+            </Button>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
                 </div>
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <Briefcase className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">Total Jobs</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalJobs}</p>
                 </div>
+                <Briefcase className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalApplications}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalApplications}</p>
                 </div>
+                <FileText className="h-8 w-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <Shield className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">Pending Verifications</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.pendingVerifications}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.pendingVerifications}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <AlertTriangle className="h-8 w-8 text-red-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Reports</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeReports}</p>
-                </div>
+                <Shield className="h-8 w-8 text-orange-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="users" className="w-full">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="verifications">Verifications</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {users.slice(0, 5).map((user: any) => (
-                      <div key={user.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-sm text-gray-600">{user.email}</p>
-                        </div>
-                        <StatusBadge status={user.role} />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Jobs</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {jobs.slice(0, 5).map((job: any) => (
-                      <div key={job.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{job.title}</p>
-                          <p className="text-sm text-gray-600">{job.location}</p>
-                        </div>
-                        <StatusBadge status={job.status} />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="users" className="space-y-6">
+          {/* Users Tab */}
+          <TabsContent value="users">
             <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage all platform users</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Users Management</CardTitle>
+                <Button onClick={() => exportData(users, 'users')} size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  <Button>
-                    <Download className="w-4 h-4 mr-2" />
-                    Export CSV
-                  </Button>
-                </div>
-
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Name</th>
-                        <th className="text-left p-2">Email</th>
-                        <th className="text-left p-2">Role</th>
-                        <th className="text-left p-2">Status</th>
-                        <th className="text-left p-2">Created</th>
-                        <th className="text-left p-2">Actions</th>
+                        <th className="text-left p-4">Name</th>
+                        <th className="text-left p-4">Email</th>
+                        <th className="text-left p-4">Role</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Joined</th>
+                        <th className="text-left p-4">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {users
-                        .filter((user: any) => 
-                          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-                        )
-                        .map((user: any) => (
+                      {users.map((user: any) => (
                         <tr key={user.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2">{user.name}</td>
-                          <td className="p-2">{user.email}</td>
-                          <td className="p-2">
-                            <StatusBadge status={user.role} />
+                          <td className="p-4">{user.name || 'N/A'}</td>
+                          <td className="p-4">{user.email || 'N/A'}</td>
+                          <td className="p-4">
+                            <Badge variant={user.role === 'admin' ? 'destructive' : 'default'}>
+                              {user.role}
+                            </Badge>
                           </td>
-                          <td className="p-2">
-                            <StatusBadge status={user.verified ? 'verified' : 'pending'} />
+                          <td className="p-4">
+                            <Badge variant={user.verified ? 'default' : 'secondary'}>
+                              {user.verified ? 'Verified' : 'Unverified'}
+                            </Badge>
                           </td>
-                          <td className="p-2">
-                            {new Date(user.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="p-2">
+                          <td className="p-4">{new Date(user.created_at).toLocaleDateString()}</td>
+                          <td className="p-4">
                             <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateUserStatus(user.id, { verified: !user.verified })}
+                              <Button size="sm" variant="outline">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => deleteUser(user.id)}
                               >
-                                {user.verified ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Jobs Tab */}
+          <TabsContent value="jobs">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Jobs Management</CardTitle>
+                <Button onClick={() => exportData(jobs, 'jobs')} size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-4">Title</th>
+                        <th className="text-left p-4">Employer</th>
+                        <th className="text-left p-4">Category</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Posted</th>
+                        <th className="text-left p-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {jobs.map((job: any) => (
+                        <tr key={job.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4">{job.title}</td>
+                          <td className="p-4">{job.profiles?.name || 'N/A'}</td>
+                          <td className="p-4">{job.categories?.name || 'N/A'}</td>
+                          <td className="p-4">
+                            <select
+                              value={job.status}
+                              onChange={(e) => updateJobStatus(job.id, e.target.value as any)}
+                              className="px-2 py-1 border rounded"
+                            >
+                              <option value="active">Active</option>
+                              <option value="filled">Filled</option>
+                              <option value="expired">Expired</option>
+                              <option value="draft">Draft</option>
+                            </select>
+                          </td>
+                          <td className="p-4">{new Date(job.posted_at).toLocaleDateString()}</td>
+                          <td className="p-4">
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline">
+                                <Eye className="w-4 h-4" />
                               </Button>
                               <Button size="sm" variant="outline">
                                 <Edit className="w-4 h-4" />
@@ -464,186 +471,42 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="jobs" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Management</CardTitle>
-                <CardDescription>Manage all job postings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2">Title</th>
-                        <th className="text-left p-2">Employer</th>
-                        <th className="text-left p-2">Category</th>
-                        <th className="text-left p-2">Location</th>
-                        <th className="text-left p-2">Status</th>
-                        <th className="text-left p-2">Posted</th>
-                        <th className="text-left p-2">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {jobs.map((job: any) => (
-                        <tr key={job.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2 font-medium">{job.title}</td>
-                          <td className="p-2">{job.profiles?.name}</td>
-                          <td className="p-2">{job.categories?.name}</td>
-                          <td className="p-2">{job.location}</td>
-                          <td className="p-2">
-                            <StatusBadge status={job.status} />
-                          </td>
-                          <td className="p-2">
-                            {new Date(job.posted_at).toLocaleDateString()}
-                          </td>
-                          <td className="p-2">
-                            <div className="flex space-x-2">
-                              <Select onValueChange={(value) => updateJobStatus(job.id, value)}>
-                                <SelectTrigger className="w-24">
-                                  <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="active">Active</SelectItem>
-                                  <SelectItem value="filled">Filled</SelectItem>
-                                  <SelectItem value="expired">Expired</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button size="sm" variant="outline">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="verifications" className="space-y-6">
+          {/* Verifications Tab */}
+          <TabsContent value="verifications">
             <Card>
               <CardHeader>
                 <CardTitle>Verification Requests</CardTitle>
-                <CardDescription>Review user verification requests</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {verifications.map((verification: any) => (
-                    <div key={verification.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{verification.profiles?.name}</h3>
-                          <p className="text-sm text-gray-600">{verification.profiles?.email}</p>
-                          <p className="text-sm text-gray-600">Document Type: {verification.document_type}</p>
-                          <p className="text-xs text-gray-500">
-                            Submitted: {new Date(verification.submitted_at).toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <StatusBadge status={verification.status} />
-                          {verification.status === 'pending' && (
-                            <div className="flex space-x-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="outline">
-                                    <CheckCircle className="w-4 h-4 text-green-600" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Approve Verification</DialogTitle>
-                                    <DialogDescription>
-                                      Approve this verification request?
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <Textarea placeholder="Admin notes (optional)" />
-                                    <div className="flex justify-end space-x-2">
-                                      <Button 
-                                        onClick={() => updateVerificationStatus(verification.id, 'verified')}
-                                      >
-                                        Approve
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                              
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="outline">
-                                    <XCircle className="w-4 h-4 text-red-600" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Reject Verification</DialogTitle>
-                                    <DialogDescription>
-                                      Reject this verification request?
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <Textarea placeholder="Reason for rejection" />
-                                    <div className="flex justify-end space-x-2">
-                                      <Button 
-                                        variant="destructive"
-                                        onClick={() => updateVerificationStatus(verification.id, 'rejected')}
-                                      >
-                                        Reject
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="applications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Applications</CardTitle>
-                <CardDescription>Monitor all job applications</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Applicant</th>
-                        <th className="text-left p-2">Job Title</th>
-                        <th className="text-left p-2">Status</th>
-                        <th className="text-left p-2">Applied Date</th>
-                        <th className="text-left p-2">Actions</th>
+                        <th className="text-left p-4">User</th>
+                        <th className="text-left p-4">Document Type</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Submitted</th>
+                        <th className="text-left p-4">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {applications.map((application: any) => (
-                        <tr key={application.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2">
-                            <div>
-                              <p className="font-medium">{application.profiles?.name}</p>
-                              <p className="text-sm text-gray-600">{application.profiles?.email}</p>
-                            </div>
+                      {verificationRequests.map((request: any) => (
+                        <tr key={request.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4">{request.profiles?.name || 'N/A'}</td>
+                          <td className="p-4">{request.document_type}</td>
+                          <td className="p-4">
+                            <select
+                              value={request.status}
+                              onChange={(e) => updateVerificationStatus(request.id, e.target.value as any)}
+                              className="px-2 py-1 border rounded"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="verified">Verified</option>
+                              <option value="rejected">Rejected</option>
+                            </select>
                           </td>
-                          <td className="p-2">{application.jobs?.title}</td>
-                          <td className="p-2">
-                            <StatusBadge status={application.status} />
-                          </td>
-                          <td className="p-2">
-                            {new Date(application.applied_at).toLocaleDateString()}
-                          </td>
-                          <td className="p-2">
+                          <td className="p-4">{new Date(request.submitted_at).toLocaleDateString()}</td>
+                          <td className="p-4">
                             <Button size="sm" variant="outline">
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -657,54 +520,36 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="reports" className="space-y-6">
+          {/* Other tabs... */}
+          <TabsContent value="applications">
             <Card>
               <CardHeader>
-                <CardTitle>Reports & Flags</CardTitle>
-                <CardDescription>Manage reported content and users</CardDescription>
+                <CardTitle>Job Applications</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {reports.map((report: any) => (
-                    <div key={report.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">Report: {report.reason}</h3>
-                          <p className="text-sm text-gray-600">
-                            Reporter: {report.profiles?.name} ({report.profiles?.email})
-                          </p>
-                          {report.reported_profiles && (
-                            <p className="text-sm text-gray-600">
-                              Reported User: {report.reported_profiles.name}
-                            </p>
-                          )}
-                          {report.jobs && (
-                            <p className="text-sm text-gray-600">
-                              Reported Job: {report.jobs.title}
-                            </p>
-                          )}
-                          <p className="text-sm text-gray-500 mt-2">{report.description}</p>
-                          <p className="text-xs text-gray-500">
-                            Reported: {new Date(report.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <StatusBadge status={report.status} />
-                          {report.status === 'pending' && (
-                            <div className="flex space-x-2">
-                              <Button size="sm" variant="outline">
-                                Review
-                              </Button>
-                              <Button size="sm" variant="destructive">
-                                Take Action
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-gray-600">Applications data will be displayed here...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <Card>
+              <CardHeader>
+                <CardTitle>Messages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Messages data will be displayed here...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <Card>
+              <CardHeader>
+                <CardTitle>Reports</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Reports data will be displayed here...</p>
               </CardContent>
             </Card>
           </TabsContent>

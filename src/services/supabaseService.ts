@@ -164,7 +164,7 @@ export const supabaseService = {
     return { data, error };
   },
 
-  async updateApplicationStatus(applicationId: string, status: string) {
+  async updateApplicationStatus(applicationId: string, status: 'pending' | 'accepted' | 'rejected' | 'withdrawn') {
     const { data, error } = await supabase
       .from('applications')
       .update({ status })
@@ -179,8 +179,8 @@ export const supabaseService = {
       .from('conversations')
       .select(`
         *,
-        user1:user1_id(name, email),
-        user2:user2_id(name, email)
+        user1:profiles!user1_id(name, email),
+        user2:profiles!user2_id(name, email)
       `)
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });

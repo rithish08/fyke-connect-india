@@ -16,7 +16,7 @@ const pageNames: Record<string, string> = {
 };
 
 const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLocalization();
@@ -45,7 +45,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
                 {getGreeting()}! 👋
               </span>
               <span className="text-sm text-gray-600">
-                {user?.name ?? user?.phone}
+                {userProfile?.name ?? userProfile?.phone}
               </span>
             </div>
           </div>
@@ -59,7 +59,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
             </button>
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
               <span className="text-lg font-bold text-gray-700 uppercase">
-                {user?.name ? user?.name[0] : user?.phone?.[0] || 'U'}
+                {userProfile?.name ? userProfile?.name[0] : userProfile?.phone?.[0] || 'U'}
               </span>
             </div>
           </div>
@@ -72,7 +72,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
         {/* Subtitle */}
         <div className="px-6 pb-3">
           <p className="text-gray-400 text-xs">
-            {user?.role === 'jobseeker'
+            {userProfile?.role === 'jobseeker'
               ? t('home.jobseeker_subtitle', 'Ready to find work?')
               : t('home.employer_subtitle', 'Ready to hire?')}
           </p>

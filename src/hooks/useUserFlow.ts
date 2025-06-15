@@ -3,31 +3,31 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCallback } from 'react';
 
 export const useUserFlow = () => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { userProfile, isAuthenticated, loading } = useAuth();
 
   const determineNextScreen = useCallback(() => {
     if (loading) return null;
     
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !userProfile) {
       return '/login';
     }
     
-    if (!user.role) {
+    if (!userProfile.role) {
       return '/role-selection';
     }
     
-    if (user.role === 'jobseeker' && !user.profileComplete) {
+    if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
       return '/profile-setup';
     }
     
     return '/home';
-  }, [isAuthenticated, user, loading]);
+  }, [isAuthenticated, userProfile, loading]);
 
   const isFlowComplete = useCallback(() => {
-    if (loading || !isAuthenticated || !user) return false;
+    if (loading || !isAuthenticated || !userProfile) return false;
     
-    return user.role && (user.role === 'employer' || user.profileComplete);
-  }, [loading, isAuthenticated, user]);
+    return userProfile.role && (userProfile.role === 'employer' || userProfile.profile_complete);
+  }, [loading, isAuthenticated, userProfile]);
 
   return {
     determineNextScreen,

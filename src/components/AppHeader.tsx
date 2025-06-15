@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +16,7 @@ const pageNames: Record<string, string> = {
 };
 
 const AppHeader = ({ currentTime }: { currentTime: Date }) => {
-  const { user, switchRole } = useAuth();
+  const { userProfile, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLocalization();
@@ -28,7 +29,7 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
   };
 
   const showPage = pageNames[location.pathname] || "";
-  const isJobSeeker = user?.role === "jobseeker";
+  const isJobSeeker = userProfile?.role === "jobseeker";
   const roleDisplayName = isJobSeeker ? t('role.jobseeker', 'Job Seeker') : t('role.employer', 'Employer');
 
   return (
@@ -62,7 +63,7 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
               </p>
             </div>
             <p className="text-sm text-gray-500 mt-0.5">
-              {user?.name ?? user?.phone}
+              {userProfile?.name ?? userProfile?.phone}
             </p>
           </div>
           

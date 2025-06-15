@@ -10,10 +10,15 @@ interface AuthContextType {
   session: Session | null;
   userProfile: any | null;
   loading: boolean;
+  isAuthenticated: boolean;
   signUp: (email: string, password: string, phone?: string, name?: string, role?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  login: (phone: string, otp: string) => Promise<void>;
+  logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<{ error: any }>;
+  switchRole: () => Promise<void>;
+  setRole: (role: string) => Promise<void>;
   isAdmin: boolean;
 }
 
@@ -159,6 +164,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const login = async (phone: string, otp: string) => {
+    // For demo purposes, simulate OTP login
+    try {
+      // In production, you'd verify the OTP here
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: `${phone}@phone.fyke`,
+        password: otp
+      });
+
+      if (error) {
+        throw new Error('Invalid OTP');
+      }
+
+      toast.success('Login successful!');
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    await signOut();
+  };
+
   const updateProfile = async (data: any) => {
     try {
       if (!user) return { error: 'No user logged in' };
@@ -182,6 +210,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const switchRole = async () => {
+    if (!userProfile) return;
+    
+    const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
+    await updateProfile({ role: newRole });
+  };
+
+  const setRole = async (role: string) => {
+    await updateProfile({ role });
+  };
+
+  const isAuthenticated = !!user;
   const isAdmin = userProfile?.role === 'admin';
 
   const value: AuthContextType = {
@@ -189,10 +229,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     userProfile,
     loading,
+    isAuthenticated,
     signUp,
     signIn,
     signOut,
+    login,
+    logout,
     updateProfile,
+    switchRole,
+    setRole,
     isAdmin
   };
 
