@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LocalizationProvider } from "./contexts/LocalizationContext";
 import RouteGuard from "./components/RouteGuard";
@@ -34,11 +34,23 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public routes */}
+              {/* Public routes - start from language selection */}
               <Route path="/" element={<LanguageSelection />} />
-              <Route path="/role-selection" element={<RoleSelection />} />
-              <Route path="/login" element={<LoginScreen />} />
-              <Route path="/otp-verification" element={<OTPVerification />} />
+              <Route path="/role-selection" element={
+                <RouteGuard requireAuth={false}>
+                  <RoleSelection />
+                </RouteGuard>
+              } />
+              <Route path="/login" element={
+                <RouteGuard requireAuth={false}>
+                  <LoginScreen />
+                </RouteGuard>
+              } />
+              <Route path="/otp-verification" element={
+                <RouteGuard requireAuth={false}>
+                  <OTPVerification />
+                </RouteGuard>
+              } />
               
               {/* Semi-protected routes */}
               <Route path="/profile-setup" element={

@@ -1,30 +1,42 @@
 
 import { Capacitor } from '@capacitor/core';
-import { PushNotifications } from '@capacitor/push-notifications';
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { Geolocation } from '@capacitor/geolocation';
+
+// Conditional imports to handle environments where plugins might not be available
+let PushNotifications: any = null;
+let LocalNotifications: any = null;
+let Geolocation: any = null;
+
+try {
+  if (Capacitor.isNativePlatform()) {
+    PushNotifications = require('@capacitor/push-notifications').PushNotifications;
+    LocalNotifications = require('@capacitor/local-notifications').LocalNotifications;
+    Geolocation = require('@capacitor/geolocation').Geolocation;
+  }
+} catch (error) {
+  console.warn('Capacitor plugins not available:', error);
+}
 
 class CapacitorService {
   static async initializePushNotifications() {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!Capacitor.isNativePlatform() || !PushNotifications) return;
 
     try {
       await PushNotifications.requestPermissions();
       await PushNotifications.register();
 
-      PushNotifications.addListener('registration', (token) => {
+      PushNotifications.addListener('registration', (token: any) => {
         console.log('Push registration success, token:', token.value);
       });
 
-      PushNotifications.addListener('registrationError', (error) => {
+      PushNotifications.addListener('registrationError', (error: any) => {
         console.error('Error on registration:', JSON.stringify(error));
       });
 
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
         console.log('Push notification received:', notification);
       });
 
-      PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      PushNotifications.addListener('pushNotificationActionPerformed', (notification: any) => {
         console.log('Push notification action performed:', notification);
       });
     } catch (error) {
@@ -33,7 +45,7 @@ class CapacitorService {
   }
 
   static async scheduleLocalNotification(title: string, body: string, id: number) {
-    if (!Capacitor.isNativePlatform()) {
+    if (!Capacitor.isNativePlatform() || !LocalNotifications) {
       // Fallback for web
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, { body });
@@ -62,7 +74,7 @@ class CapacitorService {
   }
 
   static async getCurrentPosition() {
-    if (!Capacitor.isNativePlatform()) {
+    if (!Capacitor.isNativePlatform() || !Geolocation) {
       // Fallback to web geolocation
       return new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
