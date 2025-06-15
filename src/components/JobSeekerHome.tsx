@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { useJobSeekerJobs } from '@/hooks/useJobSeekerJobs';
 import JobSeekerHomeHeader from '@/components/jobseeker/JobSeekerHomeHeader';
@@ -14,7 +13,7 @@ import { useState } from 'react';
 const AVAILABILITY_OPTIONS = [
   { value: 'available', label: 'Available' },
   { value: 'busy', label: 'Busy' },
-  { value: 'dnd', label: 'Do Not Disturb' }
+  { value: 'offline', label: 'Do Not Disturb' } // Changed from "dnd" to "offline"
 ];
 
 const JobSeekerHome = () => {
@@ -22,8 +21,8 @@ const JobSeekerHome = () => {
   const { jobs, isLoading } = useJobSeekerJobs();
   const navigate = useNavigate();
   // Use only allowed availability values
-  const [availability, setAvailability] = useState<'available' | 'busy' | 'dnd'>(
-    (user?.availability as 'available' | 'busy' | 'dnd') || 'available'
+  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>(
+    (user?.availability as 'available' | 'busy' | 'offline') || 'available'
   );
   // We'll show rate only if categories are non-vehicle, non-special, and have a salary entry
   const isShowRate = Boolean(user?.salaryBySubcategory && Object.keys(user.salaryBySubcategory).length);
@@ -40,7 +39,7 @@ const JobSeekerHome = () => {
   });
 
   // Handler for availability toggle
-  const handleAvailabilitySelect = async (status: 'available' | 'busy' | 'dnd') => {
+  const handleAvailabilitySelect = async (status: 'available' | 'busy' | 'offline') => {
     setAvailability(status);
     await updateProfile({ availability: status });
   };
@@ -100,7 +99,7 @@ const JobSeekerHome = () => {
                 {AVAILABILITY_OPTIONS.map(opt => (
                   <Button
                     key={opt.value}
-                    size="xs"
+                    size="sm" // changed from "xs" to "sm"
                     className={`rounded-full border font-semibold ${
                       availability === opt.value
                         ? "bg-green-600 text-white"
