@@ -46,7 +46,7 @@ const Profile = () => {
         {/* Profile summary card */}
         <ProfileSummaryCard
           name={userProfile.name || ""}
-          primaryCategory={userProfile.category || ""}
+          primaryCategory={userProfile.primary_category || ""}
           rating={4.5}
           reviewCount={19}
           avatarUrl={userProfile.avatar_url || ""}
