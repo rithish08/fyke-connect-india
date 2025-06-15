@@ -30,6 +30,11 @@ const DynamicRoleSwitcher = () => {
     maxSize: 13
   });
 
+  const handleRoleSwitch = (checked: boolean) => {
+    console.log('Role switch triggered, current role:', user.role, 'checked:', checked);
+    switchRole();
+  };
+
   return (
     <div className="flex items-center space-x-3">
       {/* Current Role Badge */}
@@ -45,7 +50,7 @@ const DynamicRoleSwitcher = () => {
       <div className="flex items-center space-x-2">
         <Switch
           checked={!isJobSeeker}
-          onCheckedChange={switchRole}
+          onCheckedChange={handleRoleSwitch}
           className="data-[state=checked]:bg-blue-600"
         />
         <span className={`text-gray-600 ${otherRoleTextSize} ${getFlexibleContainerClass(otherRoleText)}`}>

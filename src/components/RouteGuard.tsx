@@ -63,24 +63,35 @@ const RouteGuard = ({
         return;
       }
 
-      // Check profile completion for jobseekers
+      // Check profile completion for jobseekers only
       if (requireProfile && user.role === 'jobseeker' && !user.profileComplete && currentPath !== '/profile-setup') {
-        console.log('[RouteGuard] Profile incomplete, redirecting to profile setup');
+        console.log('[RouteGuard] Jobseeker profile incomplete, redirecting to profile setup');
         navigate('/profile-setup');
         return;
       }
 
-      // Redirect completed profiles away from setup pages
-      if (user.profileComplete && currentPath === '/profile-setup') {
-        console.log('[RouteGuard] Profile complete, redirecting to home');
+      // Redirect completed jobseeker profiles away from setup pages
+      if (user.role === 'jobseeker' && user.profileComplete && currentPath === '/profile-setup') {
+        console.log('[RouteGuard] Jobseeker profile complete, redirecting to home');
         navigate('/home');
         return;
       }
 
-      // Redirect employers away from profile setup
+      // Redirect employers away from profile setup (they don't need it)
       if (user.role === 'employer' && currentPath === '/profile-setup') {
         console.log('[RouteGuard] Employer on profile setup, redirecting to home');
         navigate('/home');
+        return;
+      }
+
+      // Redirect away from role selection if role is already set
+      if (user.role && currentPath === '/role-selection') {
+        console.log('[RouteGuard] Role already set, redirecting to appropriate home');
+        if (user.role === 'jobseeker' && !user.profileComplete) {
+          navigate('/profile-setup');
+        } else {
+          navigate('/home');
+        }
         return;
       }
     }

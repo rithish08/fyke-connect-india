@@ -8,17 +8,27 @@ import StickyHeader from '@/components/layout/StickyHeader';
 import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
 import { useUserFlow } from '@/hooks/useUserFlow';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const { user } = useAuth();
   const { t } = useLocalization();
   const { isFlowComplete } = useUserFlow();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Handle role switching redirect logic
+  useEffect(() => {
+    if (user && user.role === 'jobseeker' && !user.profileComplete) {
+      console.log('Jobseeker without completed profile detected, redirecting to profile setup');
+      navigate('/profile-setup');
+    }
+  }, [user, navigate]);
 
   if (!user || !isFlowComplete) {
     return null; // RouteGuard will handle redirects

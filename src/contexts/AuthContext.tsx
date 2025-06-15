@@ -21,6 +21,7 @@ interface User {
   categories?: string[];
   primaryCategory?: string;
   subcategories?: string[];
+  salaryBySubcategory?: Record<string, { amount: string; period: string; }>;
 }
 
 interface AuthContextType {
@@ -136,7 +137,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchRole = () => {
     if (user) {
       const newRole = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
-      setRole(newRole);
+      console.log('Switching role from', user.role, 'to', newRole);
+      
+      const updatedUser = { 
+        ...user, 
+        role: newRole,
+        // Employers don't need profile completion, jobseekers do
+        profileComplete: newRole === 'employer' ? true : user.profileComplete
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('Role switched successfully to:', newRole);
     }
   };
 
