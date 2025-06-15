@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Clock, MapPin, DollarSign, Star, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, MapPin, DollarSign, Star, User, MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/modern-card';
 import { useAuth } from '@/contexts/AuthContext';

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -52,7 +51,7 @@ const ProfileSetup = () => {
     else setNameStep(1);
   }, [user, loading, navigate]);
 
-  const handleBack = () => {
+  const handleBack = async () => {
     if (currentStep > 0) {
       if (currentStep === 2 && shouldSkipWages) {
         prevStep(); // This will go to step 0
@@ -62,6 +61,7 @@ const ProfileSetup = () => {
     } else {
       setNameStep(0);
     }
+    return true;
   };
 
   const handleNameSubmit = (name: string) => {
