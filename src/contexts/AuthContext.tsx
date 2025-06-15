@@ -15,6 +15,7 @@ interface UserProfile {
   location: string | null;
   bio: string | null;
   availability: 'available' | 'busy' | 'offline';
+  primary_category?: string;
   subcategories?: string[];
   salaryBySubcategory?: { [key: string]: { amount: string; period: string } };
 }
