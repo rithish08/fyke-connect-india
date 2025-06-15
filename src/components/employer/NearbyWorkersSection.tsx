@@ -39,7 +39,17 @@ const NearbyWorkersSection = () => {
     setTimeout(() => {
       const allWorkers = Object.values(mockWorkers).flat();
       const nearbyWorkers = allWorkers.slice(0, 3).map(worker => ({
-        ...worker,
+        id: worker.id,
+        name: worker.name,
+        category: worker.category,
+        skills: worker.skills,
+        rating: worker.rating,
+        completedJobs: Math.floor(Math.random() * 100) + 10, // Mock completed jobs
+        hourlyRate: worker.hourlyRate,
+        distance: `${(Math.random() * 5 + 0.5).toFixed(1)}km`, // Mock distance
+        responseTime: `< ${Math.floor(Math.random() * 20) + 5}min`, // Mock response time
+        isOnline: Math.random() > 0.3, // Random online status
+        verificationLevel: 'verified',
         profilePhoto: null
       }));
       setWorkers(nearbyWorkers);
