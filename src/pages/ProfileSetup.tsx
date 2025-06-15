@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -25,32 +24,28 @@ const ProfileSetup = () => {
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   useEffect(() => {
-    if (loading) return; // Wait for auth to load
-    console.log('ProfileSetup - Current user:', user);
-
-    // If still loading, do nothing
+    console.log('[ProfileSetup] user:', user, 'loading:', loading);
+    if (loading) return;
     if (!user) {
       // If done loading and no user, redirect to login after short delay for UX
+      console.log('[ProfileSetup] No user found, will redirect to /login...');
       setTimeout(() => {
         navigate('/login');
       }, 400);
       return;
     }
-
-    // If user is employer, redirect to home (employers don't need profile setup)
     if (user.role === 'employer') {
+      console.log('[ProfileSetup] Detected employer. Redirecting to /home...');
       navigate('/home');
       return;
     }
-
-    // If user doesn't have a role set, redirect to role selection
     if (!user.role) {
+      console.log('[ProfileSetup] No role set. Redirecting to /role-selection...');
       navigate('/role-selection');
       return;
     }
-
-    // If profile is already complete, redirect to home
     if (user.profileComplete) {
+      console.log('[ProfileSetup] Profile already complete. Redirecting to /home...');
       navigate('/home');
       return;
     }
@@ -97,6 +92,7 @@ const ProfileSetup = () => {
 
   // Show loading shimmer while auth still loading (first mount) or user data is loading
   if (loading) {
+    console.log('[ProfileSetup] Still loading...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <ShimmerLoader height={60} width="200px" />
@@ -104,13 +100,25 @@ const ProfileSetup = () => {
     );
   }
 
-  // Show loading if user not present (should be rare due to above useEffect redirect)
   if (!user) {
+    console.log('[ProfileSetup] No user after loading. Render fallback.');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-2 text-gray-400 text-xs">If you are stuck here, please try to login again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Prevent blank screens as a last resort
+  if (!user.role || (user.role === 'jobseeker' && !user.profileComplete && step < 0)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>
+          <p className="text-gray-500">Preparing profile setup…</p>
         </div>
       </div>
     );

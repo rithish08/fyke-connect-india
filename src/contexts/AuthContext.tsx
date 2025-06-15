@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -49,16 +50,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth data
+    console.log('[AuthProvider] Checking stored auth data...');
     const storedUser = localStorage.getItem('fyke_user');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
         setIsAuthenticated(true);
-        console.log('User loaded from localStorage:', userData);
+        console.log('[AuthProvider] User loaded from localStorage:', userData);
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
+        console.error('[AuthProvider] Error parsing stored user data:', error);
         localStorage.removeItem('fyke_user');
         setUser(null);
         setIsAuthenticated(false);
@@ -66,9 +67,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setUser(null);
       setIsAuthenticated(false);
-      console.log('No stored user found');
+      console.log('[AuthProvider] No stored user found');
     }
     setLoading(false);
+    console.log('[AuthProvider] Loading state set to false');
   }, []);
 
   const login = async (phone: string, otp: string) => {
@@ -157,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRole,
       switchRole,
       updateProfile,
-      loading // Provide the loading state
+      loading
     }}>
       {children}
     </AuthContext.Provider>
