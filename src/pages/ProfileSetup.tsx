@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -23,19 +24,45 @@ const ProfileSetup = () => {
   const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('available');
 
   useEffect(() => {
+    console.log('ProfileSetup - Current user:', user);
+    
+    // If no user, redirect to login
     if (!user) {
+      console.log('No user found, redirecting to login');
       navigate('/login');
+      return;
     }
-    // Redirect employers to home since they don't need profile setup
-    if (user?.role === 'employer') {
+    
+    // If user is employer, redirect to home (employers don't need profile setup)
+    if (user.role === 'employer') {
+      console.log('User is employer, redirecting to home');
       navigate('/home');
+      return;
     }
-    if (user?.profileComplete) {
+    
+    // If user doesn't have a role set, redirect to role selection
+    if (!user.role) {
+      console.log('User has no role, redirecting to role selection');
+      navigate('/role-selection');
+      return;
+    }
+    
+    // If profile is already complete, redirect to home
+    if (user.profileComplete) {
+      console.log('Profile already complete, redirecting to home');
       navigate('/home');
+      return;
     }
   }, [user, navigate]);
 
   const handleFinish = () => {
+    console.log('Finishing profile setup with data:', {
+      category,
+      vehicle,
+      salary,
+      availability
+    });
+    
     // Get subcategories from localStorage
     const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
     const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
@@ -61,11 +88,21 @@ const ProfileSetup = () => {
     if (step > 0) {
       setStep(step - 1);
     } else {
-      navigate('/login');
+      navigate('/role-selection');
     }
   };
 
-  if (!user) return null;
+  // Show loading if no user yet
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
@@ -114,7 +151,7 @@ const ProfileSetup = () => {
               setCategory={setCategory}
               vehicle={vehicle}
               setVehicle={setVehicle}
-              role={user.role}
+              role={user.role || 'jobseeker'}
               onNext={() => setStep(step + 1)}
             />
           )}

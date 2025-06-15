@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('fyke_user');
       }
+    } else {
+      console.log('No stored user found');
     }
   }, []);
 
@@ -80,15 +82,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: storedName,
         email: '',
         bio: '',
-        role: 'jobseeker',
+        role: 'jobseeker', // Default role, will be changed in role selection
         verified: Math.random() > 0.3,
-        profileComplete: false,
+        profileComplete: false, // Always false for new users
         categories: [],
         primaryCategory: undefined,
         subcategories: [],
         availability: 'available',
-        skills: ['Construction', 'Manual Labor'],
-        salaryExpectation: { min: 300, max: 600 },
+        skills: [],
+        salaryExpectation: { min: 0, max: 0 },
         location: 'Mumbai, Maharashtra'
       };
       
@@ -137,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
       console.log('Profile updated:', updates);
+      console.log('Updated user:', updatedUser);
     }
   };
 

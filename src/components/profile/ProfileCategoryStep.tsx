@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { categories } from '@/data/categories';
@@ -16,40 +17,70 @@ interface StepProps {
 const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role, onNext }: StepProps) => {
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
 
-  // This effect synchronizes selectedSubcategories if the parent resets category
+  // Load saved subcategories from localStorage on mount
   useEffect(() => {
-    if (!category) setSelectedSubcategories([]);
+    const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
+    if (savedSubcategories) {
+      try {
+        const parsed = JSON.parse(savedSubcategories);
+        setSelectedSubcategories(parsed);
+      } catch (error) {
+        console.error('Error parsing saved subcategories:', error);
+      }
+    }
+  }, []);
+
+  // Reset subcategories when category changes
+  useEffect(() => {
+    if (!category) {
+      setSelectedSubcategories([]);
+    }
   }, [category]);
 
   const selectedCategory = category ? { id: category.toLowerCase(), name: category } : null;
 
-  // Set category but only if changing OR subcategories exist
   const handleCategorySelect = (categoryId: string) => {
-    const found = categories.find(cat => cat.name.toLowerCase() === categoryId);
+    console.log('Category selected:', categoryId);
+    const found = categories.find(cat => cat.name.toLowerCase() === categoryId.toLowerCase());
     const categoryName = found ? found.name : categoryId;
-    // Always reset subcategories on category change
+    
+    // Reset subcategories when changing category
     if (categoryName !== category) {
       setSelectedSubcategories([]);
+      localStorage.removeItem('fyke_selected_subcategories');
     }
+    
     setCategory(categoryName);
   };
 
-  // Save subcategory selection, but only if category is set
   const handleSubcategorySelect = (categoryId: string, subcategories: string[]) => {
+    console.log('Subcategories selected:', subcategories);
     setSelectedSubcategories(subcategories);
-    // Synchronize primary category just in case (for UX)
-    const found = categories.find(cat => cat.name.toLowerCase() === categoryId);
-    if (found && found.name !== category) setCategory(found.name);
+    
+    // Save to localStorage
+    localStorage.setItem('fyke_selected_subcategories', JSON.stringify(subcategories));
+    
+    // Ensure category is set
+    const found = categories.find(cat => cat.name.toLowerCase() === categoryId.toLowerCase());
+    if (found && found.name !== category) {
+      setCategory(found.name);
+    }
   };
 
-  // Only allow moving to next step if a category AND at least 1 subcategory (and, for Driver, a vehicle) is selected
-  const canProceed = category && selectedSubcategories.length > 0 && (category !== "Driver" || vehicle);
+  // Check if user can proceed to next step
+  const canProceed = category && 
+                    selectedSubcategories.length > 0 && 
+                    (category !== "Driver" || vehicle);
 
   const handleNext = () => {
-    if (selectedSubcategories.length > 0) {
-      localStorage.setItem('fyke_selected_subcategories', JSON.stringify(selectedSubcategories));
+    if (canProceed) {
+      console.log('Proceeding to next step with:', {
+        category,
+        subcategories: selectedSubcategories,
+        vehicle
+      });
+      onNext();
     }
-    onNext();
   };
 
   return (
@@ -63,20 +94,34 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
       </div>
 
       {/* Enhanced Category Selection */}
-      <EnhancedCategoryModal
-        selectedCategories={
-          selectedCategory ? { [selectedCategory.id]: selectedSubcategories } : {}
-        }
-        onCategorySelect={handleCategorySelect}
-        onSubcategorySelect={handleSubcategorySelect}
-        onClear={() => {
-          // Clear selection for current category
-          if (selectedCategory) {
+      <div className="space-y-4">
+        <EnhancedCategoryModal
+          selectedCategories={
+            selectedCategory ? { [selectedCategory.id]: selectedSubcategories } : {}
+          }
+          onCategorySelect={handleCategorySelect}
+          onSubcategorySelect={handleSubcategorySelect}
+          onClear={() => {
             setSelectedSubcategories([]);
             setCategory("");
-          }
-        }}
-      />
+            localStorage.removeItem('fyke_selected_subcategories');
+          }}
+        />
+        
+        {/* Show selected category and subcategories */}
+        {category && (
+          <div className="bg-blue-50 p-4 rounded-xl">
+            <div className="text-sm font-medium text-blue-900">Selected:</div>
+            <div className="text-blue-700">{category}</div>
+            {selectedSubcategories.length > 0 && (
+              <div className="text-xs text-blue-600 mt-1">
+                {selectedSubcategories.length} specialization{selectedSubcategories.length !== 1 ? 's' : ''} selected
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Vehicle Selection for Drivers */}
       {category === "Driver" && (
         <VehicleSelection
@@ -96,11 +141,13 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
           disabled={!canProceed}
           onClick={handleNext}
         >
-          {category
-            ? selectedSubcategories.length > 0
-              ? `Continue with ${category}`
-              : 'Select at least 1 subcategory'
-            : 'Select a category to continue'
+          {!category
+            ? 'Select a category to continue'
+            : selectedSubcategories.length === 0
+            ? 'Select at least 1 specialization'
+            : category === "Driver" && !vehicle
+            ? 'Select a vehicle type'
+            : `Continue with ${category}`
           }
         </Button>
       </div>
