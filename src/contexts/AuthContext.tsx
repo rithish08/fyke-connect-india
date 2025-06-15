@@ -1,178 +1,203 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  phone: string;
-  name?: string;
-  email?: string;
-  bio?: string;
-  role: 'jobseeker' | 'employer';
-  verified: boolean;
-  profileComplete: boolean;
-  profilePhoto?: string;
-  location?: string;
-  availability?: 'available' | 'busy' | 'offline';
-  skills?: string[];
-  salaryExpectation?: { min: number; max: number };
-  category?: string;
-  vehicle?: string;
-  salaryPeriod?: 'daily' | 'weekly' | 'monthly';
-  categories?: string[];
-  primaryCategory?: string;
-  subcategories?: string[];
-  salaryBySubcategory?: Record<string, { amount: string; period: string; }>;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
-  login: (phone: string, otp: string) => Promise<void>;
-  logout: () => void;
-  setRole: (role: 'jobseeker' | 'employer') => void;
-  switchRole: () => void;
-  updateProfile: (updates: Partial<User>) => void;
+  session: Session | null;
+  userProfile: any | null;
   loading: boolean;
+  signUp: (email: string, password: string, phone?: string, name?: string, role?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
+  updateProfile: (data: any) => Promise<{ error: any }>;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('[AuthProvider] Checking stored auth data...');
-    const storedUser = localStorage.getItem('fyke_user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setIsAuthenticated(true);
-        console.log('[AuthProvider] User loaded from localStorage:', userData);
-      } catch (error) {
-        console.error('[AuthProvider] Error parsing stored user data:', error);
-        localStorage.removeItem('fyke_user');
-        setUser(null);
-        setIsAuthenticated(false);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile
+          setTimeout(async () => {
+            await fetchUserProfile(session.user.id);
+          }, 0);
+        } else {
+          setUserProfile(null);
+        }
+        
+        setLoading(false);
       }
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
-      console.log('[AuthProvider] No stored user found');
-    }
-    setLoading(false);
-    console.log('[AuthProvider] Loading state set to false');
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (phone: string, otp: string) => {
+  const fetchUserProfile = async (userId: string) => {
     try {
-      // Simulate API call with basic validation
-      if (otp.length !== 6) {
-        throw new Error('Invalid OTP length');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
       }
 
-      // Get stored name if available
-      const storedName = localStorage.getItem('fyke_name') || '';
-      
-      const mockUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        phone,
-        name: storedName,
-        email: '',
-        bio: '',
-        role: 'jobseeker', // Default role, will be changed in role selection
-        verified: Math.random() > 0.3,
-        profileComplete: false, // Always false for new users
-        categories: [],
-        primaryCategory: undefined,
-        subcategories: [],
-        availability: 'available',
-        skills: [],
-        salaryExpectation: { min: 0, max: 0 },
-        location: 'Mumbai, Maharashtra'
-      };
-      
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('fyke_user', JSON.stringify(mockUser));
-      console.log('User logged in successfully:', mockUser);
+      setUserProfile(data);
     } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+      console.error('Error fetching profile:', error);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('fyke_user');
-    localStorage.removeItem('fyke_phone');
-    localStorage.removeItem('fyke_name');
-    console.log('User logged out');
-  };
-
-  const setRole = (role: 'jobseeker' | 'employer') => {
-    if (user) {
-      const updatedUser = { 
-        ...user, 
-        role,
-        profileComplete: role === 'employer' ? true : user.profileComplete
-      };
-      setUser(updatedUser);
-      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      console.log('User role updated to:', role);
-    }
-  };
-
-  const switchRole = () => {
-    if (user) {
-      const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
-      console.log('Switching role from', user.role, 'to', newRole);
+  const signUp = async (email: string, password: string, phone?: string, name?: string, role?: string) => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
       
-      const updatedUser = { 
-        ...user, 
-        role: newRole,
-        // Employers don't need profile completion, jobseekers do
-        profileComplete: newRole === 'employer' ? true : user.profileComplete
-      };
-      
-      setUser(updatedUser);
-      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      console.log('Role switched successfully to:', newRole);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            phone: phone || '',
+            name: name || '',
+            role: role || 'jobseeker'
+          }
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+
+      toast.success('Account created successfully! Please check your email to verify your account.');
+      return { error: null };
+    } catch (error: any) {
+      toast.error('An unexpected error occurred');
+      return { error };
     }
   };
 
-  const updateProfile = (updates: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
-      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      console.log('Profile updated:', updates);
-      console.log('Updated user:', updatedUser);
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+
+      toast.success('Signed in successfully!');
+      return { error: null };
+    } catch (error: any) {
+      toast.error('An unexpected error occurred');
+      return { error };
     }
+  };
+
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      
+      setUser(null);
+      setSession(null);
+      setUserProfile(null);
+      toast.success('Signed out successfully!');
+      navigate('/');
+    } catch (error: any) {
+      toast.error('Error signing out');
+    }
+  };
+
+  const updateProfile = async (data: any) => {
+    try {
+      if (!user) return { error: 'No user logged in' };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, ...data })
+        .select();
+
+      if (error) {
+        toast.error('Error updating profile');
+        return { error };
+      }
+
+      await fetchUserProfile(user.id);
+      toast.success('Profile updated successfully!');
+      return { error: null };
+    } catch (error: any) {
+      toast.error('Error updating profile');
+      return { error };
+    }
+  };
+
+  const isAdmin = userProfile?.role === 'admin';
+
+  const value: AuthContextType = {
+    user,
+    session,
+    userProfile,
+    loading,
+    signUp,
+    signIn,
+    signOut,
+    updateProfile,
+    isAdmin
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      login,
-      logout,
-      setRole,
-      switchRole,
-      updateProfile,
-      loading
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

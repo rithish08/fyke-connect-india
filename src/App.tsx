@@ -1,134 +1,131 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LocalizationProvider } from '@/contexts/LocalizationContext';
-import { CommunicationProvider } from '@/contexts/CommunicationContext';
-import RouteGuard from '@/components/RouteGuard';
-import LanguageSelection from '@/pages/LanguageSelection';
-import LoginScreen from '@/pages/LoginScreen';
-import OTPVerification from '@/pages/OTPVerification';
-import RoleSelection from '@/pages/RoleSelection';
-import ProfileSetup from '@/pages/ProfileSetup';
-import HomePage from '@/pages/HomePage';
-import JobSearch from '@/pages/JobSearch';
-import MyJobs from '@/pages/MyJobs';
-import Profile from '@/pages/Profile';
-import Messaging from '@/pages/Messaging';
-import Notifications from '@/pages/Notifications';
-import PostJob from '@/pages/PostJob';
-import JobDetails from '@/pages/JobDetails';
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { LocalizationProvider } from "@/contexts/LocalizationContext";
+import { CommunicationProvider } from "@/contexts/CommunicationContext";
+import { useOfflineCapabilities } from "@/hooks/useOfflineCapabilities";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import LanguageSelection from "./pages/LanguageSelection";
+import RoleSelection from "./pages/RoleSelection";
+import HomePage from "./pages/HomePage";
+import ProfileSetup from "./pages/ProfileSetup";
+import JobSearch from "./pages/JobSearch";
+import Messaging from "./pages/Messaging";
+import Profile from "./pages/Profile";
+import MyJobs from "./pages/MyJobs";
+import PostJob from "./pages/PostJob";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import OfflineIndicator from "./components/common/OfflineIndicator";
+import "./App.css";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
+
+const AppContent = () => {
+  useOfflineCapabilities();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/language-selection" element={<LanguageSelection />} />
+        <Route path="/role-selection" element={<RoleSelection />} />
+        <Route path="/admin" element={<AdminLogin />} />
+        
+        <Route 
+          path="/home" 
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile-setup" 
+          element={
+            <ProtectedRoute>
+              <ProfileSetup />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/job-search" 
+          element={
+            <ProtectedRoute>
+              <JobSearch />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/messaging" 
+          element={
+            <ProtectedRoute>
+              <Messaging />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/my-jobs" 
+          element={
+            <ProtectedRoute>
+              <MyJobs />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/post-job" 
+          element={
+            <ProtectedRoute>
+              <PostJob />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Redirect any unknown routes to home */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+      <OfflineIndicator />
+    </div>
+  );
+};
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LocalizationProvider>
-        <AuthProvider>
-          <CommunicationProvider>
-            <Router>
-              <div className="App">
-                <Routes>
-                  <Route path="/language" element={<LanguageSelection />} />
-                  <Route path="/login" element={<LoginScreen />} />
-                  <Route path="/otp-verification" element={<OTPVerification />} />
-                  <Route
-                    path="/role-selection"
-                    element={
-                      <RouteGuard>
-                        <RoleSelection />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/profile-setup"
-                    element={
-                      <RouteGuard>
-                        <ProfileSetup />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/home"
-                    element={
-                      <RouteGuard>
-                        <HomePage />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/search"
-                    element={
-                      <RouteGuard>
-                        <JobSearch />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/my-jobs"
-                    element={
-                      <RouteGuard>
-                        <MyJobs />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <RouteGuard>
-                        <Profile />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/messages"
-                    element={
-                      <RouteGuard>
-                        <Messaging />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/notifications"
-                    element={
-                      <RouteGuard>
-                        <Notifications />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/post-job"
-                    element={
-                      <RouteGuard>
-                        <PostJob />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route
-                    path="/job/:id"
-                    element={
-                      <RouteGuard>
-                        <JobDetails />
-                      </RouteGuard>
-                    }
-                  />
-                  <Route path="/" element={<LanguageSelection />} />
-                </Routes>
+      <TooltipProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <LocalizationProvider>
+              <CommunicationProvider>
+                <AppContent />
                 <Toaster />
-              </div>
-            </Router>
-          </CommunicationProvider>
-        </AuthProvider>
-      </LocalizationProvider>
+              </CommunicationProvider>
+            </LocalizationProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

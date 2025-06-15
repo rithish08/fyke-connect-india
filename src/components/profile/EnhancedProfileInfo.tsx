@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import EditableProfileCard from './EditableProfileCard';
 import { MapPin, Briefcase, Mail, User, Lock } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileData {
   name: string;
@@ -25,13 +27,19 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
   onUpdate
 }) => {
   const [editData, setEditData] = useState(profileData);
+  const { updateProfile } = useAuth();
 
   React.useEffect(() => {
     setEditData(profileData);
   }, [profileData]);
 
-  const handleSave = () => {
-    onUpdate(editData);
+  const handleSave = async () => {
+    // Update in Supabase
+    const { error } = await updateProfile(editData);
+    
+    if (!error) {
+      onUpdate(editData);
+    }
   };
 
   // Disable name field (protected, not editable)
