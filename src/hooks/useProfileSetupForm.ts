@@ -44,7 +44,7 @@ export const useProfileSetupForm = () => {
   const shouldSkipWages = hasVehicleOwnerCategory && !hasNonVehicleOwnerCategory;
   const shouldShowPartialWages = hasVehicleOwnerCategory && hasNonVehicleOwnerCategory;
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep === 0) {
       // From category selection
       if (shouldSkipWages) {
@@ -55,14 +55,16 @@ export const useProfileSetupForm = () => {
     } else if (currentStep === 1) {
       setCurrentStep(2); // From wages to availability
     }
+    return true;
   };
 
-  const prevStep = () => {
+  const prevStep = async () => {
     if (currentStep === 2 && shouldSkipWages) {
       setCurrentStep(0); // From availability back to category
     } else if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+    return true;
   };
 
   const submitProfile = async (data: ProfileSetupFormData) => {
