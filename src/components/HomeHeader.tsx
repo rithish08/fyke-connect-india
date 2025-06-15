@@ -36,7 +36,11 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
       <div className="relative bg-white p-0 shadow-none w-full">
         {/* App Brand in top left */}
         <div className="flex items-center h-14 px-4 border-b border-gray-100">
-          <div className="text-xl font-bold text-blue-600">fyke</div>
+          <img 
+            src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+            alt="fyke logo"
+            className="h-8 w-auto"
+          />
         </div>
         {/* Page Name below app name */}
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">

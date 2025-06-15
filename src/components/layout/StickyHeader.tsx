@@ -42,7 +42,11 @@ const StickyHeader = ({ currentTime }: { currentTime: Date }) => {
       {/* Main Header */}
       <div className="flex items-center justify-between h-14 px-4 border-b border-gray-50">
         <div className="flex items-center space-x-3">
-          <div className="text-xl font-bold text-blue-600">fyke</div>
+          <img 
+            src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+            alt="fyke logo"
+            className="h-8 w-auto"
+          />
           <span className="text-gray-300 text-2xl font-light">/</span>
           <div 
             className="px-2 py-1 rounded-full bg-gray-100 font-medium text-gray-600 capitalize max-w-[100px] overflow-hidden"

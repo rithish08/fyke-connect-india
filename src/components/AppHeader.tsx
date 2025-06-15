@@ -38,7 +38,11 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
         {/* Top Header with Brand, Role, and Bell */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
           <div className="flex items-center space-x-2">
-            <div className="text-xl font-bold text-blue-600">fyke</div>
+            <img 
+              src="/lovable-uploads/95579b46-46db-46cc-a5d9-82155bddfc21.png" 
+              alt="fyke logo"
+              className="h-8 w-auto"
+            />
             <span className="text-gray-300 text-2xl font-light">/</span>
             <span className="text-sm font-medium text-gray-500 capitalize">{roleDisplayName}</span>
           </div>

@@ -3,11 +3,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone } from 'lucide-react';
+import { handlePhoneCall, handleInAppChat, handleEmployerContact } from '@/utils/communicationHandlers';
 
 interface CommunicationButtonsProps {
   targetId: string;
   targetName: string;
   targetType: 'worker' | 'employer';
+  phoneNumber?: string;
   size?: 'sm' | 'md';
   showCall?: boolean;
   showChat?: boolean;
@@ -19,6 +21,7 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
   targetId,
   targetName,
   targetType,
+  phoneNumber,
   size = 'md',
   showCall = true,
   showChat = true,
@@ -29,18 +32,16 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
 
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const params = new URLSearchParams({
-      chatWith: targetId,
-      name: targetName,
-      type: targetType,
-      ...(context && { context })
-    });
-    navigate(`/messages?${params.toString()}`);
+    if (targetType === 'worker') {
+      handleInAppChat(targetId, targetName, navigate, context);
+    } else {
+      handleEmployerContact(targetId, targetName, navigate, context);
+    }
   };
 
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation();
-    alert(`Calling ${targetName}...`);
+    handlePhoneCall(phoneNumber, targetName);
   };
 
   const buttonSize = size === 'sm' ? 'sm' : 'default';
