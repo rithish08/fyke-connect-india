@@ -35,7 +35,6 @@ const AppContent = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Show splash screen for 2 seconds
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 2000);
@@ -62,7 +61,7 @@ const AppContent = () => {
         <Route 
           path="/home" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireProfileComplete={true}>
               <HomePage />
             </ProtectedRoute>
           } 
@@ -78,7 +77,7 @@ const AppContent = () => {
         <Route 
           path="/job-search" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireProfileComplete={true}>
               <JobSearch />
             </ProtectedRoute>
           } 
@@ -86,7 +85,7 @@ const AppContent = () => {
         <Route 
           path="/messaging" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireProfileComplete={true}>
               <Messaging />
             </ProtectedRoute>
           } 
@@ -94,7 +93,7 @@ const AppContent = () => {
         <Route 
           path="/profile" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireProfileComplete={true}>
               <Profile />
             </ProtectedRoute>
           } 
@@ -102,7 +101,7 @@ const AppContent = () => {
         <Route 
           path="/my-jobs" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireProfileComplete={true}>
               <MyJobs />
             </ProtectedRoute>
           } 
@@ -110,7 +109,7 @@ const AppContent = () => {
         <Route 
           path="/post-job" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireProfileComplete={true}>
               <PostJob />
             </ProtectedRoute>
           } 
@@ -124,7 +123,7 @@ const AppContent = () => {
           } 
         />
         
-        {/* Redirect any unknown routes to language selection */}
+        {/* Redirect any unknown routes */}
         <Route path="*" element={<Navigate to="/language-selection" replace />} />
       </Routes>
       <OfflineIndicator />

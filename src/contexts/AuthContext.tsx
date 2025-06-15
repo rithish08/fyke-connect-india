@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,12 +31,13 @@ interface AuthContextType {
   verifyOTP: (otpCode: string) => Promise<{ success: boolean; error?: string }>;
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
-  signOut: () => Promise<void>; // alias for logout
+  signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error?: any }>;
   signUp: (email: string, password: string, phone: string, name: string, role: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   switchRole: () => Promise<void>;
   setRole: (role: 'jobseeker' | 'employer' | 'admin') => Promise<void>;
+  completeProfileSetup: (profileData: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,17 +71,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          await fetchUserProfile(session.user.id);
         } else {
           setUserProfile(null);
         }
@@ -88,7 +87,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -135,22 +133,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const result = await firebaseAuthService.verifyOTP(otpCode);
       if (result.success) {
-        // Check if we need to assign a role from localStorage
-        const selectedRole = localStorage.getItem('fyke_selected_role') as 'jobseeker' | 'employer' | null;
-        
-        if (selectedRole && result.userId) {
-          // Update the user profile with the selected role
-          await updateProfile({ 
-            role: selectedRole,
-            profile_complete: selectedRole === 'employer' ? true : false
-          });
-          localStorage.removeItem('fyke_selected_role');
-        }
-        
-        toast({
-          title: "Phone Verified!",
-          description: "Successfully authenticated"
-        });
         return { success: true };
       } else {
         toast({
@@ -188,6 +170,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserProfile(null);
       setSession(null);
       
+      // Clear any stored data
+      localStorage.removeItem('fyke_phone');
+      localStorage.removeItem('fyke_selected_role');
+      localStorage.removeItem('fyke_selected_subcategories');
+      
       toast({
         title: "Logged Out",
         description: "You have been successfully logged out"
@@ -205,15 +192,135 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setRole = async (role: 'jobseeker' | 'employer' | 'admin') => {
     if (!user) return;
-    await updateProfile({ role });
-    await fetchUserProfile(user.id);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          role,
+          profile_complete: role === 'employer' ? true : false
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      await fetchUserProfile(user.id);
+      
+      toast({
+        title: "Role Updated",
+        description: `Your role has been set to ${role}`
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update role",
+        variant: "destructive"
+      });
+    }
   };
 
   const switchRole = async () => {
     if (!userProfile) return;
     const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
-    await updateProfile({ role: newRole });
-    await fetchUserProfile(userProfile.id);
+    await setRole(newRole);
+  };
+
+  const completeProfileSetup = async (profileData: any) => {
+    if (!user) return;
+
+    try {
+      // Save subcategories to user_categories table
+      if (profileData.subcategories && profileData.subcategories.length > 0) {
+        // First, get the category ID
+        const { data: categoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', profileData.category)
+          .single();
+
+        if (categoryData) {
+          // Delete existing user categories
+          await supabase
+            .from('user_categories')
+            .delete()
+            .eq('user_id', user.id);
+
+          // Insert new categories
+          for (const subcategory of profileData.subcategories) {
+            const { data: subcategoryData } = await supabase
+              .from('subcategories')
+              .select('id')
+              .eq('name', subcategory)
+              .eq('category_id', categoryData.id)
+              .single();
+
+            if (subcategoryData) {
+              await supabase
+                .from('user_categories')
+                .insert({
+                  user_id: user.id,
+                  category_id: categoryData.id,
+                  subcategory_id: subcategoryData.id,
+                  is_primary: profileData.subcategories[0] === subcategory
+                });
+            }
+          }
+        }
+      }
+
+      // Save wage information if provided
+      if (profileData.salaryBySubcategory) {
+        for (const [subcategory, salaryInfo] of Object.entries(profileData.salaryBySubcategory)) {
+          const salary = salaryInfo as { amount: string; period: string };
+          
+          const { data: subcategoryData } = await supabase
+            .from('subcategories')
+            .select('id, category_id')
+            .eq('name', subcategory)
+            .single();
+
+          if (subcategoryData) {
+            await supabase
+              .from('wages')
+              .upsert({
+                user_id: user.id,
+                category_id: subcategoryData.category_id,
+                subcategory_id: subcategoryData.id,
+                amount: parseFloat(salary.amount),
+                period: salary.period
+              });
+          }
+        }
+      }
+
+      // Update profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: profileData.name,
+          location: profileData.location,
+          bio: profileData.bio,
+          primary_category: profileData.category,
+          profile_complete: true
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      await fetchUserProfile(user.id);
+      
+      toast({
+        title: "Profile Complete",
+        description: "Your profile has been successfully set up!"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete profile setup",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -244,7 +351,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Keep email/password methods for admin access
   const signUp = async (email: string, password: string, phone: string, name: string, role: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -283,7 +389,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signIn,
     switchRole,
-    setRole
+    setRole,
+    completeProfileSetup
   };
 
   return (

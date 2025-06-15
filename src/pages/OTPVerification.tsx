@@ -12,15 +12,31 @@ const OTPVerification = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, sendOTP, userProfile, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     const phone = localStorage.getItem('fyke_phone');
     if (!phone) {
       navigate('/login');
+      return;
     }
-  }, [navigate]);
+
+    // If user is already authenticated, redirect appropriately
+    if (isAuthenticated && userProfile) {
+      const selectedRole = localStorage.getItem('fyke_selected_role');
+      
+      if (!userProfile.role && selectedRole) {
+        navigate('/role-selection');
+      } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+        navigate('/profile-setup');
+      } else if (userProfile.role) {
+        navigate('/home');
+      } else {
+        navigate('/role-selection');
+      }
+    }
+  }, [navigate, isAuthenticated, userProfile]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -43,17 +59,31 @@ const OTPVerification = () => {
 
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
-      // ADDED LOG: what code & phone are we sending to login?
       console.log('[OTPVerification] Submitting login for phone', phone, 'with OTP', otpCode);
+      
       await login(phone, otpCode);
-
-      // ADDED LOG: if login returns without error
-      console.log('[OTPVerification] Login succeeded, navigating to role-selection');
-      navigate('/role-selection');
+      
+      console.log('[OTPVerification] Login succeeded');
+      
+      // Check if role was pre-selected
+      const selectedRole = localStorage.getItem('fyke_selected_role');
+      
+      if (selectedRole) {
+        // Role was already selected, go to appropriate screen
+        localStorage.removeItem('fyke_selected_role');
+        if (selectedRole === 'employer') {
+          navigate('/home');
+        } else {
+          navigate('/profile-setup');
+        }
+      } else {
+        // No role selected, go to role selection
+        navigate('/role-selection');
+      }
 
       toast({
         title: "Phone Verified!",
-        description: "Now choose your role to continue"
+        description: "Successfully authenticated"
       });
     } catch (error: any) {
       console.error('[OTPVerification] Verification Failed:', error);
@@ -69,18 +99,32 @@ const OTPVerification = () => {
     }
   };
 
-  const handleResend = () => {
-    setResendTimer(60);
-    toast({
-      title: "OTP Resent",
-      description: "New verification code sent to your phone"
-    });
+  const handleResend = async () => {
+    const phone = localStorage.getItem('fyke_phone');
+    if (!phone) return;
+
+    setLoading(true);
+    try {
+      await sendOTP(phone);
+      setResendTimer(60);
+      toast({
+        title: "OTP Resent",
+        description: "New verification code sent to your phone"
+      });
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const phone = localStorage.getItem('fyke_phone');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
+      {/* Hidden recaptcha container for Firebase */}
+      <div id="recaptcha-container"></div>
+      
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -99,7 +143,6 @@ const OTPVerification = () => {
         {/* OTP Card */}
         <Card className="p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
           <div className="space-y-6">
-            {/* Enhanced OTP Input */}
             <div className="flex justify-center px-2">
               <div className="w-full max-w-xs">
                 <EnhancedOTPInput
@@ -128,7 +171,8 @@ const OTPVerification = () => {
               ) : (
                 <button
                   onClick={handleResend}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  disabled={loading}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
                 >
                   Resend OTP
                 </button>
@@ -153,4 +197,3 @@ const OTPVerification = () => {
 };
 
 export default OTPVerification;
-

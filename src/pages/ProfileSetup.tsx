@@ -1,162 +1,261 @@
 
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form } from '@/components/ui/form';
-import { ArrowLeft, BadgeCheck } from "lucide-react";
-import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
-import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
 import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
-import { FloatingCard } from '@/components/ui/floating-card';
-import ProfileLoading from '@/components/profile/setup/ProfileLoading';
-import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
-import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ArrowLeft, User, MapPin, FileText } from 'lucide-react';
 
 const ProfileSetup = () => {
-  const { userProfile, loading, updateProfile } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  
+  // Form data
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  const [bio, setBio] = useState('');
+  const [category, setCategory] = useState('');
+  const [vehicle, setVehicle] = useState('');
+  const [salaryBySubcategory, setSalaryBySubcategory] = useState<{ [key: string]: { amount: string; period: string } }>({});
+
+  const { userProfile, completeProfileSetup } = useAuth();
   const navigate = useNavigate();
-  const {
-    form,
-    currentStep,
-    isSubmitting,
-    nextStep,
-    prevStep,
-    submitProfile,
-    shouldSkipWages,
-    shouldShowPartialWages
-  } = useProfileSetupForm();
-  const [nameStep, setNameStep] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (loading) return;
+    // Redirect if not a jobseeker or already complete
     if (!userProfile) {
-      navigate('/');
-      return;
-    }
-    if (userProfile.role === 'employer') {
-      navigate('/home');
-      return;
-    }
-    if (!userProfile.role) {
       navigate('/role-selection');
       return;
     }
+    
+    if (userProfile.role !== 'jobseeker') {
+      navigate('/home');
+      return;
+    }
+    
     if (userProfile.profile_complete) {
       navigate('/home');
       return;
     }
-    if (!userProfile.name?.trim()) setNameStep(0);
-    else setNameStep(1);
-  }, [userProfile, loading, navigate]);
 
-  const handleBack = async () => {
-    if (currentStep > 0) {
-      prevStep();
-    } else {
-      setNameStep(0);
+    // Pre-fill existing data
+    if (userProfile.name) setName(userProfile.name);
+    if (userProfile.location) setLocation(userProfile.location);
+    if (userProfile.bio) setBio(userProfile.bio);
+  }, [userProfile, navigate]);
+
+  const handleNext = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
     }
-    return true;
   };
 
-  const handleNameSubmit = (name: string) => {
-    updateProfile({ name: name });
-    setNameStep(1);
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
-  const handleFinish = async () => {
-    console.log('handleFinish called');
-    
-    // Get all form data
-    const formData = form.getValues();
-    console.log('Form data:', formData);
-    
-    // Force completion by directly updating profile
-    try {
-      // Ensure salary data has required fields with proper types
-      const salaryBySubcategory = formData.salaryBySubcategory || {};
-      const processedSalaryData: Record<string, { amount: string; period: string }> = {};
-      
-      Object.entries(salaryBySubcategory).forEach(([key, value]) => {
-        processedSalaryData[key] = {
-          amount: value?.amount || '500',
-          period: value?.period || 'daily'
-        };
+  const handleComplete = async () => {
+    if (!name.trim() || !location.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
       });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get saved subcategories
+      const savedSubcategories = localStorage.getItem('fyke_selected_subcategories');
+      const subcategories = savedSubcategories ? JSON.parse(savedSubcategories) : [];
 
       const profileData = {
-        ...formData,
-        profile_complete: true,
-        availability: formData.availability || 'available' as const,
-        salaryBySubcategory: Object.keys(processedSalaryData).length > 0 ? processedSalaryData : undefined
+        name: name.trim(),
+        location: location.trim(),
+        bio: bio.trim(),
+        category,
+        subcategories,
+        vehicle,
+        salaryBySubcategory
       };
+
+      await completeProfileSetup(profileData);
       
-      console.log('Updating profile with:', profileData);
-      await updateProfile(profileData);
+      // Clear localStorage
+      localStorage.removeItem('fyke_selected_subcategories');
+      localStorage.removeItem('fyke_profile_category');
+      localStorage.removeItem('fyke_profile_subcategories');
+      localStorage.removeItem('fyke_profile_vehicle');
       
-      console.log('Profile updated successfully, navigating to home');
+      toast({
+        title: "Profile Complete!",
+        description: "Welcome to Fyke! You can now start finding jobs."
+      });
+      
       navigate('/home');
-      return true;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      return false;
+    } catch (error: any) {
+      console.error('Profile setup error:', error);
+      toast({
+        title: "Setup Failed",
+        description: error.message || "Failed to complete profile setup",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <ProfileLoading />;
-  if (!userProfile) return <ProfileRedirect />;
-
-  if (nameStep === 0) {
-    return (
-      <ProfileNameStep
-        onSubmit={handleNameSubmit}
-        initialName=""
-      />
-    );
-  }
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <ProfileCategoryStep
+            category={category}
+            setCategory={setCategory}
+            vehicle={vehicle}
+            setVehicle={setVehicle}
+            role="jobseeker"
+            onNext={handleNext}
+          />
+        );
+      
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">Set Your Rates</h2>
+              <p className="text-gray-500">How much do you charge for each service?</p>
+            </div>
+            
+            <ModernMultiSalaryStep
+              selectedSubcategories={(() => {
+                try {
+                  const saved = localStorage.getItem('fyke_selected_subcategories');
+                  return saved ? JSON.parse(saved) : [];
+                } catch {
+                  return [];
+                }
+              })()}
+              salaryBySubcategory={salaryBySubcategory}
+              setSalaryBySubcategory={setSalaryBySubcategory}
+              onNext={handleNext}
+            />
+            
+            <div className="flex justify-center">
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">Personal Details</h2>
+              <p className="text-gray-500">Tell us about yourself</p>
+            </div>
+            
+            <Card className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                  <User className="w-4 h-4" />
+                  <span>Full Name *</span>
+                </label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your full name"
+                  className="h-12"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                  <MapPin className="w-4 h-4" />
+                  <span>Location *</span>
+                </label>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City, State"
+                  className="h-12"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                  <FileText className="w-4 h-4" />
+                  <span>About You (Optional)</span>
+                </label>
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell employers about your experience and skills..."
+                  className="min-h-[100px]"
+                />
+              </div>
+            </Card>
+            
+            <Button
+              onClick={handleComplete}
+              disabled={loading || !name.trim() || !location.trim()}
+              className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-lg rounded-2xl"
+            >
+              {loading ? 'Completing Setup...' : 'Complete Profile'}
+            </Button>
+            
+            <div className="flex justify-center">
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 px-4 py-6">
-      <div className="w-full max-w-lg mx-auto">
-        {/* Floating Header */}
-        <FloatingCard variant="glow" size="sm" className="mb-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-all duration-200 hover:scale-110"
-            >
-              <ArrowLeft className="w-4 h-4 text-gray-600" />
-            </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center">
-                <BadgeCheck className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
-                Complete Profile
-              </span>
-            </div>
-            <div className="w-10 h-10"></div>
-          </div>
-        </FloatingCard>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        {currentStep > 1 && (
+          <button
+            onClick={handleBack}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back</span>
+          </button>
+        )}
+        <div className="flex-1 text-center">
+          <span className="text-sm text-gray-500">Step {currentStep} of 3</span>
+        </div>
+        <div className="w-16" />
+      </div>
 
-        {/* Step Content */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(() => {})}>
-            {currentStep === 0 && (
-              <ModernCategoryStep
-                form={form}
-                onNext={nextStep}
-                userName={userProfile?.name || ""}
-              />
-            )}
-            {currentStep === 1 && (shouldShowPartialWages || !shouldSkipWages) && (
-              <ModernMultiSalaryStep
-                form={form}
-                onNext={handleFinish}
-                onBack={prevStep}
-              />
-            )}
-          </form>
-        </Form>
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md mx-auto">
+          {renderStep()}
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,35 +7,45 @@ import { useAuth } from '@/contexts/AuthContext';
 import { User2, Users2, ArrowRight } from "lucide-react";
 import { useLocalization } from "@/contexts/LocalizationContext";
 import StickyActionButton from '@/components/ui/StickyActionButton';
-import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const { setRole, updateProfile, isAuthenticated } = useAuth();
+  const { setRole, updateProfile, isAuthenticated, userProfile } = useAuth();
   const { t } = useLocalization();
   const navigate = useNavigate();
 
-  const handleContinue = () => {
-    if (selectedRole) {
-      if (isAuthenticated) {
-        // User is already logged in, just update their role
-        setRole(selectedRole);
-        updateProfile({
-          role: selectedRole,
-          profile_complete: selectedRole === 'employer' ? true : false
-        });
+  useEffect(() => {
+    // If user already has a role, redirect them
+    if (isAuthenticated && userProfile?.role) {
+      if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/home');
+      }
+    }
+  }, [isAuthenticated, userProfile, navigate]);
 
+  const handleContinue = async () => {
+    if (!selectedRole) return;
+
+    if (isAuthenticated) {
+      // User is already logged in, just update their role
+      try {
+        await setRole(selectedRole);
+        
         // Navigate based on role
         if (selectedRole === 'employer') {
           navigate('/home');
         } else {
           navigate('/profile-setup');
         }
-      } else {
-        // User not logged in, store role choice in localStorage and go to login
-        localStorage.setItem('fyke_selected_role', selectedRole);
-        navigate('/login');
+      } catch (error) {
+        console.error('Error setting role:', error);
       }
+    } else {
+      // User not logged in, store role choice and go to login
+      localStorage.setItem('fyke_selected_role', selectedRole);
+      navigate('/login');
     }
   };
 
