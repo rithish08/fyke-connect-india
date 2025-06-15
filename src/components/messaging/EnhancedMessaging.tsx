@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -42,12 +42,21 @@ const EnhancedMessaging = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
     if (user) {
       loadConversations();
       setupRealtimeSubscription();
     }
+    
+    return () => {
+      if (channelRef.current) {
+        console.log('Cleaning up channel subscription');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
   }, [user]);
 
   const loadConversations = async () => {
@@ -71,9 +80,11 @@ const EnhancedMessaging = () => {
   };
 
   const setupRealtimeSubscription = () => {
-    if (!user) return;
+    if (!user || channelRef.current) return;
 
-    const channel = supabase
+    console.log('Setting up realtime subscription for user:', user.id);
+    
+    channelRef.current = supabase
       .channel('conversation-messages')
       .on(
         'postgres_changes',
@@ -101,11 +112,9 @@ const EnhancedMessaging = () => {
           );
         }
       )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {
