@@ -40,21 +40,27 @@ const OTPVerification = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
+      // ADDED LOG: what code & phone are we sending to login?
+      console.log('[OTPVerification] Submitting login for phone', phone, 'with OTP', otpCode);
       await login(phone, otpCode);
-      
+
+      // ADDED LOG: if login returns without error
+      console.log('[OTPVerification] Login succeeded, navigating to role-selection');
       navigate('/role-selection');
-      
+
       toast({
         title: "Phone Verified!",
         description: "Now choose your role to continue"
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[OTPVerification] Verification Failed:', error);
+
       toast({
         title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
+        description: error?.message || "Invalid OTP. Please try again.",
         variant: "destructive"
       });
       setOtp(['', '', '', '', '', '']);
@@ -147,3 +153,4 @@ const OTPVerification = () => {
 };
 
 export default OTPVerification;
+
