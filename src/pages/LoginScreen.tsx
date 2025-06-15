@@ -1,24 +1,192 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLocalization } from "@/contexts/LocalizationContext";
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Phone, MessageSquare, User } from "lucide-react";
+import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [showOTP, setShowOTP] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
+  const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer]);
+
   const handleSendOTP = async () => {
-    console.log('Sending OTP to:', phone);
-    localStorage.setItem('fyke_phone', phone || '');
-    localStorage.setItem('fyke_name', name || '');
-    navigate('/otp-verification');
+    if (phone.length !== 10 || !name.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter your name and a valid 10-digit phone number",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Store user data for later use
+      localStorage.setItem('fyke_phone', phone);
+      localStorage.setItem('fyke_name', name.trim());
+      
+      // Simulate sending OTP
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setShowOTP(true);
+      setResendTimer(60);
+      
+      toast({
+        title: "OTP Sent",
+        description: `Verification code sent to +91 ${phone}`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleOTPComplete = async (otpCode: string) => {
+    if (otpCode.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter the complete 6-digit code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      await login(phone, otpCode);
+      
+      toast({
+        title: "Login Successful!",
+        description: "Welcome to Fyke Connect"
+      });
+      
+      // Navigate to role selection after successful login
+      navigate('/role-selection');
+    } catch (error) {
+      toast({
+        title: "Verification Failed",
+        description: "Invalid OTP. Please try again.",
+        variant: "destructive"
+      });
+      setOtp(['', '', '', '', '', '']);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = () => {
+    setResendTimer(60);
+    toast({
+      title: "OTP Resent",
+      description: "New verification code sent to your phone"
+    });
+  };
+
+  const handleBack = () => {
+    setShowOTP(false);
+    setOtp(['', '', '', '', '', '']);
+  };
+
+  if (showOTP) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
+              <span className="text-2xl font-bold text-gray-800">F</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Verify Your Phone</h1>
+              <p className="text-gray-500">
+                Enter the 6-digit code sent to<br />
+                <span className="font-semibold text-gray-700">+91 {phone}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* OTP Card */}
+          <Card className="p-6 shadow border-gray-100 bg-white">
+            <div className="space-y-6">
+              {/* Enhanced OTP Input */}
+              <EnhancedOTPInput
+                value={otp}
+                onChange={setOtp}
+                onComplete={handleOTPComplete}
+              />
+
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm text-gray-500">Code will be verified automatically</p>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={handleBack}
+                  className="text-sm text-gray-600 hover:text-gray-800"
+                >
+                  ← Change Number
+                </button>
+                
+                {resendTimer > 0 ? (
+                  <p className="text-sm text-gray-400">
+                    Resend in {resendTimer}s
+                  </p>
+                ) : (
+                  <button
+                    onClick={handleResend}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Security Info */}
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center space-x-2 text-green-600">
+              <span className="text-sm">🛡️</span>
+              <span className="text-sm font-medium">Secure Verification</span>
+            </div>
+            <p className="text-xs text-gray-400">
+              This helps us keep your account safe and secure
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
@@ -69,10 +237,10 @@ const LoginScreen = () => {
             
             <Button 
               onClick={handleSendOTP} 
-              disabled={phone.length !== 10 || !name.trim()}
+              disabled={phone.length !== 10 || !name.trim() || loading}
               className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
             >
-              Send OTP
+              {loading ? 'Sending...' : 'Send OTP'}
             </Button>
           </div>
 

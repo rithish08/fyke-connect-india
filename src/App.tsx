@@ -34,8 +34,10 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public routes - start from language selection */}
+              {/* Default route - always start at language selection */}
               <Route path="/" element={<LanguageSelection />} />
+              
+              {/* Public routes */}
               <Route path="/role-selection" element={
                 <RouteGuard requireAuth={false}>
                   <RoleSelection />
@@ -106,6 +108,7 @@ const App = () => (
                 </RouteGuard>
               } />
               
+              {/* Fallback for unknown routes */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

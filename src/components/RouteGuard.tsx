@@ -49,7 +49,7 @@ const RouteGuard = ({
 
     // Check authentication requirement
     if (requireAuth && !isAuthenticated) {
-      console.log('[RouteGuard] Auth required but not authenticated, redirecting to home');
+      console.log('[RouteGuard] Auth required but not authenticated, redirecting to language selection');
       navigate('/');
       return;
     }
@@ -57,20 +57,17 @@ const RouteGuard = ({
     // If authenticated, check user state
     if (isAuthenticated && user) {
       // Check role requirement
-      if (!user.role) {
+      if (!user.role && currentPath !== '/role-selection') {
         console.log('[RouteGuard] No role set, redirecting to role selection');
         navigate('/role-selection');
         return;
       }
 
       // Check profile completion for jobseekers
-      if (requireProfile && user.role === 'jobseeker' && !user.profileComplete) {
-        // Don't redirect if already on profile setup
-        if (currentPath !== '/profile-setup') {
-          console.log('[RouteGuard] Profile incomplete, redirecting to profile setup');
-          navigate('/profile-setup');
-          return;
-        }
+      if (requireProfile && user.role === 'jobseeker' && !user.profileComplete && currentPath !== '/profile-setup') {
+        console.log('[RouteGuard] Profile incomplete, redirecting to profile setup');
+        navigate('/profile-setup');
+        return;
       }
 
       // Redirect completed profiles away from setup pages
@@ -98,6 +95,20 @@ const RouteGuard = ({
         <div className="text-center space-y-4">
           <ShimmerLoader height={60} width="200px" />
           <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Add fallback for profile-setup without proper user state
+  if (location.pathname === '/profile-setup' && (!user || !user.role)) {
+    console.log('[RouteGuard] Profile setup without proper user state, redirecting to role selection');
+    navigate('/role-selection');
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <ShimmerLoader height={60} width="200px" />
+          <p className="text-gray-600">Redirecting...</p>
         </div>
       </div>
     );
