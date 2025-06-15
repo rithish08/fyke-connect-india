@@ -73,9 +73,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/role-selection" replace />;
   }
 
-  // Profile completion checks
+  // Profile completion checks for specific routes that require it
   if (requireProfileComplete) {
-    // Jobseekers need complete profile
+    // Jobseekers need complete profile for most features
     if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
       console.log('[ProtectedRoute] Jobseeker profile incomplete, redirecting to setup');
       return <Navigate to="/profile-setup" replace />;

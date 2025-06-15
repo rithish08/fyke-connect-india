@@ -26,12 +26,22 @@ export const useUserFlow = () => {
   const isFlowComplete = useCallback(() => {
     if (loading || !isAuthenticated || !userProfile) return false;
     
-    return userProfile.role && (userProfile.role === 'employer' || userProfile.profile_complete);
+    // Flow is complete if:
+    // 1. User has a role
+    // 2. If jobseeker, profile must be complete
+    // 3. If employer or admin, role selection is enough
+    return userProfile.role && (
+      userProfile.role === 'employer' || 
+      userProfile.role === 'admin' || 
+      (userProfile.role === 'jobseeker' && userProfile.profile_complete)
+    );
   }, [loading, isAuthenticated, userProfile]);
 
   return {
     determineNextScreen,
     isFlowComplete: isFlowComplete(),
-    loading
+    loading,
+    needsRoleSelection: isAuthenticated && userProfile && !userProfile.role,
+    needsProfileSetup: isAuthenticated && userProfile && userProfile.role === 'jobseeker' && !userProfile.profile_complete
   };
 };

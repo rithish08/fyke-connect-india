@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,6 @@ interface UserProfile {
   location: string | null;
   bio: string | null;
   availability: 'available' | 'busy' | 'offline';
-  primary_category?: string;
   subcategories?: string[];
   salaryBySubcategory?: { [key: string]: { amount: string; period: string } };
 }
@@ -50,7 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isAuthenticated = !!user && !!session;
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
     try {
       console.log('Fetching user profile for:', userId);
       const { data, error } = await supabase
@@ -69,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('[AuthContext] Setting up auth state listener');
@@ -81,10 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile after user is set
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 100);
+          await fetchUserProfile(session.user.id);
         } else {
           setUserProfile(null);
         }
@@ -101,13 +97,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (session?.user) {
         fetchUserProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchUserProfile]);
 
   const sendOTP = async (phoneNumber: string) => {
     try {
@@ -249,6 +245,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return;
 
     try {
+      // Handle category and subcategory setup
       if (profileData.subcategories && profileData.subcategories.length > 0) {
         const { data: categoryData } = await supabase
           .from('categories')
@@ -257,11 +254,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .single();
 
         if (categoryData) {
+          // Clear existing user categories
           await supabase
             .from('user_categories')
             .delete()
             .eq('user_id', user.id);
 
+          // Add new subcategories
           for (const subcategory of profileData.subcategories) {
             const { data: subcategoryData } = await supabase
               .from('subcategories')
@@ -284,6 +283,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
+      // Handle wage setup
       if (profileData.salaryBySubcategory) {
         for (const [subcategory, salaryInfo] of Object.entries(profileData.salaryBySubcategory)) {
           const salary = salaryInfo as { amount: string; period: string };
@@ -308,6 +308,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
+      // Update main profile
       const { error } = await supabase
         .from('profiles')
         .update({

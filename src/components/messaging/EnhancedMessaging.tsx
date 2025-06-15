@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -43,23 +43,9 @@ const EnhancedMessaging = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
+  const isSubscribed = useRef(false);
 
-  useEffect(() => {
-    if (user) {
-      loadConversations();
-      setupRealtimeSubscription();
-    }
-    
-    return () => {
-      if (channelRef.current) {
-        console.log('Cleaning up channel subscription');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [user]);
-
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -77,45 +63,82 @@ const EnhancedMessaging = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const setupRealtimeSubscription = () => {
-    if (!user || channelRef.current) return;
+  const cleanupSubscription = useCallback(() => {
+    if (channelRef.current) {
+      console.log('Cleaning up channel subscription');
+      try {
+        channelRef.current.unsubscribe();
+        supabase.removeChannel(channelRef.current);
+      } catch (error) {
+        console.log('Error during cleanup:', error);
+      }
+      channelRef.current = null;
+      isSubscribed.current = false;
+    }
+  }, []);
+
+  const setupRealtimeSubscription = useCallback(() => {
+    if (!user || isSubscribed.current) return;
 
     console.log('Setting up realtime subscription for user:', user.id);
     
-    channelRef.current = supabase
-      .channel('conversation-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'conversation_messages'
-        },
-        (payload) => {
-          console.log('New message received:', payload);
-          const newMessage = payload.new as Message;
-          
-          // If this message is for the currently selected conversation, add it
-          if (selectedConversation && newMessage.conversation_id === selectedConversation.id) {
-            setMessages(prev => [...prev, newMessage]);
+    try {
+      channelRef.current = supabase
+        .channel(`conversation-messages-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'conversation_messages'
+          },
+          (payload) => {
+            console.log('New message received:', payload);
+            const newMessage = payload.new as Message;
+            
+            // If this message is for the currently selected conversation, add it
+            if (selectedConversation && newMessage.conversation_id === selectedConversation.id) {
+              setMessages(prev => [...prev, newMessage]);
+            }
+            
+            // Update last message time for the conversation
+            setConversations(prev => 
+              prev.map(conv => 
+                conv.id === newMessage.conversation_id 
+                  ? { ...conv, last_message_at: newMessage.created_at }
+                  : conv
+              )
+            );
           }
-          
-          // Update last message time for the conversation
-          setConversations(prev => 
-            prev.map(conv => 
-              conv.id === newMessage.conversation_id 
-                ? { ...conv, last_message_at: newMessage.created_at }
-                : conv
-            )
-          );
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
-  };
+        )
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            isSubscribed.current = true;
+          }
+        });
+    } catch (error) {
+      console.error('Error setting up subscription:', error);
+    }
+  }, [user, selectedConversation]);
+
+  useEffect(() => {
+    if (user) {
+      loadConversations();
+      setupRealtimeSubscription();
+    }
+    
+    return cleanupSubscription;
+  }, [user, loadConversations, setupRealtimeSubscription, cleanupSubscription]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupSubscription();
+    };
+  }, [cleanupSubscription]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);

@@ -16,20 +16,23 @@ const OTPVerification = () => {
   const { verifyOTP, sendOTP, userProfile, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const didAutoNavigate = useRef(false);
+  const isVerifying = useRef(false);
 
   const phone = localStorage.getItem('fyke_phone');
 
-  // Main onboarding/correct auth flow
+  // Main navigation logic
   useEffect(() => {
     // No phone, go back to login
     if (!phone) {
       navigate('/login');
       return;
     }
-    // Successful login and profile, navigate away by role
+
+    // Successful login and profile, navigate based on profile state
     if (isAuthenticated && user && userProfile && !didAutoNavigate.current) {
-      didAutoNavigate.current = true; // prevent racey double navigation
+      didAutoNavigate.current = true;
       localStorage.removeItem('fyke_phone');
+      
       if (!userProfile.role) {
         navigate('/role-selection');
       } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
@@ -49,15 +52,11 @@ const OTPVerification = () => {
   }, [resendTimer]);
 
   const handleOTPComplete = async (otpCode: string) => {
-    if (otpCode.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the complete 6-digit code",
-        variant: "destructive"
-      });
+    if (otpCode.length !== 6 || isVerifying.current) {
       return;
     }
 
+    isVerifying.current = true;
     setLoading(true);
     setErrorState(null);
 
@@ -68,7 +67,7 @@ const OTPVerification = () => {
           title: "Phone Verified!",
           description: "Successfully authenticated"
         });
-        // auth navigation will happen automatically from useEffect above
+        // Navigation will happen automatically from useEffect above
       } else {
         setErrorState(result.error || "OTP verification failed. Please try again.");
         setOtp(['', '', '', '', '', '']);
@@ -78,6 +77,7 @@ const OTPVerification = () => {
       setOtp(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
+      isVerifying.current = false;
     }
   };
 
@@ -86,8 +86,10 @@ const OTPVerification = () => {
       setErrorState("Missing phone number, return to login.");
       return;
     }
+    
     setLoading(true);
     setErrorState(null);
+    
     try {
       await sendOTP(phone);
       setResendTimer(60);

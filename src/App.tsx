@@ -8,6 +8,7 @@ import { LocalizationProvider } from "@/contexts/LocalizationContext";
 import { CommunicationProvider } from "@/contexts/CommunicationContext";
 import { useOfflineCapabilities } from "@/hooks/useOfflineCapabilities";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { useState, useEffect } from "react";
 
 // Import all pages and components
@@ -28,7 +29,23 @@ import AdminDashboard from "./pages/AdminDashboard";
 import OfflineIndicator from "./components/common/OfflineIndicator";
 import "./App.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as any).status;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
+        }
+        return failureCount < 3;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const AppContent = () => {
   useOfflineCapabilities();
@@ -51,10 +68,38 @@ const AppContent = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/language-selection" replace />} />
-        <Route path="/language-selection" element={<LanguageSelection />} />
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/otp-verification" element={<OTPVerification />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route 
+          path="/language-selection" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <LanguageSelection />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <LoginScreen />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/otp-verification" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <OTPVerification />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-login" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <AdminLogin />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Semi-Protected Routes (require auth but not complete profile) */}
         <Route 
@@ -142,20 +187,22 @@ const AppContent = () => {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <LocalizationProvider>
-              <CommunicationProvider>
-                <AppContent />
-                <Toaster />
-              </CommunicationProvider>
-            </LocalizationProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <LocalizationProvider>
+                <CommunicationProvider>
+                  <AppContent />
+                  <Toaster />
+                </CommunicationProvider>
+              </LocalizationProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
 }
 
