@@ -136,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchRole = () => {
     if (user) {
-      const newRole = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
+      const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
       console.log('Switching role from', user.role, 'to', newRole);
       
       const updatedUser = { 

@@ -84,9 +84,22 @@ export const useProfileSetupForm = () => {
           )
         : data.salaryBySubcategory;
 
+      // Convert optional properties to required for User type
+      const salaryBySubcategory = filteredSalaryData 
+        ? Object.fromEntries(
+            Object.entries(filteredSalaryData).map(([key, value]) => [
+              key, 
+              { 
+                amount: value.amount || '0', 
+                period: value.period || 'daily' 
+              }
+            ])
+          )
+        : undefined;
+
       const profileData = {
         ...data,
-        salaryBySubcategory: shouldSkipWages ? undefined : filteredSalaryData,
+        salaryBySubcategory: shouldSkipWages ? undefined : salaryBySubcategory,
         profileComplete: true
       };
 
