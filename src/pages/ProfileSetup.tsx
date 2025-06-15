@@ -5,26 +5,25 @@ import { Form } from '@/components/ui/form';
 import { ArrowLeft, BadgeCheck } from "lucide-react";
 import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
 import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
-import ModernAvailabilityStep from '@/components/profile/ModernAvailabilityStep';
+import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
 import { FloatingCard } from '@/components/ui/floating-card';
 import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
-import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
 import { ProfileSetupFormData } from '@/schemas/profileSetupSchema';
 
 const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
   const navigate = useNavigate();
-  const { 
-    form, 
-    currentStep, 
-    isSubmitting, 
-    nextStep, 
-    prevStep, 
-    submitProfile, 
+  const {
+    form,
+    currentStep,
+    isSubmitting,
+    nextStep,
+    prevStep,
+    submitProfile,
     shouldSkipWages,
-    shouldShowPartialWages 
+    shouldShowPartialWages
   } = useProfileSetupForm();
   const [nameStep, setNameStep] = useState(0);
 
@@ -46,18 +45,13 @@ const ProfileSetup = () => {
       navigate('/home');
       return;
     }
-    // Always start with name step if not present
     if (!user.name?.trim()) setNameStep(0);
     else setNameStep(1);
   }, [user, loading, navigate]);
 
   const handleBack = async () => {
     if (currentStep > 0) {
-      if (currentStep === 2 && shouldSkipWages) {
-        prevStep(); // This will go to step 0
-      } else {
-        prevStep();
-      }
+      prevStep();
     } else {
       setNameStep(0);
     }
@@ -69,12 +63,13 @@ const ProfileSetup = () => {
     setNameStep(1);
   };
 
-  const handleFinish = async (data: ProfileSetupFormData) => {
-    console.log('Profile setup data:', data);
+  const handleFinish = async () => {
+    // Directly submit profile without an availability step.
+    const data = form.getValues();
+    const isValid = await form.trigger();
+    if (!isValid) return false;
     const success = await submitProfile(data);
-    console.log('Profile submission result:', success);
     if (success) {
-      console.log('Navigating to home after successful profile setup');
       navigate('/home');
     }
     return success;
@@ -83,7 +78,6 @@ const ProfileSetup = () => {
   if (loading) return <ProfileLoading />;
   if (!user) return <ProfileRedirect />;
 
-  // Name input step
   if (nameStep === 0) {
     return (
       <ProfileNameStep
@@ -93,7 +87,6 @@ const ProfileSetup = () => {
     );
   }
 
-  // Main profile setup UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 px-4 py-6">
       <div className="w-full max-w-lg mx-auto">
@@ -131,16 +124,8 @@ const ProfileSetup = () => {
             {currentStep === 1 && (shouldShowPartialWages || !shouldSkipWages) && (
               <ModernMultiSalaryStep
                 form={form}
-                onNext={nextStep}
+                onNext={handleFinish}
                 onBack={prevStep}
-              />
-            )}
-            {currentStep === 2 && (
-              <ModernAvailabilityStep 
-                form={form} 
-                onBack={handleBack} 
-                onFinish={handleFinish}
-                isSubmitting={isSubmitting}
               />
             )}
           </form>
