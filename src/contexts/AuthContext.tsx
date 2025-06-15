@@ -77,7 +77,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer profile fetching to avoid blocking auth state changes
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
@@ -139,7 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Check if we need to assign a role from localStorage
         const selectedRole = localStorage.getItem('fyke_selected_role') as 'jobseeker' | 'employer' | null;
         
-        if (selectedRole && user) {
+        if (selectedRole && result.userId) {
           // Update the user profile with the selected role
           await updateProfile({ 
             role: selectedRole,
@@ -202,17 +201,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // --- NEW: signOut for convention/compat
   const signOut = logout;
 
-  // NEW: setRole method (updates profile and refetches)
   const setRole = async (role: 'jobseeker' | 'employer' | 'admin') => {
     if (!user) return;
     await updateProfile({ role });
     await fetchUserProfile(user.id);
   };
 
-  // NEW: switchRole toggles between jobseeker and employer (not admin)
   const switchRole = async () => {
     if (!userProfile) return;
     const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
@@ -224,7 +220,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return { error: 'Not logged in' };
 
     try {
-      // Profile update -- fix naming: profile_complete, not profileComplete
       const { error } = await supabase
         .from('profiles')
         .update(updates)

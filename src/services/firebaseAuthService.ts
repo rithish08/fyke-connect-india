@@ -48,25 +48,62 @@ export class FirebaseAuthService {
       
       console.log('Firebase user authenticated:', firebaseUser.uid);
 
-      // Create or get user in Supabase using Firebase custom token
-      const firebaseToken = await firebaseUser.getIdToken();
+      // Create user in Supabase manually instead of using Firebase token
+      const phoneNumber = firebaseUser.phoneNumber;
       
-      // Sign in to Supabase with Firebase token
-      const { data: supabaseUser, error } = await supabase.auth.signInWithIdToken({
-        provider: 'firebase',
-        token: firebaseToken,
-      });
+      // Check if user already exists in Supabase
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('phone', phoneNumber)
+        .single();
 
-      if (error) {
-        console.error('Supabase authentication error:', error);
-        throw error;
+      let userId = existingUser?.id;
+
+      if (!existingUser) {
+        // Create new user in Supabase auth.users table using admin functions
+        // For now, we'll create a profile directly and let the trigger handle the rest
+        console.log('Creating new user profile for:', phoneNumber);
+        
+        // Sign up the user with a dummy email (we'll use phone as identifier)
+        const dummyEmail = `${phoneNumber.replace('+', '')}@fyke.local`;
+        const { data: newUser, error: signUpError } = await supabase.auth.signUp({
+          email: dummyEmail,
+          password: firebaseUser.uid, // Use Firebase UID as password
+          options: {
+            data: {
+              phone: phoneNumber,
+              firebase_uid: firebaseUser.uid
+            }
+          }
+        });
+
+        if (signUpError) {
+          console.error('Error creating Supabase user:', signUpError);
+          throw signUpError;
+        }
+
+        userId = newUser.user?.id;
+      } else {
+        // Sign in existing user
+        const dummyEmail = `${phoneNumber.replace('+', '')}@fyke.local`;
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: dummyEmail,
+          password: firebaseUser.uid
+        });
+
+        if (signInError) {
+          console.error('Error signing in user:', signInError);
+          throw signInError;
+        }
+
+        userId = signInData.user?.id;
       }
 
       return {
         success: true,
-        user: supabaseUser.user,
-        session: supabaseUser.session,
-        phone: firebaseUser.phoneNumber
+        userId: userId,
+        phone: phoneNumber
       };
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
