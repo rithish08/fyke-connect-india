@@ -35,7 +35,7 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
       <div className="relative bg-white p-0 shadow-none w-full">
         {/* App Brand in top left */}
         <div className="flex items-center h-14 px-4 border-b border-gray-100">
-          <span className="font-extrabold text-2xl sm:text-3xl text-blue-700 tracking-tight" style={{fontFamily: 'Montserrat, sans-serif'}}>Fyke</span>
+          <span className="font-extrabold text-2xl sm:text-3xl text-black tracking-tight" style={{fontFamily: 'Montserrat, sans-serif', textTransform: 'lowercase', letterSpacing: '-0.015em'}}>fyke</span>
         </div>
         {/* Page Name below app name */}
         <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
@@ -75,3 +75,4 @@ const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
 };
 
 export default HomeHeader;
+
