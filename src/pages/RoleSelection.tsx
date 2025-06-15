@@ -1,149 +1,126 @@
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocalization } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Users, Briefcase, ChevronRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { User2, Users2, ArrowRight } from "lucide-react";
+import { useLocalization } from "@/contexts/LocalizationContext";
+import StickyActionButton from '@/components/ui/StickyActionButton';
+import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
-  const navigate = useNavigate();
-  const { updateProfile, user } = useAuth();
-  const { t } = useLocalization();
-  const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { setRole, updateProfile } = useAuth();
+  const { t } = useLocalization();
+  const { goTo } = useScreenNavigation();
+
+  const handleContinue = () => {
+    if (selectedRole) {
+      setRole(selectedRole);
+
+      // Update profile with the selected role
+      updateProfile({
+        role: selectedRole,
+        profileComplete: selectedRole === 'employer' ? true : false
+      });
+
+      // Navigate based on role
+      if (selectedRole === 'employer') {
+        goTo('/home');
+      } else {
+        goTo('/profile-setup');
+      }
+    }
+  };
 
   const roles = [
     {
-      id: 'jobseeker' as const,
-      title: t('role.jobseeker', 'Job Seeker'),
-      description: t('role.jobseeker_desc', 'Find work opportunities near you'),
-      icon: Users,
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600'
+      type: 'jobseeker' as const,
+      icon: <User2 className="w-8 h-8 text-white"/>,
+      gradient: "from-blue-500 to-indigo-600",
+      title: t("role.jobseeker", "Find Work"),
+      subtitle: t("role.jobseeker_desc", "Browse jobs and earn money"),
+      features: ["Quick applications", "Daily payments", "Verified employers"],
+      bgGradient: "from-blue-50 to-indigo-50",
+      iconBg: "bg-blue-500"
     },
     {
-      id: 'employer' as const,
-      title: t('role.employer', 'Employer'),
-      description: t('role.employer_desc', 'Hire skilled workers for your business'),
-      icon: Briefcase,
-      color: 'from-green-500 to-emerald-500',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600'
+      type: 'employer' as const,
+      icon: <Users2 className="w-8 h-8 text-white"/>,
+      gradient: "from-green-500 to-emerald-600",
+      title: t("role.employer", "Hire Workers"),
+      subtitle: t("role.employer_desc", "Find skilled people instantly"),
+      features: ["Verified workers", "Quick hiring", "Secure payments"],
+      bgGradient: "from-green-50 to-emerald-50",
+      iconBg: "bg-green-500"
     }
   ];
 
-  const handleRoleSelect = (role: 'jobseeker' | 'employer') => {
-    setSelectedRole(role);
-  };
-
-  const handleContinue = async () => {
-    if (!selectedRole) return;
-
-    setIsLoading(true);
-    try {
-      await updateProfile({ role: selectedRole });
-      
-      toast({
-        title: t('role.selected', 'Role Selected'),
-        description: t('role.success', `You are now registered as a ${selectedRole}`)
-      });
-
-      if (selectedRole === 'jobseeker') {
-        navigate('/profile-setup');
-      } else {
-        navigate('/home');
-      }
-    } catch (error) {
-      toast({
-        title: t('role.error', 'Error'),
-        description: t('role.error_desc', 'Failed to update role. Please try again.'),
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
-          {/* Header */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center mb-4">
-              <button
-                onClick={() => navigate('/login')}
-                className="absolute left-4 top-4 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t('role.title', 'How will you use fyke?')}
-            </h1>
-            <p className="text-gray-600">
-              {t('role.subtitle', 'Choose your role to get started')}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-sm mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mx-auto shadow-xl">
+            <span className="text-3xl font-bold text-white">f</span>
           </div>
-
-          {/* Role Options */}
-          <div className="space-y-4">
-            {roles.map((role) => {
-              const Icon = role.icon;
-              const isSelected = selectedRole === role.id;
-              
-              return (
-                <Card
-                  key={role.id}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-lg border-2 ${
-                    isSelected
-                      ? 'border-blue-500 shadow-md'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleRoleSelect(role.id)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-xl ${role.bgColor} flex items-center justify-center`}>
-                        <Icon className={`w-6 h-6 ${role.textColor}`} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 text-lg">{role.title}</h3>
-                        <p className="text-gray-600 text-sm">{role.description}</p>
-                      </div>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
-                      }`}>
-                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('role.title', 'Choose Your Role')}</h1>
+            <p className="text-gray-500">{t('role.subtitle', 'How do you want to use Fyke?')}</p>
           </div>
-
-          {/* Continue Button */}
-          <Button
-            onClick={handleContinue}
-            disabled={!selectedRole || isLoading}
-            className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isLoading ? (
-              t('role.updating', 'Setting up...')
-            ) : (
-              <>
-                {t('role.continue', 'Continue')}
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </>
-            )}
-          </Button>
         </div>
+
+        {/* Role Cards */}
+        <div className="space-y-4">
+          {roles.map((role) => (
+            <Card
+              key={role.type}
+              className={`relative overflow-hidden border-2 transition-all duration-300 cursor-pointer ${
+                selectedRole === role.type
+                  ? "border-gray-900 shadow-xl scale-105"
+                  : "border-gray-100 hover:border-gray-300 shadow-lg"
+              }`}
+              onClick={() => setSelectedRole(role.type)}
+            >
+              <div className={`bg-gradient-to-r ${role.bgGradient} p-6`}>
+                <div className="flex items-start space-x-4">
+                  <div className={`w-16 h-16 rounded-2xl ${role.iconBg} flex items-center justify-center shadow-lg`}>
+                    {role.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{role.title}</h3>
+                    <p className="text-gray-600 text-sm mb-3">{role.subtitle}</p>
+                    <div className="space-y-1">
+                      {role.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center text-xs text-gray-500">
+                          <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></div>
+                          {feature}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {selectedRole === role.type && (
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900">
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Continue Button */}
+        <StickyActionButton
+          onClick={handleContinue}
+          disabled={!selectedRole}
+        >
+          {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
+        </StickyActionButton>
+
+        <p className="text-center text-xs text-gray-400">
+          {t('role.switch_hint', 'You can switch roles anytime in the app')}
+        </p>
       </div>
     </div>
   );

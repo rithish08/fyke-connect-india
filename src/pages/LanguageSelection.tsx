@@ -1,81 +1,93 @@
 
-import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLocalization } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Globe, ChevronRight } from 'lucide-react';
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { useAuth } from '@/contexts/AuthContext';
 
-const languages = [
-  { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳' },
-  { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', flag: '🇮🇳' },
-  { code: 'te', name: 'Telugu', nativeName: 'తెలుగు', flag: '🇮🇳' },
-  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', flag: '🇮🇳' },
-  { code: 'mr', name: 'Marathi', nativeName: 'मराठी', flag: '🇮🇳' },
-  { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', flag: '🇮🇳' },
-  { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം', flag: '🇮🇳' }
+const languageList = [
+  { code: 'en', name: 'English', native: 'English', color: 'bg-blue-500', icon: "🇬🇧" },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी', color: 'bg-amber-400', icon: "🇮🇳" },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்', color: 'bg-pink-400', icon: "🇮🇳" },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు', color: 'bg-green-500', icon: "🇮🇳" },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা', color: 'bg-purple-500', icon: "🇮🇳" },
+  { code: 'mr', name: 'Marathi', native: 'मराठी', color: 'bg-red-500', icon: "🇮🇳" },
+  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ', color: 'bg-indigo-500', icon: "🇮🇳" },
+  { code: 'ml', name: 'Malayalam', native: 'മലയാളം', color: 'bg-teal-400', icon: "🇮🇳" }
 ];
 
 const LanguageSelection = () => {
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const { setLanguage, t } = useLocalization();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const { setLanguage, language: currentLanguage } = useLocalization();
 
-  const handleLanguageSelect = (langCode: string) => {
-    setLanguage(langCode);
+  const handleContinue = () => {
+    setLanguage(selectedLanguage);
+    
+    // If user is already authenticated, determine next screen based on flow
+    if (isAuthenticated && user) {
+      if (!user.role) {
+        navigate('/role-selection');
+      } else if (user.role === 'jobseeker' && !user.profileComplete) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/home');
+      }
+      return;
+    }
+
+    // For new/unauthenticated users, go directly to login
     navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-3xl font-bold text-white">fyke</span>
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-gray-900">Choose Your Language</h1>
-              <p className="text-gray-600">Select your preferred language to continue</p>
-            </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 pb-32">
+        <div className="w-full max-w-lg mx-auto space-y-7">
+          {/* Brand + Welcome */}
+          <div className="flex flex-col items-center gap-4">
+            <span className="flex rounded-full bg-gray-900 text-white w-14 h-14 justify-center items-center text-2xl font-bold shadow border-2 border-gray-100">fyke</span>
+            <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
+            <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
           </div>
-
-          {/* Language Options */}
-          <div className="space-y-3">
-            {languages.map((lang) => (
-              <Card
+          
+          {/* Language grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {languageList.map((lang) => (
+              <button
                 key={lang.code}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md border-2 ${
-                  currentLanguage === lang.code
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                onClick={() => setSelectedLanguage(lang.code)}
+                className={`group transition-all duration-150 rounded-xl flex flex-col items-center p-5 shadow hover:shadow-lg border-2 ${
+                  selectedLanguage === lang.code
+                    ? "border-gray-700 bg-gray-50 scale-105"
+                    : "border-gray-100 bg-white hover:border-gray-300"
                 }`}
-                onClick={() => handleLanguageSelect(lang.code)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{lang.flag}</span>
-                      <div>
-                        <div className="font-semibold text-gray-900">{lang.name}</div>
-                        <div className="text-sm text-gray-600">{lang.nativeName}</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </div>
-                </CardContent>
-              </Card>
+                <span className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 ${lang.color} text-white shadow-lg`}>
+                  {lang.icon}
+                </span>
+                <span className="text-xl font-bold text-gray-900">{lang.native}</span>
+                <span className="text-xs text-gray-400 mt-1">{lang.name}</span>
+                {selectedLanguage === lang.code && (
+                  <span className="mt-2 text-xs text-green-600 font-medium">✔ Selected</span>
+                )}
+              </button>
             ))}
           </div>
+        </div>
+      </div>
 
-          {/* Footer */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2 text-gray-500">
-              <Globe className="w-4 h-4" />
-              <span className="text-sm">Available in 8 languages</span>
-            </div>
-          </div>
+      {/* Fixed Footer Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div className="w-full max-w-lg mx-auto">
+          <Button
+            onClick={handleContinue}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 rounded-2xl shadow-lg text-lg h-14"
+          >
+            {t('common.continue', 'Continue')}
+          </Button>
         </div>
       </div>
     </div>

@@ -1,24 +1,17 @@
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
+/**
+ * Provides typed navigation for screens.
+ * Any central route logic goes here for consistency.
+ */
 export const useScreenNavigation = () => {
   const navigate = useNavigate();
 
-  const goTo = (path: string, options?: { replace?: boolean; state?: any }) => {
-    navigate(path, options);
-  };
-
-  const goBack = () => {
-    navigate(-1);
-  };
-
-  const goHome = () => {
-    navigate('/home');
-  };
-
+  // Always use this signature for future navigation
   return {
-    goTo,
-    goBack,
-    goHome
+    goTo: (path: string) => navigate(path),
+    goBack: () => navigate(-1),
+    // Extend with push/replace/query navigation as needed in the future
   };
 };
