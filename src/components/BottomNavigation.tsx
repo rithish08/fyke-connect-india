@@ -4,7 +4,7 @@ import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { useUserFlow } from '@/hooks/useUserFlow';
-import { Home, Search, ClipboardList, Mail, User as UserIcon, Users } from "lucide-react";
+import { Home, Search, ClipboardList, Mail, User as UserIcon, Users, FileText } from "lucide-react";
 import { useCallback } from 'react';
 
 const iconSize = 20;
@@ -20,7 +20,7 @@ const EMPLOYER_NAV = [
 const JOBSEEKER_NAV = [
   { path: '/home', icon: Home, labelKey: 'nav.home', label: 'Home' },
   { path: '/search', icon: Search, labelKey: 'nav.jobs', label: 'Jobs' },
-  { path: '/my-jobs', icon: ClipboardList, labelKey: 'nav.myjobs', label: 'My Jobs' },
+  { path: '/applications', icon: FileText, labelKey: 'nav.applications', label: 'Applications' },
   { path: '/messages', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
   { path: '/profile', icon: UserIcon, labelKey: 'nav.profile', label: 'Profile' }
 ];
@@ -28,9 +28,11 @@ const JOBSEEKER_NAV = [
 const BottomNavigation = () => {
   const location = useLocation();
   const { goTo } = useScreenNavigation();
-  const { user } = useAuth();
+  const { getCurrentUserRole } = useAuth();
   const { t } = useLocalization();
   const { isFlowComplete } = useUserFlow();
+
+  const currentRole = getCurrentUserRole();
 
   const handleNavigation = useCallback((path: string) => {
     // Prevent rapid clicks causing navigation issues
@@ -45,12 +47,12 @@ const BottomNavigation = () => {
   }
 
   // Don't show on setup/onboarding screens
-  const hiddenPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
+  const hiddenPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup', '/splash'];
   if (hiddenPaths.includes(location.pathname)) {
     return null;
   }
 
-  const navItems = user?.role === 'employer' ? EMPLOYER_NAV : JOBSEEKER_NAV;
+  const navItems = currentRole === 'employer' ? EMPLOYER_NAV : JOBSEEKER_NAV;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg">

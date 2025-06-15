@@ -2,18 +2,20 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useJobSeekerJobs } from '@/hooks/useJobSeekerJobs';
 import JobSeekerHomeHeader from '@/components/jobseeker/JobSeekerHomeHeader';
-import JobSeekerJobCard from '@/components/jobseeker/JobSeekerJobCard';
+import UnifiedJobCard from '@/components/common/UnifiedJobCard';
 import JobSeekerEmptyState from '@/components/jobseeker/JobSeekerEmptyState';
 import JobSeekerLoadingState from '@/components/jobseeker/JobSeekerLoadingState';
 import { FloatingCard } from '@/components/ui/floating-card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Search, Briefcase } from 'lucide-react';
+import { Search, Briefcase, FileText, Star } from 'lucide-react';
 
 const JobSeekerHome = () => {
-  const { user } = useAuth();
+  const { user, getCurrentUserRole } = useAuth();
   const { jobs, isLoading } = useJobSeekerJobs();
   const navigate = useNavigate();
+
+  const currentRole = getCurrentUserRole();
 
   if (isLoading) {
     return <JobSeekerLoadingState />;
@@ -42,14 +44,47 @@ const JobSeekerHome = () => {
       
       {/* Quick Actions */}
       <FloatingCard variant="elevated" size="sm">
+        <div className="grid grid-cols-3 gap-3">
+          <Button 
+            onClick={() => navigate('/search')} 
+            variant="outline"
+            className="flex-col h-16 space-y-1"
+          >
+            <Search className="w-5 h-5" />
+            <span className="text-xs">Find Jobs</span>
+          </Button>
+          <Button 
+            onClick={() => navigate('/applications')} 
+            variant="outline"
+            className="flex-col h-16 space-y-1"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="text-xs">Applications</span>
+          </Button>
+          <Button 
+            onClick={() => navigate('/profile')} 
+            variant="outline"
+            className="flex-col h-16 space-y-1"
+          >
+            <Star className="w-4 h-4" />
+            <span className="text-xs">Profile</span>
+          </Button>
+        </div>
+      </FloatingCard>
+
+      {/* Application Status Card */}
+      <FloatingCard variant="minimal" size="sm" className="bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">Find Your Next Job</h3>
-            <p className="text-sm text-gray-600">Browse jobs matching your skills</p>
+            <h3 className="font-semibold text-gray-900 text-sm">Your Applications</h3>
+            <p className="text-xs text-gray-600">2 active • 1 interview scheduled</p>
           </div>
-          <Button onClick={() => navigate('/search')} size="sm">
-            <Search className="w-4 h-4 mr-1" />
-            Search Jobs
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => navigate('/applications')}
+          >
+            View All
           </Button>
         </div>
       </FloatingCard>
@@ -69,7 +104,12 @@ const JobSeekerHome = () => {
         {jobs && jobs.length === 0 && <JobSeekerEmptyState />}
         
         {jobs && jobs.slice(0, 3).map(job => (
-          <JobSeekerJobCard key={job.id} job={job} />
+          <UnifiedJobCard 
+            key={job.id} 
+            job={job} 
+            showCommunication={true}
+            showAvailabilitySwitch={true}
+          />
         ))}
       </div>
     </div>

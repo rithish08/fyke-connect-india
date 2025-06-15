@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LocalizationProvider } from "./contexts/LocalizationContext";
 import RouteGuard from "./components/RouteGuard";
+import SplashScreen from "./pages/SplashScreen";
 import LanguageSelection from "./pages/LanguageSelection";
 import RoleSelection from "./pages/RoleSelection";
 import LoginScreen from "./pages/LoginScreen";
@@ -22,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
 import PostJob from "./pages/PostJob";
 import WorkerProfile from "./pages/WorkerProfile";
+import ApplicationTracking from "./pages/ApplicationTracking";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,9 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
+              {/* Splash screen for app initialization */}
+              <Route path="/splash" element={<SplashScreen />} />
+              
               {/* Default route - always start at language selection */}
               <Route path="/" element={<LanguageSelection />} />
               
@@ -90,6 +95,11 @@ const App = () => (
               <Route path="/my-jobs" element={
                 <RouteGuard>
                   <MyJobs />
+                </RouteGuard>
+              } />
+              <Route path="/applications" element={
+                <RouteGuard>
+                  <ApplicationTracking />
                 </RouteGuard>
               } />
               <Route path="/profile" element={
