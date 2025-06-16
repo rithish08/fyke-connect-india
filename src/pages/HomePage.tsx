@@ -4,14 +4,13 @@ import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
-import StickyHeader from '@/components/layout/StickyHeader';
-import DynamicRoleSwitcher from '@/components/layout/DynamicRoleSwitcher';
+import UnifiedHeader from '@/components/layout/UnifiedHeader';
 import { useUserFlow } from '@/hooks/useUserFlow';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
-  const { userProfile } = useAuth();
+  const { userProfile, isAuthenticated } = useAuth();
   const { t } = useLocalization();
   const { isFlowComplete } = useUserFlow();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -22,13 +21,17 @@ const HomePage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle role switching redirect logic
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     if (userProfile && userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
       console.log('Jobseeker without completed profile detected, redirecting to profile setup');
       navigate('/profile-setup');
     }
-  }, [userProfile, navigate]);
+  }, [userProfile, isAuthenticated, navigate]);
 
   if (!userProfile || !isFlowComplete) {
     return (
@@ -40,10 +43,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <StickyHeader currentTime={currentTime} />
-      <div className="px-4 py-2 bg-gray-50 border-b">
-        <DynamicRoleSwitcher />
-      </div>
+      <UnifiedHeader currentTime={currentTime} />
       <div className="flex justify-center">
         <div className="w-full max-w-2xl px-2 sm:px-0">
           <div className="pt-4 pb-20">
@@ -56,4 +56,5 @@ const HomePage = () => {
     </div>
   );
 };
+
 export default HomePage;

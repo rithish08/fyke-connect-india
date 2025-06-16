@@ -26,10 +26,6 @@ export const useUserFlow = () => {
   const isFlowComplete = useCallback(() => {
     if (loading || !isAuthenticated || !userProfile) return false;
     
-    // Flow is complete if:
-    // 1. User has a role
-    // 2. If jobseeker, profile must be complete
-    // 3. If employer or admin, role selection is enough
     return userProfile.role && (
       userProfile.role === 'employer' || 
       userProfile.role === 'admin' || 

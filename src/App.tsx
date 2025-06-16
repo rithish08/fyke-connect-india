@@ -11,7 +11,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { useState, useEffect } from "react";
 
-// Import all pages and components
 import SplashScreen from "./components/SplashScreen";
 import LanguageSelection from "./pages/LanguageSelection";
 import RoleSelection from "./pages/RoleSelection";
@@ -33,7 +32,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
         if (error && typeof error === 'object' && 'status' in error) {
           const status = (error as any).status;
           if (status >= 400 && status < 500) {
@@ -42,7 +40,7 @@ const queryClient = new QueryClient({
         }
         return failureCount < 3;
       },
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
@@ -66,8 +64,8 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<Navigate to="/language-selection" replace />} />
+        
         <Route 
           path="/language-selection" 
           element={
@@ -101,7 +99,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Semi-Protected Routes (require auth but not complete profile) */}
         <Route 
           path="/role-selection" 
           element={
@@ -119,7 +116,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Fully Protected Routes (require auth and complete profile) */}
         <Route 
           path="/home" 
           element={
@@ -177,7 +173,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Redirect any unknown routes */}
         <Route path="*" element={<Navigate to="/language-selection" replace />} />
       </Routes>
       <OfflineIndicator />

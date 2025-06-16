@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/contexts/LocalizationContext';
 import ProfileCategoryStep from '@/components/profile/ProfileCategoryStep';
 import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
 import PersonalDetailsStep from '@/components/profile/PersonalDetailsStep';
@@ -15,16 +16,16 @@ import { ArrowLeft } from 'lucide-react';
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [bio, setBio] = useState('');
   const [category, setCategory] = useState('');
   const [vehicle, setVehicle] = useState('');
 
-  const { userProfile, completeProfileSetup, updateUserProfile } = useAuth();
+  const { userProfile, completeProfileSetup, updateUserProfile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLocalization();
 
   const form = useForm<ProfileSetupFormData>({
     resolver: zodResolver(profileSetupSchema),
@@ -39,8 +40,11 @@ const ProfileSetup = () => {
   });
 
   useEffect(() => {
-    console.log('[ProfileSetup] Current userProfile:', userProfile);
-    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     if (!userProfile) {
       console.log('[ProfileSetup] No profile, redirecting to role selection');
       navigate('/role-selection');
@@ -63,18 +67,14 @@ const ProfileSetup = () => {
     if (userProfile.name) setName(userProfile.name);
     if (userProfile.location) setLocation(userProfile.location);
     if (userProfile.bio) setBio(userProfile.bio);
-  }, [userProfile, navigate]);
+  }, [userProfile, isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (category) {
-      form.setValue('category', category);
-    }
+    if (category) form.setValue('category', category);
   }, [category, form]);
 
   useEffect(() => {
-    if (vehicle) {
-      form.setValue('vehicle', vehicle);
-    }
+    if (vehicle) form.setValue('vehicle', vehicle);
   }, [vehicle, form]);
 
   const handleNext = () => {
@@ -84,7 +84,6 @@ const ProfileSetup = () => {
       
       form.setValue('subcategories', subcategories);
       
-      // Vehicle owner subcategories that skip salary step
       const vehicleOwnerSubs = [
         'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
         'Tractor with Trailer', 'Bike with Carrier', 'Auto Rickshaw', 'Bike Taxi',
@@ -96,9 +95,9 @@ const ProfileSetup = () => {
         subcategories.every((sub: string) => vehicleOwnerSubs.includes(sub));
       
       if (hasOnlyVehicleCategories) {
-        setCurrentStep(3); // Skip salary step
+        setCurrentStep(3);
       } else {
-        setCurrentStep(2); // Go to salary step
+        setCurrentStep(2);
       }
     } else if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
@@ -120,8 +119,8 @@ const ProfileSetup = () => {
   const handleComplete = async () => {
     if (!name.trim() || !location.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
+        title: t('profile.error.missingInfo', "Missing Information"),
+        description: t('profile.error.fillRequired', "Please fill in all required fields"),
         variant: "destructive"
       });
       return;
@@ -129,33 +128,30 @@ const ProfileSetup = () => {
 
     setLoading(true);
     try {
-      // Update profile with personal details
       await updateUserProfile({
         name: name.trim(),
         location: location.trim(),
         bio: bio.trim() || undefined
       });
 
-      // Mark profile as complete
       await completeProfileSetup();
       
-      // Clean up localStorage
       localStorage.removeItem('fyke_selected_subcategories');
       localStorage.removeItem('fyke_profile_category');
       localStorage.removeItem('fyke_profile_subcategories');
       localStorage.removeItem('fyke_profile_vehicle');
       
       toast({
-        title: "Profile Complete!",
-        description: "Welcome to Fyke! You can now start finding jobs."
+        title: t('profile.success.complete', "Profile Complete!"),
+        description: t('profile.success.welcome', "Welcome to Fyke! You can now start finding jobs.")
       });
       
       navigate('/home');
     } catch (error: any) {
       console.error('[ProfileSetup] Profile setup error:', error);
       toast({
-        title: "Setup Failed",
-        description: error.message || "Failed to complete profile setup",
+        title: t('profile.error.setupFailed', "Setup Failed"),
+        description: error.message || t('profile.error.failedComplete', "Failed to complete profile setup"),
         variant: "destructive"
       });
     } finally {
@@ -181,8 +177,8 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-gray-900">Set Your Rates</h2>
-              <p className="text-gray-500">How much do you charge for each service?</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t('profile.salary.title', 'Set Your Rates')}</h2>
+              <p className="text-gray-500">{t('profile.salary.subtitle', 'How much do you charge for each service?')}</p>
             </div>
             
             <ModernMultiSalaryStep
@@ -236,10 +232,10 @@ const ProfileSetup = () => {
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back</span>
+          <span>{t('common.back', 'Back')}</span>
         </button>
         <div className="flex-1 text-center">
-          <span className="text-sm text-gray-500">Step {currentStep} of 3</span>
+          <span className="text-sm text-gray-500">{t('profile.step', 'Step')} {currentStep} {t('common.of', 'of')} 3</span>
         </div>
         <div className="w-16" />
       </div>

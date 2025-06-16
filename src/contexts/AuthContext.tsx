@@ -50,16 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('[AuthContext] Setting up auth state listener');
     
-    let initialSessionChecked = false;
-
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
         
         if (session?.user) {
           setUser(session.user);
-          // Fetch profile after setting user
           try {
             const profile = await fetchUserProfile(session.user.id);
             setUserProfile(profile);
@@ -72,15 +68,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserProfile(null);
         }
         
-        // Set loading to false after handling auth change
-        if (!initialSessionChecked) {
-          setLoading(false);
-          initialSessionChecked = true;
-        }
+        setLoading(false);
       }
     );
 
-    // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -94,10 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('[AuthContext] Error getting initial session:', error);
       } finally {
-        if (!initialSessionChecked) {
-          setLoading(false);
-          initialSessionChecked = true;
-        }
+        setLoading(false);
       }
     };
 
@@ -108,7 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Phone/OTP based authentication only
   const sendOTP = async (phone: string) => {
     const result = await supabase.auth.signInWithOtp({ phone });
     return { ...result, success: !result.error };
@@ -184,8 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userProfile,
     loading,
     isAuthenticated: !!user,
-    signIn: sendOTP, // Keep compatibility but use OTP
-    signUp: sendOTP, // Keep compatibility but use OTP
+    signIn: sendOTP,
+    signUp: sendOTP,
     signOut,
     verifyOTP,
     sendOTP,
