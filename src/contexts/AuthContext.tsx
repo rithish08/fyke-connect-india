@@ -1,7 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
-interface User {
+interface AuthUser {
   id: string;
   phone: string;
   name?: string;
@@ -25,14 +27,14 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => void;
   setRole: (role: 'jobseeker' | 'employer') => void;
   switchRole: () => void;
-  updateProfile: (updates: Partial<User>) => void;
-  loading: boolean;
+  updateProfile: (updates: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,79 +48,109 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[AuthProvider] Checking stored auth data...');
-    const storedUser = localStorage.getItem('fyke_user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setIsAuthenticated(true);
-        console.log('[AuthProvider] User loaded from localStorage:', userData);
-      } catch (error) {
-        console.error('[AuthProvider] Error parsing stored user data:', error);
-        localStorage.removeItem('fyke_user');
-        setUser(null);
-        setIsAuthenticated(false);
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        handleAuthSession(session);
       }
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
-      console.log('[AuthProvider] No stored user found');
-    }
-    setLoading(false);
-    console.log('[AuthProvider] Loading state set to false');
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          await handleAuthSession(session);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const handleAuthSession = async (session: Session) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      const authUser: AuthUser = {
+        id: session.user.id,
+        phone: profile?.phone || session.user.phone || '',
+        name: profile?.name || '',
+        email: profile?.email || session.user.email || '',
+        bio: profile?.bio || '',
+        role: profile?.role || 'jobseeker',
+        verified: profile?.verified || false,
+        profileComplete: profile?.profile_complete || false,
+        profilePhoto: profile?.profile_photo,
+        location: profile?.location,
+        availability: profile?.availability || 'available',
+        skills: [],
+        categories: [],
+        subcategories: [],
+      };
+
+      setUser(authUser);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error in handleAuthSession:', error);
+    }
+  };
 
   const login = async (phone: string, otp: string) => {
     try {
-      // Simulate API call with basic validation
-      if (otp.length !== 6) {
-        throw new Error('Invalid OTP length');
+      // For demo purposes, accept 123456 as valid OTP
+      if (otp === '123456') {
+        // Create a mock session for demo
+        const mockUser: AuthUser = {
+          id: `user_${Date.now()}`,
+          phone,
+          name: '',
+          role: 'jobseeker',
+          verified: false,
+          profileComplete: false,
+          availability: 'available',
+        };
+        
+        setUser(mockUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('fyke_user', JSON.stringify(mockUser));
+        return;
       }
-
-      // Get stored name if available
-      const storedName = localStorage.getItem('fyke_name') || '';
       
-      const mockUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        phone,
-        name: storedName,
-        email: '',
-        bio: '',
-        role: 'jobseeker', // Default role, will be changed in role selection
-        verified: Math.random() > 0.3,
-        profileComplete: false, // Always false for new users
-        categories: [],
-        primaryCategory: undefined,
-        subcategories: [],
-        availability: 'available',
-        skills: [],
-        salaryExpectation: { min: 0, max: 0 },
-        location: 'Mumbai, Maharashtra'
-      };
-      
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('fyke_user', JSON.stringify(mockUser));
-      console.log('User logged in successfully:', mockUser);
+      throw new Error('Invalid OTP');
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login error:', error);
       throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('fyke_user');
-    localStorage.removeItem('fyke_phone');
-    localStorage.removeItem('fyke_name');
-    console.log('User logged out');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('fyke_user');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const setRole = (role: 'jobseeker' | 'employer') => {
@@ -130,35 +162,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      console.log('User role updated to:', role);
     }
   };
 
   const switchRole = () => {
     if (user) {
       const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
-      console.log('Switching role from', user.role, 'to', newRole);
-      
       const updatedUser = { 
         ...user, 
         role: newRole,
-        // Employers don't need profile completion, jobseekers do
         profileComplete: newRole === 'employer' ? true : user.profileComplete
       };
-      
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      console.log('Role switched successfully to:', newRole);
     }
   };
 
-  const updateProfile = (updates: Partial<User>) => {
+  const updateProfile = (updates: Partial<AuthUser>) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      console.log('Profile updated:', updates);
-      console.log('Updated user:', updatedUser);
     }
   };
 
@@ -166,12 +190,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{
       user,
       isAuthenticated,
+      loading,
       login,
       logout,
       setRole,
       switchRole,
-      updateProfile,
-      loading
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>
