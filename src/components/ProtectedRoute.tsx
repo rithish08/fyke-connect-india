@@ -33,9 +33,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-xl flex items-center justify-center mx-auto">
+          <div className="w-20 h-20 rounded-2xl bg-blue-600 shadow-xl flex items-center justify-center mx-auto">
             <span className="text-3xl font-bold text-white">F</span>
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -47,7 +47,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Public routes - no auth required
   if (!requireAuth) {
+    // If user is already authenticated and on public route, redirect based on their state
+    if (user && userProfile) {
+      if (location.pathname === '/language-selection') {
+        const selectedLanguage = localStorage.getItem('selectedLanguage');
+        if (selectedLanguage) {
+          if (!userProfile.role) {
+            return <Navigate to="/role-selection" replace />;
+          } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+            return <Navigate to="/profile-setup" replace />;
+          } else {
+            return <Navigate to="/home" replace />;
+          }
+        }
+      }
+    }
     return <>{children}</>;
+  }
+
+  // Check language selection first
+  const selectedLanguage = localStorage.getItem('selectedLanguage');
+  if (!selectedLanguage) {
+    console.log('[ProtectedRoute] No language selected, redirecting to language selection');
+    return <Navigate to="/language-selection" replace />;
   }
 
   // Check authentication requirement

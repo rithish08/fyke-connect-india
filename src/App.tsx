@@ -62,10 +62,12 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       <Routes>
+        {/* Default redirect to language selection */}
         <Route path="/" element={<Navigate to="/language-selection" replace />} />
         
+        {/* Public routes */}
         <Route 
           path="/language-selection" 
           element={
@@ -99,6 +101,7 @@ const AppContent = () => {
           } 
         />
         
+        {/* Authenticated routes - setup flow */}
         <Route 
           path="/role-selection" 
           element={
@@ -116,6 +119,7 @@ const AppContent = () => {
           } 
         />
         
+        {/* Main app routes - require complete profile */}
         <Route 
           path="/home" 
           element={
@@ -164,6 +168,8 @@ const AppContent = () => {
             </ProtectedRoute>
           } 
         />
+        
+        {/* Admin routes */}
         <Route 
           path="/admin/dashboard" 
           element={
@@ -173,6 +179,7 @@ const AppContent = () => {
           } 
         />
         
+        {/* Catch all - redirect to language selection */}
         <Route path="*" element={<Navigate to="/language-selection" replace />} />
       </Routes>
       <OfflineIndicator />
