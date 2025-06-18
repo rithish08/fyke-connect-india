@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ interface Review {
 }
 
 const EnhancedProfile = () => {
-  const { userProfile } = useAuth();
+  const { user } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([
     {
       id: '1',
@@ -104,9 +105,9 @@ const EnhancedProfile = () => {
       <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
         <div className="relative">
           <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
-            <AvatarImage src="/placeholder.svg" alt={userProfile?.name} />
+            <AvatarImage src="/placeholder.svg" alt={user?.name} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold">
-              {userProfile?.name?.split(' ').map(n => n[0]).join('')}
+              {user?.name?.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <Button 
@@ -120,8 +121,8 @@ const EnhancedProfile = () => {
         <div className="flex-1 space-y-2">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{userProfile?.name || 'Worker Name'}</h1>
-              <p className="text-gray-600">{userProfile?.primary_category || 'Construction Worker'}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{user?.name || 'Worker Name'}</h1>
+              <p className="text-gray-600">{user?.primaryCategory || 'Construction Worker'}</p>
             </div>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">
               <div className="flex items-center space-x-1">
@@ -147,7 +148,7 @@ const EnhancedProfile = () => {
             </div>
             <div className="flex items-center space-x-1">
               <Mail className="w-4 h-4" />
-              <span>{userProfile?.email || 'worker@example.com'}</span>
+              <span>{user?.email || 'worker@example.com'}</span>
             </div>
           </div>
 

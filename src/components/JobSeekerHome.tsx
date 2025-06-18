@@ -1,206 +1,249 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ModernCard } from '@/components/ui/modern-card';
+import { useCommunication } from '@/contexts/CommunicationContext';
+import { useJobSeekerJobs } from '@/hooks/useJobSeekerJobs';
+import JobSeekerHomeHeader from '@/components/jobseeker/JobSeekerHomeHeader';
+import JobSeekerEmptyState from '@/components/jobseeker/JobSeekerEmptyState';
+import JobSeekerLoadingState from '@/components/jobseeker/JobSeekerLoadingState';
 import { FloatingCard } from '@/components/ui/floating-card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Clock, TrendingUp, Zap, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Briefcase, MessageCircle, Phone, Plus } from 'lucide-react';
+import { useState } from 'react';
+import QuickPostModal from '@/components/job/QuickPostModal';
+import { useGlobalToast } from '@/hooks/useGlobalToast';
 
 const JobSeekerHome = () => {
-  const { userProfile, updateUserProfile } = useAuth();
+  const { user, updateProfile } = useAuth();
+  const { jobs, isLoading } = useJobSeekerJobs();
+  const { canCommunicate, addJobApplication } = useCommunication();
   const navigate = useNavigate();
-  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>(
-    (userProfile?.availability as 'available' | 'busy' | 'offline') || 'available'
-  );
+  const { showSuccess, showError } = useGlobalToast();
+  const [availability, setAvailability] = useState<"available" | "busy" | "offline">(user?.availability || 'available');
+  const [editingRates, setEditingRates] = useState<{ [sub: string]: boolean }>({});
+  const [showQuickPost, setShowQuickPost] = useState(false);
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
 
-  const availabilityOptions = [
-    { value: 'available' as const, label: 'Available', color: 'bg-green-500', textColor: 'text-green-700' },
-    { value: 'busy' as const, label: 'Busy', color: 'bg-yellow-500', textColor: 'text-yellow-700' },
-    { value: 'offline' as const, label: 'Offline', color: 'bg-gray-500', textColor: 'text-gray-700' }
-  ];
+  const statusList: Array<"available" | "busy" | "offline"> = ["available", "busy", "offline"];
+  
+  const handleAvailabilityToggle = async () => {
+    const currentIdx = statusList.indexOf(availability);
+    const newStatus = statusList[(currentIdx + 1) % statusList.length];
+    setAvailability(newStatus);
+    await updateProfile({ availability: newStatus });
+  };
 
-  const handleAvailabilityChange = async (newAvailability: 'available' | 'busy' | 'offline') => {
-    setAvailability(newAvailability);
-    try {
-      await updateUserProfile({ availability: newAvailability });
-    } catch (error) {
-      console.error('Failed to update availability:', error);
+  const handleRateEdit = async (subcategory: string) => {
+    setEditingRates(prev => ({ ...prev, [subcategory]: true }));
+    const currentAmount = user?.salaryBySubcategory?.[subcategory]?.amount ?? "";
+    const newRate = window.prompt(`Enter your rate for ${subcategory} (₹):`, currentAmount);
+    if (newRate && newRate !== currentAmount) {
+      await updateProfile({ 
+        salaryBySubcategory: {
+          ...user?.salaryBySubcategory,
+          [subcategory]: {
+            amount: newRate,
+            period: user?.salaryBySubcategory?.[subcategory]?.period || "daily"
+          }
+        }
+      });
+    }
+    setEditingRates(prev => ({ ...prev, [subcategory]: false }));
+  };
+
+  const handleApplyJob = (jobId: string, jobTitle: string) => {
+    setAppliedJobs(prev => new Set([...prev, jobId]));
+    addJobApplication(jobId);
+    showSuccess(`Applied to ${jobTitle} successfully!`);
+  };
+
+  const handleCommunication = (type: 'chat' | 'call', jobId: string, jobTitle: string) => {
+    if (!appliedJobs.has(jobId)) {
+      showError('Please apply to this job first to start communication');
+      return;
+    }
+    
+    if (type === 'chat') {
+      navigate(`/messages?jobId=${jobId}&jobTitle=${jobTitle}`);
+    } else {
+      showSuccess('Calling feature will be available after applying!');
     }
   };
 
-  const currentAvailability = availabilityOptions.find(opt => opt.value === availability);
+  if (isLoading) {
+    return <JobSeekerLoadingState />;
+  }
 
-  const recentJobs = [
-    {
-      id: 1,
-      title: 'Plumbing Repair',
-      location: 'Koramangala',
-      distance: '2.3 km',
-      rate: '₹500/hr',
-      urgent: true,
-      rating: 4.8
-    },
-    {
-      id: 2,
-      title: 'Home Cleaning',
-      location: 'Indiranagar',
-      distance: '1.8 km',
-      rate: '₹300/hr',
-      urgent: false,
-      rating: 4.5
-    },
-    {
-      id: 3,
-      title: 'AC Repair',
-      location: 'BTM Layout',
-      distance: '3.1 km',
-      rate: '₹600/hr',
-      urgent: true,
-      rating: 4.9
-    }
-  ];
+  if (!user?.primaryCategory && !user?.profileComplete) {
+    return (
+      <div className="space-y-6 px-4 py-6">
+        <JobSeekerHomeHeader userPrimaryCategory={undefined} />
+        <FloatingCard variant="glow" size="md" className="text-center py-8">
+          <div className="text-4xl mb-4">⚙️</div>
+          <h3 className="text-lg font-semibold mb-2">Complete your profile</h3>
+          <p className="text-sm text-gray-600 mb-4">Set up your specializations to see relevant jobs</p>
+          <Button onClick={() => navigate('/profile-setup')}>
+            Complete Profile
+          </Button>
+        </FloatingCard>
+      </div>
+    );
+  }
+
+  const subcategories = user?.subcategories || Object.keys(user?.salaryBySubcategory || {});
 
   return (
-    <div className="space-y-6 px-4 pb-20">
-      {/* Availability Status Card */}
-      <FloatingCard variant="glow" size="md">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Your Status</h3>
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${currentAvailability?.color}`} />
-            <span className={`text-sm font-medium ${currentAvailability?.textColor}`}>
-              {currentAvailability?.label}
-            </span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-3 gap-3">
-          {availabilityOptions.map((option) => (
-            <Button
-              key={option.value}
-              variant={availability === option.value ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleAvailabilityChange(option.value)}
-              className={`rounded-xl transition-all duration-200 ${
-                availability === option.value 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
-                  : 'border-gray-200 hover:border-blue-300'
-              }`}
-            >
-              <div className={`w-2 h-2 rounded-full mr-2 ${option.color}`} />
-              {option.label}
-            </Button>
-          ))}
-        </div>
-      </FloatingCard>
+    <div className="space-y-6 px-4 py-6">
+      <JobSeekerHomeHeader userPrimaryCategory={user?.primaryCategory} />
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <ModernCard 
-          variant="selection" 
-          className="p-4 cursor-pointer"
-          onClick={() => navigate('/search')}
-        >
-          <div className="text-center space-y-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-              <Search className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Find Jobs</h3>
-              <p className="text-xs text-gray-600">Search nearby opportunities</p>
-            </div>
+      <div className="grid grid-cols-2 gap-3">
+        <FloatingCard variant="elevated" size="sm">
+          <div className="text-center py-4">
+            <Search className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+            <p className="text-sm font-medium text-gray-900 mb-1">Find Jobs</p>
+            <p className="text-xs text-gray-600 mb-3">Browse available work</p>
+            <Button onClick={() => navigate('/search')} size="sm" className="w-full">
+              Search
+            </Button>
           </div>
-        </ModernCard>
+        </FloatingCard>
 
-        <ModernCard 
-          variant="selection" 
-          className="p-4 cursor-pointer"
-          onClick={() => navigate('/my-jobs')}
-        >
-          <div className="text-center space-y-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-              <Clock className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">My Jobs</h3>
-              <p className="text-xs text-gray-600">View your applications</p>
-            </div>
+        <FloatingCard variant="elevated" size="sm">
+          <div className="text-center py-4">
+            <Plus className="w-6 h-6 mx-auto mb-2 text-green-600" />
+            <p className="text-sm font-medium text-gray-900 mb-1">Quick Post</p>
+            <p className="text-xs text-gray-600 mb-3">Post a job quickly</p>
+            <Button onClick={() => setShowQuickPost(true)} size="sm" className="w-full" variant="outline">
+              Post Job
+            </Button>
           </div>
-        </ModernCard>
+        </FloatingCard>
       </div>
 
-      {/* Earnings Overview */}
-      <FloatingCard variant="gradient" size="md">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">This Week</h3>
-          <TrendingUp className="w-5 h-5 text-green-500" />
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">₹2,400</p>
-            <p className="text-xs text-gray-600">Earned</p>
+      {/* Availability Management */}
+      <FloatingCard variant="elevated" size="sm">
+        <div className="flex items-center justify-between py-3">
+          <div className="flex items-center gap-3">
+            <span className={`inline-block w-3 h-3 rounded-full ${
+              availability === "available" ? "bg-green-500" : availability === "busy" ? "bg-yellow-500" : "bg-gray-400"
+            }`} />
+            <span className="font-semibold text-gray-800">Availability:</span>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">6</p>
-            <p className="text-xs text-gray-600">Jobs Done</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">4.8</p>
-            <p className="text-xs text-gray-600">Rating</p>
-          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleAvailabilityToggle}
+          >
+            {availability.charAt(0).toUpperCase() + availability.slice(1)}
+          </Button>
         </div>
       </FloatingCard>
 
-      {/* Recent Job Opportunities */}
+      {/* Rate Management */}
+      {subcategories?.length > 0 && (
+        <FloatingCard variant="elevated" size="sm">
+          <div>
+            <span className="font-semibold text-gray-800 mb-3 block">Your Rates</span>
+            <div className="space-y-2">
+              {subcategories.map((sub: string) => (
+                <div key={sub} className="flex items-center justify-between text-sm py-2 border-b border-gray-100 last:border-b-0">
+                  <span className="font-medium text-gray-700">{sub}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-700 font-medium">
+                      ₹{user?.salaryBySubcategory?.[sub]?.amount || "--"}/
+                      {user?.salaryBySubcategory?.[sub]?.period ?? "daily"}
+                    </span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleRateEdit(sub)}
+                    >
+                      ✏️
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FloatingCard>
+      )}
+
+      {/* Recommended Jobs */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Opportunities</h3>
+          <h3 className="font-semibold text-gray-900 flex items-center">
+            <Briefcase className="w-5 h-5 mr-2" />
+            Recommended for You
+          </h3>
           <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>
             View All
           </Button>
         </div>
 
-        <div className="space-y-3">
-          {recentJobs.map((job) => (
-            <ModernCard key={job.id} variant="default" className="p-4">
-              <div className="flex items-center justify-between">
+        {jobs && jobs.length === 0 && <JobSeekerEmptyState />}
+
+        {jobs && jobs.slice(0, 3).map(job => (
+          <FloatingCard key={job.id} variant="elevated" size="sm">
+            <div className="space-y-3">
+              {/* Job Header */}
+              <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h4 className="font-semibold text-gray-900">{job.title}</h4>
-                    {job.urgent && (
-                      <Badge className="bg-red-100 text-red-700 text-xs px-2 py-1">
-                        <Zap className="w-3 h-3 mr-1" />
-                        Urgent
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {job.location}
-                    </div>
-                    <span>•</span>
-                    <span>{job.distance}</span>
-                    <span>•</span>
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 mr-1 text-yellow-400" fill="currentColor" />
-                      {job.rating}
-                    </div>
+                  <h4 className="font-semibold text-gray-900">{job.title}</h4>
+                  <p className="text-sm text-gray-600">{job.company}</p>
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                    <span>{job.location} • {job.distance}</span>
+                    <span>₹{job.salary}</span>
+                    <span>{job.timePosted}</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-lg text-gray-900">{job.rate}</p>
-                  <Button size="sm" className="mt-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl">
-                    Apply
-                  </Button>
-                </div>
+                {job.urgent && (
+                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
+                    Urgent
+                  </span>
+                )}
               </div>
-            </ModernCard>
-          ))}
-        </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <Button 
+                  className="flex-1 h-9" 
+                  size="sm"
+                  onClick={() => handleApplyJob(job.id, job.title)}
+                  disabled={appliedJobs.has(job.id)}
+                >
+                  {appliedJobs.has(job.id) ? 'Applied' : 'Apply Now'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-3 h-9"
+                  title="Chat"
+                  onClick={() => handleCommunication('chat', job.id, job.title)}
+                  disabled={!appliedJobs.has(job.id)}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-3 h-9"
+                  title="Call"
+                  onClick={() => handleCommunication('call', job.id, job.title)}
+                  disabled={!appliedJobs.has(job.id)}
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </FloatingCard>
+        ))}
       </div>
+
+      <QuickPostModal 
+        isOpen={showQuickPost} 
+        onClose={() => setShowQuickPost(false)} 
+      />
     </div>
   );
 };

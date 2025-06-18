@@ -1,206 +1,179 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
-import { UserProfile, AuthContextProps } from '@/types/auth';
 
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+interface User {
+  id: string;
+  phone: string;
+  name?: string;
+  email?: string;
+  bio?: string;
+  role: 'jobseeker' | 'employer';
+  verified: boolean;
+  profileComplete: boolean;
+  profilePhoto?: string;
+  location?: string;
+  availability?: 'available' | 'busy' | 'offline';
+  skills?: string[];
+  salaryExpectation?: { min: number; max: number };
+  category?: string;
+  vehicle?: string;
+  salaryPeriod?: 'daily' | 'weekly' | 'monthly';
+  categories?: string[];
+  primaryCategory?: string;
+  subcategories?: string[];
+  salaryBySubcategory?: Record<string, { amount: string; period: string; }>;
+}
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (phone: string, otp: string) => Promise<void>;
+  logout: () => void;
+  setRole: (role: 'jobseeker' | 'employer') => void;
+  switchRole: () => void;
+  updateProfile: (updates: Partial<User>) => void;
+  loading: boolean;
+}
 
-  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-      if (error) {
-        console.error('[AuthContext] Error fetching user profile:', error);
-        return null;
-      }
-
-      const profile: UserProfile = {
-        id: data.id,
-        user_id: data.id,
-        role: data.role,
-        profile_complete: data.profile_complete,
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        avatar_url: data.profile_photo,
-        availability: data.availability,
-        location: data.location,
-        bio: data.bio,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      };
-
-      return profile;
-    } catch (error) {
-      console.error('[AuthContext] Exception fetching user profile:', error);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    console.log('[AuthContext] Setting up auth state listener');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[AuthContext] Auth state changed:', event, session?.user?.id);
-        
-        if (session?.user) {
-          setUser(session.user);
-          try {
-            const profile = await fetchUserProfile(session.user.id);
-            setUserProfile(profile);
-          } catch (error) {
-            console.error('[AuthContext] Error fetching profile on auth change:', error);
-            setUserProfile(null);
-          }
-        } else {
-          setUser(null);
-          setUserProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('[AuthContext] Initial session check:', session?.user?.id, error);
-        
-        if (session?.user) {
-          setUser(session.user);
-          const profile = await fetchUserProfile(session.user.id);
-          setUserProfile(profile);
-        }
-      } catch (error) {
-        console.error('[AuthContext] Error getting initial session:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const sendOTP = async (phone: string) => {
-    const result = await supabase.auth.signInWithOtp({ phone });
-    return { ...result, success: !result.error };
-  };
-
-  const verifyOTP = async (phone: string, token: string) => {
-    const result = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
-    });
-    return { ...result, success: !result.error };
-  };
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setUserProfile(null);
-  };
-
-  const updateUserProfile = async (profile: Partial<UserProfile>) => {
-    if (!user) throw new Error('No user logged in');
-
-    try {
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('[AuthContext] Error checking for existing profile:', fetchError);
-        throw fetchError;
-      }
-
-      const dbProfile: any = { id: user.id };
-      if (profile.role) dbProfile.role = profile.role;
-      if (profile.profile_complete !== undefined) dbProfile.profile_complete = profile.profile_complete;
-      if (profile.name) dbProfile.name = profile.name;
-      if (profile.phone) dbProfile.phone = profile.phone;
-      if (profile.email) dbProfile.email = profile.email;
-      if (profile.availability) dbProfile.availability = profile.availability;
-      if (profile.location) dbProfile.location = profile.location;
-      if (profile.bio) dbProfile.bio = profile.bio;
-
-      let result;
-      if (!existingProfile) {
-        result = await supabase.from('profiles').insert(dbProfile);
-      } else {
-        result = await supabase.from('profiles').update(dbProfile).eq('id', user.id);
-      }
-
-      if (result.error) throw result.error;
-
-      const updatedProfile = await fetchUserProfile(user.id);
-      setUserProfile(updatedProfile);
-    } catch (error) {
-      console.error('[AuthContext] Exception in updateUserProfile:', error);
-      throw error;
-    }
-  };
-
-  const setRole = async (role: 'jobseeker' | 'employer') => {
-    await updateUserProfile({ role });
-  };
-
-  const completeProfileSetup = async () => {
-    await updateUserProfile({ profile_complete: true });
-  };
-
-  const value = {
-    user,
-    userProfile,
-    loading,
-    isAuthenticated: !!user,
-    signIn: sendOTP,
-    signUp: sendOTP,
-    signOut,
-    verifyOTP,
-    sendOTP,
-    updateUserProfile,
-    updateProfile: async (profile: Partial<UserProfile>) => {
-      try {
-        await updateUserProfile(profile);
-        return { error: null };
-      } catch (error) {
-        return { error };
-      }
-    },
-    switchRole: async () => {
-      if (!userProfile) return;
-      const newRole = userProfile.role === 'jobseeker' ? 'employer' : 'jobseeker';
-      await updateUserProfile({ role: newRole });
-    },
-    setRole,
-    completeProfileSetup,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextProps => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    console.log('[AuthProvider] Checking stored auth data...');
+    const storedUser = localStorage.getItem('fyke_user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
+        console.log('[AuthProvider] User loaded from localStorage:', userData);
+      } catch (error) {
+        console.error('[AuthProvider] Error parsing stored user data:', error);
+        localStorage.removeItem('fyke_user');
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } else {
+      setUser(null);
+      setIsAuthenticated(false);
+      console.log('[AuthProvider] No stored user found');
+    }
+    setLoading(false);
+    console.log('[AuthProvider] Loading state set to false');
+  }, []);
+
+  const login = async (phone: string, otp: string) => {
+    try {
+      // Simulate API call with basic validation
+      if (otp.length !== 6) {
+        throw new Error('Invalid OTP length');
+      }
+
+      // Get stored name if available
+      const storedName = localStorage.getItem('fyke_name') || '';
+      
+      const mockUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        phone,
+        name: storedName,
+        email: '',
+        bio: '',
+        role: 'jobseeker', // Default role, will be changed in role selection
+        verified: Math.random() > 0.3,
+        profileComplete: false, // Always false for new users
+        categories: [],
+        primaryCategory: undefined,
+        subcategories: [],
+        availability: 'available',
+        skills: [],
+        salaryExpectation: { min: 0, max: 0 },
+        location: 'Mumbai, Maharashtra'
+      };
+      
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('fyke_user', JSON.stringify(mockUser));
+      console.log('User logged in successfully:', mockUser);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('fyke_user');
+    localStorage.removeItem('fyke_phone');
+    localStorage.removeItem('fyke_name');
+    console.log('User logged out');
+  };
+
+  const setRole = (role: 'jobseeker' | 'employer') => {
+    if (user) {
+      const updatedUser = { 
+        ...user, 
+        role,
+        profileComplete: role === 'employer' ? true : user.profileComplete
+      };
+      setUser(updatedUser);
+      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('User role updated to:', role);
+    }
+  };
+
+  const switchRole = () => {
+    if (user) {
+      const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
+      console.log('Switching role from', user.role, 'to', newRole);
+      
+      const updatedUser = { 
+        ...user, 
+        role: newRole,
+        // Employers don't need profile completion, jobseekers do
+        profileComplete: newRole === 'employer' ? true : user.profileComplete
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('Role switched successfully to:', newRole);
+    }
+  };
+
+  const updateProfile = (updates: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      console.log('Profile updated:', updates);
+      console.log('Updated user:', updatedUser);
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
+      login,
+      logout,
+      setRole,
+      switchRole,
+      updateProfile,
+      loading
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

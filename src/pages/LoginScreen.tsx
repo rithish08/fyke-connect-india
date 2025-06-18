@@ -1,142 +1,225 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ModernCard } from '@/components/ui/modern-card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useLocalization } from "@/contexts/LocalizationContext";
 import { useAuth } from '@/contexts/AuthContext';
-import { Phone } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import { Phone, MessageSquare } from "lucide-react";
+import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
-  const { sendOTP, userProfile, isAuthenticated, user } = useAuth();
+  const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('[LoginScreen] Auth state check:', { isAuthenticated, user: !!user, userProfile });
-    
-    if (isAuthenticated && user && userProfile) {
-      console.log('[LoginScreen] User already authenticated, determining redirect');
-      
-      if (!userProfile.role) {
-        console.log('[LoginScreen] No role, redirecting to role selection');
-        navigate('/role-selection');
-      } else if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
-        console.log('[LoginScreen] Incomplete jobseeker profile, redirecting to setup');
-        navigate('/profile-setup');
-      } else {
-        console.log('[LoginScreen] Complete profile, redirecting to home');
-        navigate('/home');
-      }
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, user, userProfile, navigate]);
-
-  // Clear phone field (for usability after back navigation)
-  useEffect(() => {
-    setPhone('');
-    setError(null);
-  }, []);
+  }, [resendTimer]);
 
   const handleSendOTP = async () => {
-    if (phone.length !== 10 || !/^[6-9]\d{9}$/.test(phone)) {
-      setError("Please enter a valid 10-digit phone number starting with 6-9");
+    if (phone.length !== 10) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid 10-digit phone number",
+        variant: "destructive"
+      });
       return;
     }
-
     setLoading(true);
-    setError(null);
-
     try {
+      // Store phone for later use
       localStorage.setItem('fyke_phone', phone);
-      const result = await sendOTP(phone);
 
-      if (result.success) {
-        navigate('/otp-verification');
-      } else {
-        setError(result.error?.message || "Failed to send OTP. Please try again.");
-        localStorage.removeItem('fyke_phone');
-      }
-    } catch (error: any) {
-      setError("Something went wrong. Please try again.");
-      localStorage.removeItem('fyke_phone');
+      // Simulate sending OTP
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setShowOTP(true);
+      setResendTimer(60);
+      toast({
+        title: "OTP Sent",
+        description: `Verification code sent to +91 ${phone}`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-    setPhone(value);
-    if (error) setError(null);
+  const handleOTPComplete = async (otpCode: string) => {
+    if (otpCode.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter the complete 6-digit code",
+        variant: "destructive"
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      await login(phone, otpCode);
+      toast({
+        title: "Login Successful!",
+        description: "Welcome to Fyke Connect"
+      });
+
+      // Navigate to role selection after successful login
+      navigate('/role-selection');
+    } catch (error) {
+      toast({
+        title: "Verification Failed",
+        description: "Invalid OTP. Please try again.",
+        variant: "destructive"
+      });
+      setOtp(['', '', '', '', '', '']);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center px-2 sm:px-4">
-      <div className="max-w-sm mx-auto w-full">
-        <ModernCard variant="elevated" className="px-4 sm:px-8 py-8 shadow-2xl rounded-3xl">
-          <div className="text-center space-y-5 mb-8">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-              <Phone className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+  const handleResend = () => {
+    setResendTimer(60);
+    toast({
+      title: "OTP Resent",
+      description: "New verification code sent to your phone"
+    });
+  };
+
+  const handleBack = () => {
+    setShowOTP(false);
+    setOtp(['', '', '', '', '', '']);
+  };
+
+  if (showOTP) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
+              <span className="text-2xl font-bold text-gray-800">F</span>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-3">{t('login.title', 'Welcome to Fyke')}</h1>
-              <p className="text-gray-600 leading-relaxed text-base">{t('login.desc', 'Sign in with your phone number to continue')}</p>
+              <h1 className="text-2xl font-bold text-gray-900">Verify Your Phone</h1>
+              <p className="text-gray-500">
+                Enter the 6-digit code sent to<br />
+                <span className="font-semibold text-gray-700">+91 {phone}</span>
+              </p>
             </div>
           </div>
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 border-t border-gray-200" />
-            <span className="mx-3 text-xs text-gray-400">{t('login.or', 'OR')}</span>
-            <div className="w-12 border-t border-gray-200" />
-          </div>
-          <div className="space-y-5">
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium select-none pointer-events-none text-base">+91</div>
-              <Input
-                type="tel"
-                inputMode="numeric"
-                maxLength={10}
-                placeholder={t('login.phonePlaceholder', 'Enter your phone number')}
-                value={phone}
-                onChange={handlePhoneChange}
-                className="pl-14 h-14 sm:h-16 text-lg border-gray-200 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none bg-gray-50 transition-all"
-                disabled={loading}
-                autoFocus
-                pattern="[6-9]{1}[0-9]{9}"
-                aria-label={t('login.phoneLabel', 'Phone number')}
-              />
-            </div>
-            {error && <div className="text-sm text-red-500 text-center min-h-[20px]">{error}</div>}
-            <Button
-              onClick={handleSendOTP}
-              disabled={phone.length !== 10 || loading}
-              className="w-full h-14 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-semibold text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[.99] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
-              aria-label={t('login.sendOtpBtn', 'Send OTP')}
-              style={{ minHeight: 56, fontSize: 18 }}
-            >
-              {loading ? (
+
+          {/* OTP Card */}
+          <Card className="p-6 shadow border-gray-100 bg-white">
+            <div className="space-y-6">
+              {/* Enhanced OTP Input */}
+              <EnhancedOTPInput value={otp} onChange={setOtp} onComplete={handleOTPComplete} />
+
+              <div className="text-center">
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>{t('login.sending', 'Sending…')}</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm text-gray-500">Code will be verified automatically</p>
                 </div>
-              ) : (
-                t('login.sendOtpBtn', 'Send OTP')
-              )}
-            </Button>
-          </div>
-          <div className="h-5" />
-          <div className="text-center mt-8">
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {t('login.agree', 'By continuing, you agree to our')}
-              <a href="#" className="text-blue-600 hover:underline ml-1">{t('login.tos', 'Terms of Service')}</a> {t('login.and', 'and')}
-              <a href="#" className="text-blue-600 hover:underline ml-1">{t('login.privacy', 'Privacy Policy')}</a>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <button onClick={handleBack} className="text-sm text-gray-600 hover:text-gray-800">
+                  ← Change Number
+                </button>
+                
+                {resendTimer > 0 ? (
+                  <p className="text-sm text-gray-400">
+                    Resend in {resendTimer}s
+                  </p>
+                ) : (
+                  <button onClick={handleResend} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Security Info */}
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center space-x-2 text-green-600">
+              <span className="text-sm">🛡️</span>
+              <span className="text-sm font-medium">Secure Verification</span>
+            </div>
+            <p className="text-xs text-gray-400">
+              This helps us keep your account safe and secure
             </p>
           </div>
-        </ModernCard>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
+        <CardContent className="p-8 space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+              <Phone className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t('login.title', 'Welcome to Fyke')}</h1>
+              <p className="text-gray-500 text-sm">
+                Enter your phone number to get started
+              </p>
+            </div>
+          </div>
+
+          {/* Phone Input */}
+          <div className="space-y-4">
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                +91
+              </div>
+              <Input 
+                type="tel" 
+                placeholder="9876543210" 
+                value={phone} 
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
+                className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              />
+            </div>
+            
+            <Button 
+              onClick={handleSendOTP} 
+              disabled={phone.length !== 10 || loading} 
+              className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+            >
+              {loading ? 'Sending...' : 'Send OTP'}
+            </Button>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              By continuing, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
+
 export default LoginScreen;

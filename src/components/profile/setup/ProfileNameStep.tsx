@@ -5,7 +5,6 @@ import { AestheticCard } from '@/components/ui/aesthetic-card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileNameStepProps {
   onSubmit: (name: string) => void;
@@ -15,13 +14,9 @@ interface ProfileNameStepProps {
 const ProfileNameStep = ({ onSubmit, initialName }: ProfileNameStepProps) => {
   const [localName, setLocalName] = useState(initialName);
   const navigate = useNavigate();
-  const { updateProfile } = useAuth();
 
-  const handleNameSubmit = async () => {
+  const handleNameSubmit = () => {
     if (!localName.trim()) return;
-    
-    // Update the profile in Supabase
-    await updateProfile({ name: localName.trim() });
     onSubmit(localName.trim());
   };
   

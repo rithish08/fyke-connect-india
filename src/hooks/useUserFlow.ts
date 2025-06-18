@@ -3,65 +3,35 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCallback } from 'react';
 
 export const useUserFlow = () => {
-  const { userProfile, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
 
   const determineNextScreen = useCallback(() => {
-    console.log('[useUserFlow] Determining next screen:', {
-      loading,
-      isAuthenticated,
-      userProfile,
-      role: userProfile?.role,
-      profileComplete: userProfile?.profile_complete
-    });
-
     if (loading) return null;
     
-    // Check if language is selected (from localStorage)
-    const selectedLanguage = localStorage.getItem('selectedLanguage');
-    if (!selectedLanguage) {
-      return '/language-selection';
-    }
-    
-    if (!isAuthenticated || !userProfile) {
+    if (!isAuthenticated || !user) {
       return '/login';
     }
     
-    if (!userProfile.role) {
+    if (!user.role) {
       return '/role-selection';
     }
     
-    if (userProfile.role === 'jobseeker' && !userProfile.profile_complete) {
+    if (user.role === 'jobseeker' && !user.profileComplete) {
       return '/profile-setup';
     }
     
     return '/home';
-  }, [isAuthenticated, userProfile, loading]);
+  }, [isAuthenticated, user, loading]);
 
   const isFlowComplete = useCallback(() => {
-    if (loading || !isAuthenticated || !userProfile) return false;
+    if (loading || !isAuthenticated || !user) return false;
     
-    const selectedLanguage = localStorage.getItem('selectedLanguage');
-    if (!selectedLanguage) return false;
-    
-    return userProfile.role && (
-      userProfile.role === 'employer' || 
-      userProfile.role === 'admin' || 
-      (userProfile.role === 'jobseeker' && userProfile.profile_complete)
-    );
-  }, [loading, isAuthenticated, userProfile]);
-
-  const canAccessMainApp = useCallback(() => {
-    return isFlowComplete();
-  }, [isFlowComplete]);
+    return user.role && (user.role === 'employer' || user.profileComplete);
+  }, [loading, isAuthenticated, user]);
 
   return {
     determineNextScreen,
     isFlowComplete: isFlowComplete(),
-    canAccessMainApp: canAccessMainApp(),
-    loading,
-    needsLanguageSelection: !localStorage.getItem('selectedLanguage'),
-    needsAuthentication: !isAuthenticated || !userProfile,
-    needsRoleSelection: isAuthenticated && userProfile && !userProfile.role,
-    needsProfileSetup: isAuthenticated && userProfile && userProfile.role === 'jobseeker' && !userProfile.profile_complete
+    loading
   };
 };

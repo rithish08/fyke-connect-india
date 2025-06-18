@@ -1,207 +1,485 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
-const translations = {
-  en: {
-    // Common
-    'common.back': 'Back',
-    'common.of': 'of',
-    'common.continue': 'Continue',
-    'common.loading': 'Loading...',
-    'common.save': 'Save',
-    'common.cancel': 'Cancel',
-    'common.edit': 'Edit',
-    'common.delete': 'Delete',
-    'common.confirm': 'Confirm',
-    
-    // Home
-    'home.title': 'Home',
-    'home.greetingMorning': 'Good Morning',
-    'home.greetingAfternoon': 'Good Afternoon',
-    'home.greetingEvening': 'Good Evening',
-    'home.jobseeker_subtitle': 'Ready to find work?',
-    'home.employer_subtitle': 'Ready to hire?',
-    
-    // Language Selection
-    'lang.choose': 'Choose Your Language',
-    'lang.sub': 'Select your preferred language',
-    'lang.selected': 'Selected',
-    'lang.continue': 'Continue',
-    
-    // Login
-    'login.title': 'Welcome to Fyke',
-    'login.desc': 'Sign in with your phone number to continue',
-    'login.or': 'OR',
-    'login.phonePlaceholder': 'Enter your phone number',
-    'login.phoneLabel': 'Phone number',
-    'login.sendOtpBtn': 'Send OTP',
-    'login.sending': 'Sending…',
-    'login.agree': 'By continuing, you agree to our',
-    'login.tos': 'Terms of Service',
-    'login.and': 'and',
-    'login.privacy': 'Privacy Policy',
-    
-    // OTP
-    'otp.title': 'Verify Your Phone',
-    'otp.enterCode': 'Enter the 6-digit code sent to',
-    'otp.auto': 'Code will be verified automatically',
-    'otp.resendIn': 'Resend in',
-    'otp.resendBtn': 'Resend OTP',
-    'otp.backToLogin': 'Back to Login',
-    'otp.secure': 'Secure Verification',
-    'otp.safe': 'This helps us keep your account safe and secure',
-    
-    // Role Selection
-    'role.chooseTitle': 'What brings you here?',
-    'role.chooseDesc': 'Choose your role to get started',
-    'role.jobseeker': 'Job Seeker',
-    'role.employer': 'Employer',
-    'role.jobseeker.desc': 'Looking for work opportunities',
-    'role.employer.desc': 'Hiring workers for jobs',
-    'role.continue': 'Continue',
-    'role.setFailed': 'Failed to set role. Please try again.',
-    
-    // Profile
-    'profile.category': 'Category',
-    'profile.availability': 'Availability',
-    'profile.status.available': 'Available',
-    'profile.status.busy': 'Busy',
-    'profile.editBtn': 'Edit Full Profile',
-    'profile.step': 'Step',
-    'profile.salary.title': 'Set Your Rates',
-    'profile.salary.subtitle': 'How much do you charge for each service?',
-    'profile.error.missingInfo': 'Missing Information',
-    'profile.error.fillRequired': 'Please fill in all required fields',
-    'profile.error.setupFailed': 'Setup Failed',
-    'profile.error.failedComplete': 'Failed to complete profile setup',
-    'profile.success.complete': 'Profile Complete!',
-    'profile.success.welcome': 'Welcome to Fyke! You can now start finding jobs.',
-  },
-  hi: {
-    // Common
-    'common.back': 'वापस',
-    'common.of': 'का',
-    'common.continue': 'जारी रखें',
-    'common.loading': 'लोड हो रहा है...',
-    'common.save': 'सेव करें',
-    'common.cancel': 'रद्द करें',
-    'common.edit': 'संपादित करें',
-    'common.delete': 'हटाएं',
-    'common.confirm': 'पुष्टि करें',
-    
-    // Home
-    'home.title': 'होम',
-    'home.greetingMorning': 'सुप्रभात',
-    'home.greetingAfternoon': 'नमस्कार',
-    'home.greetingEvening': 'शुभ संध्या',
-    'home.jobseeker_subtitle': 'काम खोजने के लिए तैयार?',
-    'home.employer_subtitle': 'काम पर रखने के लिए तैयार?',
-    
-    // Language Selection
-    'lang.choose': 'अपनी भाषा चुनें',
-    'lang.sub': 'अपनी पसंदीदा भाषा चुनें',
-    'lang.selected': 'चुना गया',
-    'lang.continue': 'जारी रखें',
-    
-    // Login
-    'login.title': 'फाइक में आपका स्वागत है',
-    'login.desc': 'जारी रखने के लिए अपने फोन नंबर से साइन इन करें',
-    'login.or': 'या',
-    'login.phonePlaceholder': 'अपना फोन नंबर दर्ज करें',
-    'login.phoneLabel': 'फोन नंबर',
-    'login.sendOtpBtn': 'OTP भेजें',
-    'login.sending': 'भेजा जा रहा है…',
-    'login.agree': 'जारी रखकर, आप हमारी सहमति देते हैं',
-    'login.tos': 'सेवा की शर्तें',
-    'login.and': 'और',
-    'login.privacy': 'गोपनीयता नीति',
-    
-    // OTP
-    'otp.title': 'अपना फोन सत्यापित करें',
-    'otp.enterCode': 'भेजा गया 6-अंकीय कोड दर्ज करें',
-    'otp.auto': 'कोड स्वचालित रूप से सत्यापित होगा',
-    'otp.resendIn': 'पुनः भेजें',
-    'otp.resendBtn': 'OTP पुनः भेजें',
-    'otp.backToLogin': 'लॉगिन पर वापस जाएं',
-    'otp.secure': 'सुरक्षित सत्यापन',
-    'otp.safe': 'यह आपके खाते को सुरक्षित रखने में मदद करता है',
-    
-    // Role Selection
-    'role.chooseTitle': 'आप यहाँ क्यों आए हैं?',
-    'role.chooseDesc': 'शुरुआत करने के लिए अपनी भूमिका चुनें',
-    'role.jobseeker': 'नौकरी तलाशने वाला',
-    'role.employer': 'नियोक्ता',
-    'role.jobseeker.desc': 'काम के अवसर तलाश रहे हैं',
-    'role.employer.desc': 'नौकरियों के लिए कामगार नियुक्त कर रहे हैं',
-    'role.continue': 'जारी रखें',
-    'role.setFailed': 'भूमिका सेट करने में विफल। कृपया पुनः प्रयास करें।',
-    
-    // Profile
-    'profile.category': 'श्रेणी',
-    'profile.availability': 'उपलब्धता',
-    'profile.status.available': 'उपलब्ध',
-    'profile.status.busy': 'व्यस्त',
-    'profile.editBtn': 'पूरी प्रोफाइल संपादित करें',
-    'profile.step': 'चरण',
-    'profile.salary.title': 'अपनी दरें सेट करें',
-    'profile.salary.subtitle': 'आप प्रत्येक सेवा के लिए कितना शुल्क लेते हैं?',
-    'profile.error.missingInfo': 'जानकारी गुम',
-    'profile.error.fillRequired': 'कृपया सभी आवश्यक फील्ड भरें',
-    'profile.error.setupFailed': 'सेटअप विफल',
-    'profile.error.failedComplete': 'प्रोफाइल सेटअप पूरा करने में विफल',
-    'profile.success.complete': 'प्रोफाइल पूर्ण!',
-    'profile.success.welcome': 'फाइक में आपका स्वागत है! अब आप नौकरी खोजना शुरू कर सकते हैं।',
-  }
-};
-
-export interface LocalizationContextProps {
-  currentLanguage: string;
+interface LocalizationContextProps {
   language: string;
-  setLanguage: (language: string) => void;
+  setLanguage: (lang: string) => void;
   t: (key: string, fallback?: string) => string;
 }
 
-const LocalizationContext = createContext<LocalizationContextProps | undefined>(undefined);
+const LocalizationContext = createContext<LocalizationContextProps>({
+  language: 'en',
+  setLanguage: () => {},
+  t: (key: string, fallback?: string) => fallback || key,
+});
 
-export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+interface LocalizationProviderProps {
+  children: React.ReactNode;
+}
 
-  const setLanguage = (language: string) => {
-    setCurrentLanguage(language);
-    localStorage.setItem('fyke_language', language);
-  };
-
-  const t = (key: string, fallback?: string) => {
-    const lang = currentLanguage as keyof typeof translations;
-    const langTranslations = translations[lang] || translations.en;
-    return langTranslations[key as keyof typeof langTranslations] || fallback || key;
-  };
-
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('fyke_language');
-    if (savedLanguage && translations[savedLanguage as keyof typeof translations]) {
-      setCurrentLanguage(savedLanguage);
+const translations = {
+  en: {
+    role: {
+      jobseeker: 'Job Seeker',
+      employer: 'Employer'
+    },
+    home: {
+      title: 'Home',
+      greetingMorning: 'Good Morning',
+      greetingAfternoon: 'Good Afternoon', 
+      greetingEvening: 'Good Evening',
+      jobseeker_subtitle: 'Ready to find work?',
+      employer_subtitle: 'Ready to hire?'
+    },
+    search: {
+      title: 'Job Search',
+      select_category: 'Select Category',
+      placeholder_workers: 'Search workers...',
+      placeholder_jobs: 'Search jobs...',
+      current_location: 'Current Location',
+      results: 'results'
+    },
+    jobs: {
+      title: 'My Jobs'
+    },
+    profile: {
+      title: 'Profile'
+    },
+    messages: {
+      title: 'Messages'
+    },
+    notifications: {
+      title: 'Notifications'
+    },
+    category: {
+      types: 'types',
+      selected: 'selected',
+      specializations: 'Specializations',
+      edit: 'Edit'
+    },
+    common: {
+      switch: 'Switch',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      back: 'Back',
+      next: 'Next',
+      save: 'Save',
+      apply: 'Apply',
+      more: 'more',
+      close: 'Close',
+      hire: 'Hire',
+      call: 'Call',
+      chat: 'Chat'
+    },
+    job: {
+      application_submitted: 'Application Submitted!',
+      application_description: 'Your application has been submitted.',
+      per_hire: 'per hire'
+    },
+    hire: {
+      title: 'Hire Worker',
+      request_sent: 'Hire Request Sent! 🎉',
+      request_description: 'Your request has been sent. They\'ll respond shortly.',
+      message_optional: 'Message (Optional)',
+      message_placeholder: 'Tell them about your project requirements...',
+      sending: 'Sending Request...',
+      hire_worker: 'Hire Worker',
+      per_hour: 'per hour'
+    },
+    app: {
+      title: 'App'
     }
+  },
+  hi: {
+    role: {
+      jobseeker: 'नौकरी चाहने वाला',
+      employer: 'नियोक्ता'
+    },
+    home: {
+      title: 'होम',
+      greetingMorning: 'सुप्रभात',
+      greetingAfternoon: 'नमस्कार',
+      greetingEvening: 'शुभ संध्या',
+      jobseeker_subtitle: 'काम खोजने के लिए तैयार?',
+      employer_subtitle: 'काम पर रखने के लिए तैयार?'
+    },
+    search: {
+      title: 'नौकरी खोज',
+      select_category: 'श्रेणी चुनें',
+      placeholder_workers: 'कामगार खोजें...',
+      placeholder_jobs: 'नौकरी खोजें...',
+      current_location: 'वर्तमान स्थान',
+      results: 'परिणाम'
+    },
+    jobs: {
+      title: 'मेरी नौकरियां'
+    },
+    profile: {
+      title: 'प्रोफाइल'
+    },
+    messages: {
+      title: 'संदेश'
+    },
+    notifications: {
+      title: 'सूचनाएं'
+    },
+    category: {
+      types: 'प्रकार',
+      selected: 'चयनित',
+      specializations: 'विशेषताएं',
+      edit: 'संपादित करें'
+    },
+    common: {
+      switch: 'बदलें',
+      cancel: 'रद्द करें',
+      confirm: 'पुष्टि करें',
+      back: 'वापस',
+      next: 'अगला',
+      save: 'सेव करें',
+      apply: 'आवेदन करें',
+      more: 'और',
+      close: 'बंद करें',
+      hire: 'नियुक्त करें',
+      call: 'कॉल करें',
+      chat: 'चैट करें'
+    },
+    job: {
+      application_submitted: 'आवेदन जमा किया गया!',
+      application_description: 'आपका आवेदन जमा कर दिया गया है।',
+      per_hire: 'प्रति नियुक्ति'
+    },
+    hire: {
+      title: 'कामगार नियुक्त करें',
+      request_sent: 'नियुक्ति अनुरोध भेजा गया! 🎉',
+      request_description: 'आपका अनुरोध भेज दिया गया है। वे जल्दी जवाब देंगे।',
+      message_optional: 'संदेश (वैकल्पिक)',
+      message_placeholder: 'उन्हें अपनी परियोजना आवश्यकताओं के बारे में बताएं...',
+      sending: 'अनुरोध भेजा जा रहा है...',
+      hire_worker: 'कामगार नियुक्त करें',
+      per_hour: 'प्रति घंटा'
+    },
+    app: {
+      title: 'ऐप'
+    }
+  },
+  ta: {
+    role: {
+      jobseeker: 'வேலை தேடுபவர்',
+      employer: 'வேலை வழங்குபவர்'
+    },
+    home: {
+      title: 'முகப்பு',
+      greetingMorning: 'காலை வணக்கம்',
+      greetingAfternoon: 'மதிய வணக்கம்',
+      greetingEvening: 'மாலை வணக்கம்',
+      jobseeker_subtitle: 'வேலை தேட தயாரா?',
+      employer_subtitle: 'பணியாளர்களை அமர்த்த தயாரா?'
+    },
+    search: {
+      title: 'வேலை தேடல்',
+      select_category: 'பிரிவு தேர்ந்தெடுக்கவும்',
+      placeholder_workers: 'தொழிலாளர்களைத் தேடுங்கள்...',
+      placeholder_jobs: 'வேலைகளைத் தேடுங்கள்...',
+      current_location: 'தற்போதைய இடம்',
+      results: 'முடிவுகள்'
+    },
+    jobs: {
+      title: 'எனது வேலைகள்'
+    },
+    profile: {
+      title: 'சுயவிவரம்'
+    },
+    messages: {
+      title: 'செய்திகள்'
+    },
+    notifications: {
+      title: 'அறிவிப்புகள்'
+    },
+    category: {
+      types: 'வகைகள்',
+      selected: 'தேர்ந்தெடுக்கப்பட்டது',
+      specializations: 'நிபுணத்துவங்கள்',
+      edit: 'திருத்து'
+    },
+    common: {
+      switch: 'மாற்று',
+      cancel: 'ரத்து செய்',
+      confirm: 'உறுதிப்படுத்து',
+      back: 'திரும்பு',
+      next: 'அடுத்து',
+      save: 'சேமி',
+      apply: 'விண்ணப்பிக்கவும்',
+      more: 'மேலும்',
+      close: 'மூடு',
+      hire: 'பணியமர்த்து',
+      call: 'அழைப்பு',
+      chat: 'அரட்டை'
+    },
+    job: {
+      application_submitted: 'விண்ணப்பம் சமர்ப்பிக்கப்பட்டது!',
+      application_description: 'உங்கள் விண்ணப்பம் சமர்ப்பிக்கப்பட்டது.',
+      per_hire: 'ஒரு வேலைக்கு'
+    },
+    hire: {
+      title: 'தொழிலாளியை பணியமர்த்து',
+      request_sent: 'பணியமர்த்தல் கோரிக்கை அனுப்பப்பட்டது! 🎉',
+      request_description: 'உங்கள் கோரிக்கை அனுப்பப்பட்டது. அவர்கள் விரைவில் பதிலளிப்பார்கள்.',
+      message_optional: 'செய்தி (விருப்பமானது)',
+      message_placeholder: 'உங்கள் திட்ட தேவைகளைப் பற்றி அவர்களிடம் கூறுங்கள்...',
+      sending: 'கோரிக்கை அனுப்பப்படுகிறது...',
+      hire_worker: 'தொழிலாளியை பணியமர்த்து',
+      per_hour: 'மணிக்கு'
+    },
+    app: {
+      title: 'ஆப்'
+    }
+  },
+  te: {
+    role: {
+      jobseeker: 'ఉద్యోగం వెతుకుతున్న వ్యక్తి',
+      employer: 'ఉద్యోగం ఇచ్చే వ్యక్తి'
+    },
+    home: {
+      title: 'హోమ్',
+      greetingMorning: 'శుభోదయం',
+      greetingAfternoon: 'శుభ మధ్యాహ్నం',
+      greetingEvening: 'శుభ సాయంత్రం',
+      jobseeker_subtitle: 'పని వెతకడానికి సిద్ధంగా ఉన్నారా?',
+      employer_subtitle: 'ఉద్యోగులను చేర్చుకోవడానికి సిద్ధంగా ఉన్నారా?'
+    },
+    search: {
+      title: 'ఉద్యోగ వెతుకులాట',
+      select_category: 'వర్గం ఎంచుకోండి',
+      placeholder_workers: 'కార్మికులను వెతకండి...',
+      placeholder_jobs: 'ఉద్యోగాలను వెతకండి...',
+      current_location: 'ప్రస్తుత స్థానం',
+      results: 'ఫలితాలు'
+    },
+    jobs: {
+      title: 'నా ఉద్యోగాలు'
+    },
+    profile: {
+      title: 'ప్రొఫైల్'
+    },
+    messages: {
+      title: 'సందేశాలు'
+    },
+    notifications: {
+      title: 'నోటిఫికేషన్లు'
+    },
+    category: {
+      types: 'రకాలు',
+      selected: 'ఎంచుకున్నవి',
+      specializations: 'నైపుణ్యాలు',
+      edit: 'సవరించు'
+    },
+    common: {
+      switch: 'మార్చు',
+      cancel: 'రద్దు చేయి',
+      confirm: 'నిర్ధారించు',
+      back: 'వెనుకకు',
+      next: 'తరువాత',
+      save: 'సేవ్ చేయి',
+      apply: 'దరఖాస్తు చేయండి',
+      more: 'మరిన్ని',
+      close: 'మూసివేయి',
+      hire: 'నియమించు',
+      call: 'కాల్ చేయి',
+      chat: 'చాట్ చేయి'
+    },
+    job: {
+      application_submitted: 'దరఖాస్తు సమర్పించబడింది!',
+      application_description: 'మీ దరఖాస్తు సమర్పించబడింది.',
+      per_hire: 'ప్రతి నియామకానికి'
+    },
+    hire: {
+      title: 'కార్మికుడిని నియమించు',
+      request_sent: 'నియామక అభ్యర్థన పంపబడింది! 🎉',
+      request_description: 'మీ అభ్యర్థన పంపబడింది. వారు త్వరలో స్పందిస్తారు.',
+      message_optional: 'సందేశం (ఐచ్ఛికం)',
+      message_placeholder: 'మీ ప్రాజెక్ట్ అవసరాల గురించి వారికి చెప్పండి...',
+      sending: 'అభ్యర్థన పంపబడుతోంది...',
+      hire_worker: 'కార్మికుడిని నియమించు',
+      per_hour: 'గంటకు'
+    },
+    app: {
+      title: 'యాప్'
+    }
+  },
+  bn: {
+    role: {
+      jobseeker: 'চাকরিপ্রার্থী',
+      employer: 'নিয়োগকর্তা'
+    },
+    home: {
+      title: 'হোম',
+      greetingMorning: 'সুপ্রভাত',
+      greetingAfternoon: 'শুভ বিকাল',
+      greetingEvening: 'শুভ সন্ধ্যা',
+      jobseeker_subtitle: 'কাজ খোঁজার জন্য প্রস্তুত?',
+      employer_subtitle: 'নিয়োগের জন্য প্রস্তুত?'
+    },
+    search: {
+      title: 'চাকরি খোঁজ',
+      select_category: 'বিভাগ নির্বাচন করুন',
+      placeholder_workers: 'কর্মী খুঁজুন...',
+      placeholder_jobs: 'চাকরি খুঁজুন...',
+      current_location: 'বর্তমান অবস্থান',
+      results: 'ফলাফল'
+    },
+    jobs: {
+      title: 'আমার চাকরি'
+    },
+    profile: {
+      title: 'প্রোফাইল'
+    },
+    messages: {
+      title: 'বার্তা'
+    },
+    notifications: {
+      title: 'বিজ্ঞপ্তি'
+    },
+    category: {
+      types: 'ধরন',
+      selected: 'নির্বাচিত',
+      specializations: 'বিশেষত্ব',
+      edit: 'সম্পাদনা'
+    },
+    common: {
+      switch: 'পরিবর্তন',
+      cancel: 'বাতিল',
+      confirm: 'নিশ্চিত করুন',
+      back: 'পিছনে',
+      next: 'পরবর্তী',
+      save: 'সংরক্ষণ',
+      apply: 'আবেদন করুন',
+      more: 'আরো',
+      close: 'বন্ধ করুন',
+      hire: 'নিয়োগ দিন',
+      call: 'কল করুন',
+      chat: 'চ্যাট করুন'
+    },
+    job: {
+      application_submitted: 'আবেদন জমা দেওয়া হয়েছে!',
+      application_description: 'আপনার আবেদন জমা দেওয়া হয়েছে।',
+      per_hire: 'প্রতি নিয়োগে'
+    },
+    hire: {
+      title: 'কর্মী নিয়োগ দিন',
+      request_sent: 'নিয়োগের অনুরোধ পাঠানো হয়েছে! 🎉',
+      request_description: 'আপনার অনুরোধ পাঠানো হয়েছে। তারা শীঘ্রই উত্তর দেবে।',
+      message_optional: 'বার্তা (ঐচ্ছিক)',
+      message_placeholder: 'আপনার প্রকল্পের প্রয়োজনীয়তা সম্পর্কে তাদের বলুন...',
+      sending: 'অনুরোধ পাঠানো হচ্ছে...',
+      hire_worker: 'কর্মী নিয়োগ দিন',
+      per_hour: 'প্রতি ঘন্টায়'
+    },
+    app: {
+      title: 'অ্যাপ'
+    }
+  },
+  mr: {
+    role: {
+      jobseeker: 'नोकरी शोधणारा',
+      employer: 'नोकरी देणारा'
+    },
+    home: {
+      title: 'होम',
+      greetingMorning: 'सुप्रभात',
+      greetingAfternoon: 'शुभ दुपार',
+      greetingEvening: 'शुभ संध्याकाळ',
+      jobseeker_subtitle: 'काम शोधण्यासाठी तयार आहात?',
+      employer_subtitle: 'कामगार नेमण्यासाठी तयार आहात?'
+    },
+    search: {
+      title: 'नोकरी शोध',
+      select_category: 'श्रेणी निवडा',
+      placeholder_workers: 'कामगार शोधा...',
+      placeholder_jobs: 'नोकऱ्या शोधा...',
+      current_location: 'सध्याचे स्थान',
+      results: 'परिणाम'
+    },
+    jobs: {
+      title: 'माझ्या नोकऱ्या'
+    },
+    profile: {
+      title: 'प्रोफाइल'
+    },
+    messages: {
+      title: 'संदेश'
+    },
+    notifications: {
+      title: 'सूचना'
+    },
+    category: {
+      types: 'प्रकार',
+      selected: 'निवडलेले',
+      specializations: 'विशेषता',
+      edit: 'संपादित करा'
+    },
+    common: {
+      switch: 'बदला',
+      cancel: 'रद्द करा',
+      confirm: 'पुष्टी करा',
+      back: 'मागे',
+      next: 'पुढे',
+      save: 'जतन करा',
+      apply: 'अर्ज करा',
+      more: 'अधिक',
+      close: 'बंद करा',
+      hire: 'नेमा',
+      call: 'कॉल करा',
+      chat: 'चॅट करा'
+    },
+    job: {
+      application_submitted: 'अर्ज सबमिट केला!',
+      application_description: 'तुमचा अर्ज सबमिट केला गेला.',
+      per_hire: 'प्रति नेमणूक'
+    },
+    hire: {
+      title: 'कामगार नेमा',
+      request_sent: 'नेमणूक विनंती पाठवली! 🎉',
+      request_description: 'तुमची विनंती पाठवली गेली. ते लवकरच प्रतिसाद देतील.',
+      message_optional: 'संदेश (पर्यायी)',
+      message_placeholder: 'तुमच्या प्रकल्पाच्या गरजांबद्दल त्यांना सांगा...',
+      sending: 'विनंती पाठवली जात आहे...',
+      hire_worker: 'कामगार नेमा',
+      per_hour: 'प्रति तास'
+    },
+    app: {
+      title: 'अॅप'
+    }
+  }
+};
+
+export const LocalizationProvider: React.FC<LocalizationProviderProps> = ({ children }) => {
+  const [language, setLanguage] = useState<string>(localStorage.getItem('language') || 'en');
+
+  const setLanguageAndUpdateStorage = useCallback((lang: string) => {
+    localStorage.setItem('language', lang);
+    setLanguage(lang);
   }, []);
 
-  const value = {
-    currentLanguage,
-    language: currentLanguage,
-    setLanguage,
-    t,
-  };
+  const t = useCallback((key: string, fallback?: string): string => {
+    const keys = key.split('.');
+    let value: any = translations[language as keyof typeof translations];
+  
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k as keyof typeof value];
+      } else {
+        return fallback || key;
+      }
+    }
+  
+    return typeof value === 'string' ? value : fallback || key;
+  }, [language]);
 
   return (
-    <LocalizationContext.Provider value={value}>
+    <LocalizationContext.Provider value={{ language, setLanguage: setLanguageAndUpdateStorage, t }}>
       {children}
     </LocalizationContext.Provider>
   );
 };
 
-export const useLocalization = (): LocalizationContextProps => {
-  const context = useContext(LocalizationContext);
-  if (context === undefined) {
-    throw new Error('useLocalization must be used within a LocalizationProvider');
-  }
-  return context;
-};
+export const useLocalization = () => useContext(LocalizationContext);

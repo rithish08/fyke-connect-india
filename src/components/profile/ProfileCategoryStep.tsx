@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { categories } from '@/data/categories';
 import VehicleSelection from './VehicleSelection';
 import EnhancedCategoryModal from '@/components/search/EnhancedCategoryModal';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface StepProps {
   category: string;
@@ -17,7 +16,6 @@ interface StepProps {
 
 const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role, onNext }: StepProps) => {
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
-  const { userProfile } = useAuth();
 
   // Load saved subcategories from localStorage on mount
   useEffect(() => {
@@ -81,14 +79,6 @@ const ProfileCategoryStep = ({ category, setCategory, vehicle, setVehicle, role,
         subcategories: selectedSubcategories,
         vehicle
       });
-      
-      // Save selected data for profile completion
-      localStorage.setItem('fyke_profile_category', category);
-      localStorage.setItem('fyke_profile_subcategories', JSON.stringify(selectedSubcategories));
-      if (vehicle) {
-        localStorage.setItem('fyke_profile_vehicle', vehicle);
-      }
-      
       onNext();
     }
   };

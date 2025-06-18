@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,9 +10,10 @@ const SignupForm = ({ onComplete }: { onComplete: () => void }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    
     updateProfile({ 
       name: name.trim(),
-      profile_complete: false // Use correct key!
+      profileComplete: false // Will be completed in profile setup
     });
     onComplete();
   };

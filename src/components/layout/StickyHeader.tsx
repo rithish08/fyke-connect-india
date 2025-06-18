@@ -20,8 +20,8 @@ const languageList = [
 ];
 
 const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
-  const { userProfile } = useAuth();
-  const { currentLanguage, setLanguage, t } = useLocalization();
+  const { user } = useAuth();
+  const { language, setLanguage, t } = useLocalization();
   const navigate = useNavigate();
 
   const formatTime = (date: Date) => {
@@ -32,7 +32,7 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
     });
   };
 
-  const currentLanguage_ = languageList.find(lang => lang.code === currentLanguage) || languageList[0];
+  const currentLanguage = languageList.find(lang => lang.code === language) || languageList[0];
 
   return (
     <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
@@ -40,10 +40,10 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
         {/* Left: Greeting */}
         <div className="flex-1">
           <div className="text-lg font-bold text-gray-900">
-            {t('greeting.good_morning', 'Good Morning')}, {userProfile?.name || 'User'}!
+            {t('greeting.good_morning', 'Good Morning')}, {user?.name || 'User'}!
           </div>
           <div className="text-sm text-gray-500">
-            {formatTime(currentTime)} • {userProfile?.location || 'Mumbai, Maharashtra'}
+            {formatTime(currentTime)} • {user?.location || 'Mumbai, Maharashtra'}
           </div>
         </div>
 
@@ -53,7 +53,7 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 px-2 flex items-center space-x-1">
-                <span className="text-sm">{currentLanguage_.icon}</span>
+                <span className="text-sm">{currentLanguage.icon}</span>
                 <ChevronDown className="w-3 h-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -62,14 +62,14 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code)}
-                  className={`flex items-center space-x-3 ${currentLanguage === lang.code ? 'bg-blue-50' : ''}`}
+                  className={`flex items-center space-x-3 ${language === lang.code ? 'bg-blue-50' : ''}`}
                 >
                   <span>{lang.icon}</span>
                   <div className="flex-1">
                     <div className="font-medium">{lang.native}</div>
                     <div className="text-xs text-gray-500">{lang.name}</div>
                   </div>
-                  {currentLanguage === lang.code && <span className="text-blue-600">✓</span>}
+                  {language === lang.code && <span className="text-blue-600">✓</span>}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

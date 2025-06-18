@@ -1,3 +1,4 @@
+
 import UnifiedJobCard from '@/components/common/UnifiedJobCard';
 import UnifiedWorkerCard from '@/components/common/UnifiedWorkerCard';
 import JobSearchEmptyState from './JobSearchEmptyState';
@@ -29,7 +30,7 @@ const JobSearchResults = ({
 }: JobSearchResultsProps) => {
   const { getLocalizedText } = useLocalization();
   const navigate = useNavigate();
-  const { userProfile } = useAuth();
+  const { user } = useAuth();
   const { showSuccess } = useGlobalToast();
 
   // Enhanced mock data integration with user-specific filtering
@@ -56,7 +57,7 @@ const JobSearchResults = ({
     }
   } else {
     // For job seekers, only show jobs from their selected categories or primary category
-    const userCategories = userProfile?.subcategories || (userProfile?.primary_category ? [userProfile.primary_category] : []);
+    const userCategories = user?.categories || (user?.primaryCategory ? [user.primaryCategory] : []);
     
     if (category) {
       const categoryKey = category.toLowerCase();

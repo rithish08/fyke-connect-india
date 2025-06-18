@@ -1,13 +1,14 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ArrowRightLeft, User, Users } from "lucide-react";
 
 const CompactRoleSwitcher = () => {
-  const { userProfile, switchRole } = useAuth();
+  const { user, switchRole } = useAuth();
 
-  if (!userProfile) return null;
+  if (!user) return null;
 
-  const isJobSeeker = userProfile.role === "jobseeker";
+  const isJobSeeker = user.role === "jobseeker";
   const switchLabel = isJobSeeker ? "Employer" : "Job Seeker";
   const currentIcon = isJobSeeker ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />;
   const currentColor = isJobSeeker ? "text-blue-600 bg-blue-50" : "text-green-600 bg-green-50";

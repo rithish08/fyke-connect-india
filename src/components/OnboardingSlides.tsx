@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import AnimatedWrapper from '@/components/AnimatedWrapper';
 
 interface OnboardingSlide {
   title: string;
@@ -56,38 +57,43 @@ const OnboardingSlides = ({ onComplete, onSkip }: OnboardingSlidesProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
+        {/* Skip Button */}
         <div className="flex justify-end">
           <Button variant="ghost" onClick={onSkip} className="text-gray-500">
             Skip
           </Button>
         </div>
 
-        <Card className="p-8 shadow-2xl border-0 bg-white/90 backdrop-blur-sm text-center rounded-3xl">
-          <div className="space-y-6">
-            <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-4xl">{currentSlideData.icon}</span>
-            </div>
-            
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {currentSlideData.title}
-              </h2>
-              <p className="text-lg text-blue-600 font-semibold mb-4">
-                {currentSlideData.subtitle}
-              </p>
-              <p className="text-gray-700 leading-relaxed">
-                {currentSlideData.description}
-              </p>
-            </div>
+        {/* Slide Content */}
+        <AnimatedWrapper variant="scale" delay={100}>
+          <Card className="p-8 shadow-2xl border-0 bg-white/90 backdrop-blur-sm text-center">
+            <div className="space-y-6">
+              <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-4xl">{currentSlideData.icon}</span>
+              </div>
+              
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {currentSlideData.title}
+                </h2>
+                <p className="text-lg text-blue-600 font-semibold mb-4">
+                  {currentSlideData.subtitle}
+                </p>
+                <p className="text-gray-700 leading-relaxed">
+                  {currentSlideData.description}
+                </p>
+              </div>
 
-            <div className="bg-green-50 p-4 rounded-xl">
-              <p className="text-green-700 font-medium text-sm">
-                ✨ {currentSlideData.successStory}
-              </p>
+              <div className="bg-green-50 p-4 rounded-xl">
+                <p className="text-green-700 font-medium text-sm">
+                  ✨ {currentSlideData.successStory}
+                </p>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </AnimatedWrapper>
 
+        {/* Progress Indicators */}
         <div className="flex justify-center space-x-2">
           {slides.map((_, index) => (
             <div
@@ -99,6 +105,7 @@ const OnboardingSlides = ({ onComplete, onSkip }: OnboardingSlidesProps) => {
           ))}
         </div>
 
+        {/* Navigation */}
         <Button
           onClick={nextSlide}
           className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-medium py-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 text-lg"
