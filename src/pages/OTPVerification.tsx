@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,18 +22,19 @@ const OTPVerification = () => {
 
   const phone = localStorage.getItem('fyke_phone');
 
+  // Demo OTP for testing - remove in production
+  const DEMO_OTP = '123456';
+
   // Navigation logic based on auth state
   useEffect(() => {
     console.log('[OTPVerification] Auth state:', { isAuthenticated, user: !!user, userProfile });
     
-    // No phone, go back to login
     if (!phone) {
       console.log('[OTPVerification] No phone found, redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Successful login and profile, navigate based on profile state
     if (isAuthenticated && user && userProfile && !didAutoNavigate.current) {
       didAutoNavigate.current = true;
       localStorage.removeItem('fyke_phone');
@@ -71,6 +73,21 @@ const OTPVerification = () => {
 
     try {
       console.log('[OTPVerification] Verifying OTP for phone:', phone);
+      
+      // Check for demo OTP first
+      if (otpCode === DEMO_OTP) {
+        console.log('[OTPVerification] Demo OTP detected, simulating successful verification');
+        toast({
+          title: "Demo Login Successful!",
+          description: "Using demo OTP for testing"
+        });
+        // Simulate successful auth for demo
+        setTimeout(() => {
+          navigate('/role-selection');
+        }, 1000);
+        return;
+      }
+
       const result = await verifyOTP(phone, otpCode);
       
       if (result.success) {
@@ -79,10 +96,9 @@ const OTPVerification = () => {
           title: "Phone Verified!",
           description: "Successfully authenticated"
         });
-        // Navigation will happen automatically from useEffect above
       } else {
         console.error('[OTPVerification] OTP verification failed:', result.error);
-        setErrorState(result.error?.message || "OTP verification failed. Please try again.");
+        setErrorState(result.error?.message || "Invalid OTP. Please try again.");
         setOtp(['', '', '', '', '', '']);
       }
     } catch (error: any) {
@@ -125,18 +141,17 @@ const OTPVerification = () => {
     navigate('/login');
   };
 
-  // Accessibility: Focus on first OTP input on mount
-  useEffect(() => {
-    const el = document.querySelector('input[type="text"][inputmode="numeric"]');
-    if (el) (el as HTMLElement).focus();
-  }, []);
+  const handleDemoLogin = () => {
+    setOtp(['1', '2', '3', '4', '5', '6']);
+    handleOTPComplete('123456');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center px-2 py-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-4">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto border border-blue-100">
-            <span className="text-xl sm:text-2xl font-bold text-blue-600">F</span>
+          <div className="w-20 h-20 rounded-2xl bg-blue-600 shadow-xl flex items-center justify-center mx-auto">
+            <span className="text-3xl font-bold text-white" style={{ fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>fyke</span>
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('otp.title', 'Verify Your Phone')}</h1>
@@ -146,7 +161,7 @@ const OTPVerification = () => {
             </p>
           </div>
         </div>
-        {/* OTP Card with improved spacing and clarity */}
+
         <Card className="p-4 sm:p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
           <div className="space-y-5 sm:space-y-6">
             <div className="flex justify-center px-2">
@@ -159,15 +174,18 @@ const OTPVerification = () => {
                 />
               </div>
             </div>
+
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <p className="text-xs sm:text-sm text-gray-500">{t('otp.auto', 'Code will be verified automatically')}</p>
               </div>
             </div>
+
             {errorState && (
               <div className="text-center text-xs sm:text-sm text-red-500 min-h-[20px]">{errorState}</div>
             )}
+
             <div className="text-center">
               {resendTimer > 0 ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -186,8 +204,15 @@ const OTPVerification = () => {
                 </button>
               )}
             </div>
-            {/* Navigation buttons */}
+
             <div className="flex flex-col space-y-2 pt-2 sm:pt-4">
+              <Button
+                onClick={handleDemoLogin}
+                className="w-full bg-green-600 hover:bg-green-700"
+                disabled={loading}
+              >
+                Demo Login (Use OTP: 123456)
+              </Button>
               <Button
                 variant="outline"
                 onClick={handleBackToLogin}
@@ -199,6 +224,7 @@ const OTPVerification = () => {
             </div>
           </div>
         </Card>
+
         <div className="text-center space-y-2 px-2 sm:px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">
             <span className="text-sm">🛡️</span>
@@ -212,4 +238,5 @@ const OTPVerification = () => {
     </div>
   );
 };
+
 export default OTPVerification;

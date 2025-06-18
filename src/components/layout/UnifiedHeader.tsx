@@ -33,35 +33,37 @@ const UnifiedHeader = ({ currentTime }: { currentTime: Date }) => {
   const roleDisplayName = isJobSeeker ? t('role.jobseeker', 'Job Seeker') : t('role.employer', 'Employer');
 
   return (
-    <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
+    <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
       {/* Top Header with Brand, Role, and Bell */}
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between h-16 px-4">
+        <div className="flex items-center space-x-3">
           <span 
-            className="font-bold text-2xl tracking-tight text-black"
-            style={{ fontFamily: "sans-serif" }}
+            className="font-bold text-3xl tracking-tight text-black"
+            style={{ fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}
           >fyke</span>
           <span className="text-gray-300 text-2xl font-light">/</span>
-          <span className="text-sm font-medium text-gray-500 capitalize">{roleDisplayName}</span>
+          <span className="text-sm font-medium text-gray-600 capitalize bg-gray-100 px-3 py-1 rounded-full">
+            {roleDisplayName}
+          </span>
         </div>
         <button 
           onClick={() => navigate('/notifications')}
-          className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          className="relative flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors shadow-sm"
         >
           <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm animate-pulse">3</span>
         </button>
       </div>
 
       {/* User Info with Role Switcher */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-4 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <p className="text-lg font-semibold text-gray-800">
               {getGreeting()}! 👋
             </p>
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-600 mt-1">
             {userProfile?.name ?? userProfile?.phone}
           </p>
         </div>
@@ -71,23 +73,23 @@ const UnifiedHeader = ({ currentTime }: { currentTime: Date }) => {
             onClick={switchRole}
             variant="outline"
             size="sm"
-            className="h-9 px-3 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 border flex items-center space-x-2"
+            className="h-10 px-4 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200 border-2 border-gray-200 hover:border-blue-300 flex items-center space-x-2"
             title={`Switch to ${isJobSeeker ? 'Employer' : 'Job Seeker'}`}
           >
-            <div className={`flex items-center justify-center w-5 h-5 rounded-full ${
+            <div className={`flex items-center justify-center w-6 h-6 rounded-full ${
               isJobSeeker ? 'bg-blue-100' : 'bg-green-100'
             }`}>
-              {isJobSeeker ? <User className="w-3 h-3 text-blue-600" /> : <Users className="w-3 h-3 text-green-600" />}
+              {isJobSeeker ? <User className="w-4 h-4 text-blue-600" /> : <Users className="w-4 h-4 text-green-600" />}
             </div>
-            <ArrowRightLeft className="w-3.5 h-3.5 text-gray-600" />
-            <span className="text-xs font-medium text-gray-700">Switch</span>
+            <ArrowRightLeft className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">Switch</span>
           </Button>
         </div>
       </div>
 
       {/* Page Name */}
       {showPage && (
-        <div className="flex items-center min-h-[28px] px-4 pb-2 text-xs text-gray-400 font-medium select-none border-b border-gray-50">
+        <div className="flex items-center min-h-[32px] px-4 pb-2 text-sm text-gray-500 font-medium select-none border-b border-gray-50 bg-gray-50">
           <span>{showPage}</span>
         </div>
       )}

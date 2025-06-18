@@ -1,54 +1,126 @@
 
-import { toast } from "sonner";
-
-export interface JobActionHandlers {
-  onApply: (jobId: string) => void;
-  onChat: (jobId: string, employerId: string) => void;
-  onCall: (phone: string) => void;
+interface JobAction {
+  jobId: string;
+  userId: string;
+  timestamp: Date;
+  type: 'apply' | 'chat' | 'call';
 }
 
-export const createJobActionHandlers = (navigate: (path: string) => void): JobActionHandlers => {
-  return {
-    onApply: (jobId: string) => {
-      // Store application in localStorage for persistence
-      const applications = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
-      if (!applications.includes(jobId)) {
-        applications.push(jobId);
-        localStorage.setItem('appliedJobs', JSON.stringify(applications));
-        toast.success("Application submitted successfully!");
-        console.log(`Applied to job: ${jobId}`);
-      } else {
-        toast.info("You have already applied to this job");
-      }
-    },
+// Mock storage for job actions
+const jobActions = new Map<string, JobAction[]>();
 
-    onChat: (jobId: string, employerId: string) => {
-      // Navigate to messaging with job context
-      navigate(`/messaging?jobId=${jobId}&employerId=${employerId}`);
-      toast.success("Opening chat...");
-      console.log(`Opening chat for job: ${jobId} with employer: ${employerId}`);
-    },
+// Get applied jobs for current user
+export const getAppliedJobs = (userId: string): string[] => {
+  const allActions = Array.from(jobActions.values()).flat();
+  return allActions
+    .filter(action => action.userId === userId && action.type === 'apply')
+    .map(action => action.jobId);
+};
 
-    onCall: (phone: string) => {
-      if (phone) {
-        // Open phone dialer
-        window.open(`tel:${phone}`, '_self');
-        toast.success("Opening phone dialer...");
-        console.log(`Calling: ${phone}`);
-      } else {
-        toast.error("Phone number not available");
+// Check if user has applied to a job
+export const hasAppliedToJob = (jobId: string, userId: string = 'current-user'): boolean => {
+  const userActions = jobActions.get(userId) || [];
+  return userActions.some(action => action.jobId === jobId && action.type === 'apply');
+};
+
+// Apply to a job
+export const applyToJob = async (jobId: string, userId: string = 'current-user'): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        if (hasAppliedToJob(jobId, userId)) {
+          reject(new Error('Already applied to this job'));
+          return;
+        }
+
+        const existingActions = jobActions.get(userId) || [];
+        const newAction: JobAction = {
+          jobId,
+          userId,
+          timestamp: new Date(),
+          type: 'apply'
+        };
+
+        jobActions.set(userId, [...existingActions, newAction]);
+        
+        // Store in localStorage for persistence
+        localStorage.setItem(`fyke_applied_jobs_${userId}`, JSON.stringify(getAppliedJobs(userId)));
+        
+        console.log(`Applied to job ${jobId} for user ${userId}`);
+        resolve();
+      } catch (error) {
+        reject(error);
       }
+    }, 500); // Simulate API delay
+  });
+};
+
+// Start chat with employer
+export const chatWithEmployer = async (jobId: string, userId: string = 'current-user'): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        const existingActions = jobActions.get(userId) || [];
+        const newAction: JobAction = {
+          jobId,
+          userId,
+          timestamp: new Date(),
+          type: 'chat'
+        };
+
+        jobActions.set(userId, [...existingActions, newAction]);
+        
+        console.log(`Started chat for job ${jobId} with user ${userId}`);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    }, 300);
+  });
+};
+
+// Call employer
+export const callEmployer = async (jobId: string, userId: string = 'current-user'): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        const existingActions = jobActions.get(userId) || [];
+        const newAction: JobAction = {
+          jobId,
+          userId,
+          timestamp: new Date(),
+          type: 'call'
+        };
+
+        jobActions.set(userId, [...existingActions, newAction]);
+        
+        console.log(`Called employer for job ${jobId} with user ${userId}`);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    }, 200);
+  });
+};
+
+// Load applied jobs from localStorage on app start
+export const loadPersistedJobActions = (userId: string = 'current-user'): void => {
+  try {
+    const storedAppliedJobs = localStorage.getItem(`fyke_applied_jobs_${userId}`);
+    if (storedAppliedJobs) {
+      const appliedJobIds = JSON.parse(storedAppliedJobs);
+      const actions: JobAction[] = appliedJobIds.map((jobId: string) => ({
+        jobId,
+        userId,
+        timestamp: new Date(), // We don't have the original timestamp
+        type: 'apply' as const
+      }));
+      jobActions.set(userId, actions);
     }
-  };
+  } catch (error) {
+    console.error('Failed to load persisted job actions:', error);
+  }
 };
 
-// Utility to check if user has applied to a job
-export const hasAppliedToJob = (jobId: string): boolean => {
-  const applications = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
-  return applications.includes(jobId);
-};
-
-// Utility to get all applied jobs
-export const getAppliedJobs = (): string[] => {
-  return JSON.parse(localStorage.getItem('appliedJobs') || '[]');
-};
+// Initialize persistence on module load
+loadPersistedJobActions();

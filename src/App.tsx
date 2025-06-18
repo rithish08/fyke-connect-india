@@ -12,14 +12,15 @@ import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { useState, useEffect } from "react";
 
 import SplashScreen from "./components/SplashScreen";
+import OnboardingSlides from "./components/OnboardingSlides";
 import LanguageSelection from "./pages/LanguageSelection";
 import RoleSelection from "./pages/RoleSelection";
 import LoginScreen from "./pages/LoginScreen";
 import OTPVerification from "./pages/OTPVerification";
 import HomePage from "./pages/HomePage";
 import ProfileSetup from "./pages/ProfileSetup";
-import JobSearch from "./pages/JobSearch";
-import Messaging from "./pages/Messaging";
+import JobSearchPage from "./components/search/JobSearchPage";
+import MessagingPage from "./components/messaging/MessagingPage";
 import Profile from "./pages/Profile";
 import MyJobs from "./pages/MyJobs";
 import PostJob from "./pages/PostJob";
@@ -48,26 +49,49 @@ const queryClient = new QueryClient({
 const AppContent = () => {
   useOfflineCapabilities();
   const [showSplash, setShowSplash] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('fyke_onboarding_seen');
+    
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 2000);
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('fyke_onboarding_seen', 'true');
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = () => {
+    localStorage.setItem('fyke_onboarding_seen', 'true');
+    setShowOnboarding(false);
+  };
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
+  if (showOnboarding) {
+    return (
+      <OnboardingSlides 
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Routes>
-        {/* Default redirect to language selection */}
         <Route path="/" element={<Navigate to="/language-selection" replace />} />
         
-        {/* Public routes */}
         <Route 
           path="/language-selection" 
           element={
@@ -101,7 +125,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Authenticated routes - setup flow */}
         <Route 
           path="/role-selection" 
           element={
@@ -119,7 +142,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Main app routes - require complete profile */}
         <Route 
           path="/home" 
           element={
@@ -132,7 +154,7 @@ const AppContent = () => {
           path="/search" 
           element={
             <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
-              <JobSearch />
+              <JobSearchPage />
             </ProtectedRoute>
           } 
         />
@@ -140,7 +162,7 @@ const AppContent = () => {
           path="/messaging" 
           element={
             <ProtectedRoute requireAuth={true} requireProfileComplete={true}>
-              <Messaging />
+              <MessagingPage />
             </ProtectedRoute>
           } 
         />
@@ -169,7 +191,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Admin routes */}
         <Route 
           path="/admin/dashboard" 
           element={
@@ -179,7 +200,6 @@ const AppContent = () => {
           } 
         />
         
-        {/* Catch all - redirect to language selection */}
         <Route path="*" element={<Navigate to="/language-selection" replace />} />
       </Routes>
       <OfflineIndicator />
