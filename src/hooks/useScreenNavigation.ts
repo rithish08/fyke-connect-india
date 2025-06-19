@@ -1,17 +1,35 @@
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
 
-/**
- * Provides typed navigation for screens.
- * Any central route logic goes here for consistency.
- */
 export const useScreenNavigation = () => {
   const navigate = useNavigate();
 
-  // Always use this signature for future navigation
+  const goTo = useCallback((path: string, options?: { replace?: boolean }) => {
+    navigate(path, options);
+  }, [navigate]);
+
+  const goBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  const goHome = useCallback(() => {
+    navigate('/home');
+  }, [navigate]);
+
+  const goToLogin = useCallback(() => {
+    navigate('/login');
+  }, [navigate]);
+
+  const goToProfile = useCallback(() => {
+    navigate('/profile');
+  }, [navigate]);
+
   return {
-    goTo: (path: string) => navigate(path),
-    goBack: () => navigate(-1),
-    // Extend with push/replace/query navigation as needed in the future
+    goTo,
+    goBack,
+    goHome,
+    goToLogin,
+    goToProfile
   };
 };

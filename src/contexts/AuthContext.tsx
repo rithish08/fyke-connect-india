@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthUser {
   id: string;
@@ -9,7 +10,7 @@ interface AuthUser {
   name?: string;
   email?: string;
   bio?: string;
-  role: 'jobseeker' | 'employer';
+  role?: 'jobseeker' | 'employer';
   verified: boolean;
   profileComplete: boolean;
   profilePhoto?: string;
@@ -56,18 +57,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        handleAuthSession(session);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (currentSession && mounted) {
+          await handleAuthSession(currentSession);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state change:', event, session?.user?.id);
+        
         if (session) {
           await handleAuthSession(session);
         } else if (event === 'SIGNED_OUT') {
@@ -76,11 +101,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAuthenticated(false);
           localStorage.removeItem('fyke_user');
         }
+        
         setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuthSession = async (session: Session) => {
@@ -102,7 +131,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: session.user.id,
             phone: session.user.phone || '',
             email: session.user.email || '',
-            role: 'jobseeker',
             verified: false,
             profile_complete: false,
             availability: 'available'
@@ -124,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: profile.name || '',
           email: profile.email || '',
           bio: profile.bio || '',
-          role: profile.role || 'jobseeker',
+          role: profile.role || undefined,
           verified: profile.verified || false,
           profileComplete: profile.profile_complete || false,
           profilePhoto: profile.profile_photo,
@@ -178,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
       
-      const { error } = await supabase.auth.verifyOtp({
+      const { data, error } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
         token: otp,
         type: 'sms'
@@ -189,6 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
+      console.log('OTP verification successful:', data);
       return { error: null };
     } catch (error) {
       console.error('Verify OTP error:', error);
@@ -240,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchRole = async () => {
-    if (user) {
+    if (user && user.role) {
       const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
       await setRole(newRole);
     }
@@ -259,6 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updates.profileComplete !== undefined) dbUpdates.profile_complete = updates.profileComplete;
       if (updates.verified !== undefined) dbUpdates.verified = updates.verified;
       if (updates.availability !== undefined) dbUpdates.availability = updates.availability;
+      if (updates.role !== undefined) dbUpdates.role = updates.role;
 
       const { error } = await supabase
         .from('profiles')

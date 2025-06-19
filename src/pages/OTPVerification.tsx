@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/contexts/LocalizationContext';
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
 
 const OTPVerification = () => {
@@ -12,8 +13,9 @@ const OTPVerification = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const navigate = useNavigate();
-  const { verifyOTP, sendOTP } = useAuth();
+  const { verifyOTP, sendOTP, user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const { t } = useLocalization();
 
   useEffect(() => {
     const phone = localStorage.getItem('fyke_phone');
@@ -21,6 +23,20 @@ const OTPVerification = () => {
       navigate('/login');
     }
   }, [navigate]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('User authenticated, checking role and profile...');
+      if (!user.role) {
+        navigate('/role-selection');
+      } else if (user.role === 'jobseeker' && !user.profileComplete) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/home');
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -32,8 +48,8 @@ const OTPVerification = () => {
   const handleOTPComplete = async (otpCode: string) => {
     if (otpCode.length !== 6) {
       toast({
-        title: "Invalid OTP",
-        description: "Please enter the complete 6-digit code",
+        title: t('auth.invalid_otp', 'Invalid OTP'),
+        description: t('auth.enter_complete_code', 'Please enter the complete 6-digit code'),
         variant: "destructive"
       });
       return;
@@ -43,28 +59,33 @@ const OTPVerification = () => {
     
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
+      console.log('Verifying OTP for phone:', phone, 'OTP:', otpCode);
+      
       const { error } = await verifyOTP(phone, otpCode);
       
       if (error) {
+        console.error('OTP verification failed:', error);
         toast({
-          title: "Verification Failed",
-          description: "Invalid OTP. Please try again.",
+          title: t('auth.verification_failed', 'Verification Failed'),
+          description: t('auth.invalid_otp_try_again', 'Invalid OTP. Please try again.'),
           variant: "destructive"
         });
         setOtp(['', '', '', '', '', '']);
         return;
       }
       
-      navigate('/role-selection');
-      
+      console.log('OTP verified successfully');
       toast({
-        title: "Phone Verified!",
-        description: "Now choose your role to continue"
+        title: t('auth.phone_verified', 'Phone Verified!'),
+        description: t('auth.choose_role_continue', 'Now choose your role to continue')
       });
+      
+      // Navigation will be handled by the useEffect above
     } catch (error) {
+      console.error('OTP verification error:', error);
       toast({
-        title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
+        title: t('auth.verification_failed', 'Verification Failed'),
+        description: t('auth.invalid_otp_try_again', 'Invalid OTP. Please try again.'),
         variant: "destructive"
       });
       setOtp(['', '', '', '', '', '']);
@@ -80,14 +101,14 @@ const OTPVerification = () => {
       if (!error) {
         setResendTimer(60);
         toast({
-          title: "OTP Resent",
-          description: "New verification code sent to your phone"
+          title: t('auth.otp_resent', 'OTP Resent'),
+          description: t('auth.new_code_sent', 'New verification code sent to your phone')
         });
       }
     }
   };
 
-  const phone = localStorage.getItem('fyke_phone');
+  const phone = localStorage.getItem('fyke_phone')?.replace('+91', '');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
@@ -98,9 +119,11 @@ const OTPVerification = () => {
             <span className="text-2xl font-bold text-blue-600">F</span>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Phone</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {t('auth.verify_phone', 'Verify Your Phone')}
+            </h1>
             <p className="text-gray-600 text-sm leading-relaxed px-2">
-              Enter the 6-digit code sent to<br />
+              {t('auth.enter_code', 'Enter the 6-digit code sent to')}<br />
               <span className="font-semibold text-gray-800">+91 {phone}</span>
             </p>
           </div>
@@ -123,7 +146,9 @@ const OTPVerification = () => {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <p className="text-sm text-gray-500">Code will be verified automatically</p>
+                <p className="text-sm text-gray-500">
+                  {t('auth.code_auto_verify', 'Code will be verified automatically')}
+                </p>
               </div>
             </div>
 
@@ -132,7 +157,7 @@ const OTPVerification = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
                   <p className="text-sm text-gray-500">
-                    Resend in {resendTimer}s
+                    {t('auth.resend_in', 'Resend in {0}s', [resendTimer.toString()])}
                   </p>
                 </div>
               ) : (
@@ -140,7 +165,7 @@ const OTPVerification = () => {
                   onClick={handleResend}
                   className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
                 >
-                  Resend OTP
+                  {t('auth.resend_otp', 'Resend OTP')}
                 </button>
               )}
             </div>
@@ -151,10 +176,12 @@ const OTPVerification = () => {
         <div className="text-center space-y-2 px-4">
           <div className="flex items-center justify-center space-x-2 text-green-600">
             <span className="text-sm">🛡️</span>
-            <span className="text-sm font-medium">Secure Verification</span>
+            <span className="text-sm font-medium">
+              {t('auth.secure_verification', 'Secure Verification')}
+            </span>
           </div>
           <p className="text-xs text-gray-500">
-            This helps us keep your account safe and secure
+            {t('auth.security_help', 'This helps us keep your account safe and secure')}
           </p>
         </div>
       </div>

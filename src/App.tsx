@@ -8,6 +8,7 @@ import { JobProvider } from '@/contexts/JobContext';
 import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
 import RatingBlocker from '@/components/rating/RatingBlocker';
 import RouteGuard from '@/components/RouteGuard';
+import SplashScreen from '@/components/SplashScreen';
 import LanguageSelection from '@/pages/LanguageSelection';
 import LoginScreen from '@/pages/LoginScreen';
 import OTPVerification from '@/pages/OTPVerification';
@@ -22,6 +23,7 @@ import Notifications from '@/pages/Notifications';
 import PostJob from '@/pages/PostJob';
 import JobDetails from '@/pages/JobDetails';
 import WorkerProfile from '@/pages/WorkerProfile';
+import { useState } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +35,18 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <LocalizationProvider>
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        </LocalizationProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
