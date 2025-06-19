@@ -17,9 +17,16 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/role-selection');
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -37,18 +44,16 @@ const LoginScreen = () => {
       });
       return;
     }
+    
     setLoading(true);
     try {
-      // Store phone for later use
       localStorage.setItem('fyke_phone', phone);
-
-      // Simulate sending OTP
       await new Promise(resolve => setTimeout(resolve, 1000));
       setShowOTP(true);
       setResendTimer(60);
       toast({
         title: "OTP Sent",
-        description: `Verification code sent to +91 ${phone}`
+        description: `Verification code sent to +91 ${phone}. Use 123456 for demo.`
       });
     } catch (error) {
       toast({
@@ -70,6 +75,7 @@ const LoginScreen = () => {
       });
       return;
     }
+    
     setLoading(true);
     try {
       await login(phone, otpCode);
@@ -77,9 +83,7 @@ const LoginScreen = () => {
         title: "Login Successful!",
         description: "Welcome to Fyke Connect"
       });
-
-      // Navigate to role selection after successful login
-      navigate('/role-selection');
+      // Navigation will be handled by AuthContext after successful login
     } catch (error) {
       toast({
         title: "Verification Failed",
@@ -109,7 +113,6 @@ const LoginScreen = () => {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
-          {/* Header */}
           <div className="text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center mx-auto border border-gray-100">
               <span className="text-2xl font-bold text-gray-800">F</span>
@@ -120,13 +123,12 @@ const LoginScreen = () => {
                 Enter the 6-digit code sent to<br />
                 <span className="font-semibold text-gray-700">+91 {phone}</span>
               </p>
+              <p className="text-sm text-blue-600 mt-2">Demo: Use 123456</p>
             </div>
           </div>
 
-          {/* OTP Card */}
           <Card className="p-6 shadow border-gray-100 bg-white">
             <div className="space-y-6">
-              {/* Enhanced OTP Input */}
               <EnhancedOTPInput value={otp} onChange={setOtp} onComplete={handleOTPComplete} />
 
               <div className="text-center">
@@ -154,7 +156,6 @@ const LoginScreen = () => {
             </div>
           </Card>
 
-          {/* Security Info */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center space-x-2 text-green-600">
               <span className="text-sm">🛡️</span>
@@ -173,7 +174,6 @@ const LoginScreen = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <Card className="w-full max-w-sm shadow-xl border-0 rounded-3xl overflow-hidden">
         <CardContent className="p-8 space-y-6">
-          {/* Header */}
           <div className="text-center space-y-3">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
               <Phone className="w-8 h-8 text-white" />
@@ -186,7 +186,6 @@ const LoginScreen = () => {
             </div>
           </div>
 
-          {/* Phone Input */}
           <div className="space-y-4">
             <div className="relative">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -210,7 +209,6 @@ const LoginScreen = () => {
             </Button>
           </div>
 
-          {/* Footer */}
           <div className="text-center">
             <p className="text-xs text-gray-400 leading-relaxed">
               By continuing, you agree to our Terms of Service and Privacy Policy

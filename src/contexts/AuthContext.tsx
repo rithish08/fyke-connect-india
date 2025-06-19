@@ -53,9 +53,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
+    // Check for existing session in localStorage first
+    const storedUser = localStorage.getItem('fyke_user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+        console.log('Restored user from localStorage:', parsedUser);
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('fyke_user');
+      }
+    }
+    
+    // Check for Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (session && !user) {
         handleAuthSession(session);
       }
       setLoading(false);
@@ -64,11 +78,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
         if (session) {
           await handleAuthSession(session);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setIsAuthenticated(false);
+          localStorage.removeItem('fyke_user');
         }
         setLoading(false);
       }
@@ -109,6 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(authUser);
       setIsAuthenticated(true);
+      localStorage.setItem('fyke_user', JSON.stringify(authUser));
+      console.log('Set user from Supabase:', authUser);
     } catch (error) {
       console.error('Error in handleAuthSession:', error);
     }
@@ -116,9 +134,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (phone: string, otp: string) => {
     try {
-      // For demo purposes, accept 123456 as valid OTP
+      console.log('Login attempt:', phone, otp);
+      
+      // Accept demo OTP
       if (otp === '123456') {
-        // Create a mock session for demo
         const mockUser: AuthUser = {
           id: `user_${Date.now()}`,
           phone,
@@ -132,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(mockUser);
         setIsAuthenticated(true);
         localStorage.setItem('fyke_user', JSON.stringify(mockUser));
+        console.log('Demo login successful:', mockUser);
         return;
       }
       
@@ -144,10 +164,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      console.log('Logging out...');
       await supabase.auth.signOut();
       setUser(null);
       setIsAuthenticated(false);
       localStorage.removeItem('fyke_user');
+      localStorage.removeItem('fyke_phone');
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -155,6 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setRole = (role: 'jobseeker' | 'employer') => {
     if (user) {
+      console.log('Setting role:', role);
       const updatedUser = { 
         ...user, 
         role,
@@ -168,6 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchRole = () => {
     if (user) {
       const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
+      console.log('Switching role from', user.role, 'to', newRole);
       const updatedUser = { 
         ...user, 
         role: newRole,
@@ -180,6 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = (updates: Partial<AuthUser>) => {
     if (user) {
+      console.log('Updating profile:', updates);
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));

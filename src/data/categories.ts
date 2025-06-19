@@ -42,6 +42,12 @@ export const categories = [
     ] 
   },
   { 
+    name: "Mechanic", 
+    icon: "🔧", 
+    color: "from-red-400 to-pink-500",
+    subcategories: ["Two Wheeler Mechanic", "Trucker Mechanic", "Car Mechanic", "Heavy Vehicle Mechanic", "Puncture Repair Worker"] 
+  },
+  { 
     name: "Cooking", 
     icon: "👨‍🍳", 
     color: "from-pink-400 to-rose-500",

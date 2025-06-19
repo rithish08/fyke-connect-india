@@ -41,7 +41,7 @@ const RouteGuard = ({
     });
 
     // Public routes that don't need authentication
-    const publicRoutes = ['/', '/login', '/role-selection', '/otp-verification'];
+    const publicRoutes = ['/language', '/login', '/otp-verification'];
     if (publicRoutes.includes(currentPath) && !requireAuth) {
       console.log('[RouteGuard] Public route, allowing access');
       return;
@@ -50,7 +50,7 @@ const RouteGuard = ({
     // Check authentication requirement
     if (requireAuth && !isAuthenticated) {
       console.log('[RouteGuard] Auth required but not authenticated, redirecting to language selection');
-      navigate('/');
+      navigate('/language');
       return;
     }
 
@@ -92,6 +92,13 @@ const RouteGuard = ({
         } else {
           navigate('/home');
         }
+        return;
+      }
+
+      // Redirect from login if already authenticated
+      if (currentPath === '/login' && isAuthenticated) {
+        console.log('[RouteGuard] Already authenticated, redirecting to home');
+        navigate('/home');
         return;
       }
     }

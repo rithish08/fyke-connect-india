@@ -36,8 +36,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, showActions = true, onApply }) =
     onApply?.(job.id);
     
     toast({
-      title: "Application Submitted!",
-      description: `Your application for ${job.title} has been sent.`,
+      title: "Application Requested!",
+      description: `Your request for ${job.title} has been sent to the employer.`,
     });
   };
 
@@ -46,7 +46,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, showActions = true, onApply }) =
       title: "Starting Conversation",
       description: `Opening chat with ${job.company}...`,
     });
-    // Navigate to messages with job context
     navigate(`/messages?jobId=${job.id}&company=${job.company}`);
   };
 
@@ -106,7 +105,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, showActions = true, onApply }) =
               disabled={applied}
               className={`w-full ${applied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
             >
-              {applied ? '✓ Applied' : 'Apply Now'}
+              {applied ? '✓ Requested' : 'Apply Now'}
             </Button>
             
             <div className="flex space-x-2">
