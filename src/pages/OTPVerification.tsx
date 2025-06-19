@@ -12,7 +12,7 @@ const OTPVerification = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { verifyOTP, sendOTP } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,7 +43,17 @@ const OTPVerification = () => {
     
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
-      await login(phone, otpCode);
+      const { error } = await verifyOTP(phone, otpCode);
+      
+      if (error) {
+        toast({
+          title: "Verification Failed",
+          description: "Invalid OTP. Please try again.",
+          variant: "destructive"
+        });
+        setOtp(['', '', '', '', '', '']);
+        return;
+      }
       
       navigate('/role-selection');
       
@@ -63,12 +73,18 @@ const OTPVerification = () => {
     }
   };
 
-  const handleResend = () => {
-    setResendTimer(60);
-    toast({
-      title: "OTP Resent",
-      description: "New verification code sent to your phone"
-    });
+  const handleResend = async () => {
+    const phone = localStorage.getItem('fyke_phone');
+    if (phone) {
+      const { error } = await sendOTP(phone);
+      if (!error) {
+        setResendTimer(60);
+        toast({
+          title: "OTP Resent",
+          description: "New verification code sent to your phone"
+        });
+      }
+    }
   };
 
   const phone = localStorage.getItem('fyke_phone');
