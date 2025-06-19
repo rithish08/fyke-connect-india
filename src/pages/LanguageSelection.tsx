@@ -1,95 +1,106 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Check, Globe, ArrowRight } from 'lucide-react';
 import { useLocalization } from '@/contexts/LocalizationContext';
-import { useAuth } from '@/contexts/AuthContext';
-
-const languageList = [
-  { code: 'en', name: 'English', native: 'English', color: 'bg-blue-500', icon: "🇬🇧" },
-  { code: 'hi', name: 'Hindi', native: 'हिन्दी', color: 'bg-amber-400', icon: "🇮🇳" },
-  { code: 'ta', name: 'Tamil', native: 'தமிழ்', color: 'bg-pink-400', icon: "🇮🇳" },
-  { code: 'te', name: 'Telugu', native: 'తెలుగు', color: 'bg-green-500', icon: "🇮🇳" },
-  { code: 'bn', name: 'Bengali', native: 'বাংলা', color: 'bg-purple-500', icon: "🇮🇳" },
-  { code: 'mr', name: 'Marathi', native: 'मराठी', color: 'bg-red-500', icon: "🇮🇳" },
-  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ', color: 'bg-indigo-500', icon: "🇮🇳" },
-  { code: 'ml', name: 'Malayalam', native: 'മലയാളം', color: 'bg-teal-400', icon: "🇮🇳" }
-];
+import { useAccessibility } from '@/components/accessibility/AccessibilityProvider';
 
 const LanguageSelection = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const { setLanguage, t } = useLocalization();
-  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { language, setLanguage, getSupportedLanguages, t } = useLocalization();
+  const { announceMessage } = useAccessibility();
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+  
+  const supportedLanguages = getSupportedLanguages();
+
+  const handleLanguageSelect = (langCode: string) => {
+    setSelectedLanguage(langCode);
+    const selectedLang = supportedLanguages.find(lang => lang.code === langCode);
+    if (selectedLang) {
+      announceMessage(`Selected ${selectedLang.nativeName}`);
+    }
+  };
 
   const handleContinue = () => {
     setLanguage(selectedLanguage);
-    
-    // If user is already authenticated, determine next screen based on flow
-    if (isAuthenticated && user) {
-      if (!user.role) {
-        navigate('/role-selection');
-      } else if (user.role === 'jobseeker' && !user.profileComplete) {
-        navigate('/profile-setup');
-      } else {
-        navigate('/home');
-      }
-      return;
-    }
-
-    // For new/unauthenticated users, go directly to login
+    announceMessage(t('language.continuing', 'Continuing with selected language'));
     navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 pb-32">
-        <div className="w-full max-w-lg mx-auto space-y-7">
-          {/* Brand + Welcome */}
-          <div className="flex flex-col items-center gap-4">
-            <span className="flex rounded-full bg-gray-900 text-white w-14 h-14 justify-center items-center text-2xl font-bold shadow border-2 border-gray-100">fyke</span>
-            <span className="mt-4 mb-1 text-3xl font-bold text-gray-900">{t('lang.title', 'Choose Your Language')}</span>
-            <span className="mb-1 text-base text-gray-500">{t('lang.subtitle', 'Select your preferred language')}</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0 rounded-3xl overflow-hidden">
+        <CardContent className="p-8 space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto shadow-lg">
+              <Globe className="w-10 h-10 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {t('language.select', 'Select Your Language')}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                {t('language.subtitle', 'Choose your preferred language to continue')}
+              </p>
+            </div>
           </div>
-          
-          {/* Language grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {languageList.map((lang) => (
+
+          {/* Language Options */}
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {supportedLanguages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => setSelectedLanguage(lang.code)}
-                className={`group transition-all duration-150 rounded-xl flex flex-col items-center p-5 shadow hover:shadow-lg border-2 ${
+                onClick={() => handleLanguageSelect(lang.code)}
+                className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
                   selectedLanguage === lang.code
-                    ? "border-gray-700 bg-gray-50 scale-105"
-                    : "border-gray-100 bg-white hover:border-gray-300"
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
+                aria-label={`Select ${lang.nativeName} language`}
               >
-                <span className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 ${lang.color} text-white shadow-lg`}>
-                  {lang.icon}
-                </span>
-                <span className="text-xl font-bold text-gray-900">{lang.native}</span>
-                <span className="text-xs text-gray-400 mt-1">{lang.name}</span>
-                {selectedLanguage === lang.code && (
-                  <span className="mt-2 text-xs text-green-600 font-medium">✔ Selected</span>
-                )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl" role="img" aria-label={`${lang.name} flag`}>
+                      {lang.flag}
+                    </span>
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {lang.nativeName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {lang.name}
+                      </div>
+                    </div>
+                  </div>
+                  {selectedLanguage === lang.code && (
+                    <Check className="w-5 h-5 text-blue-600" />
+                  )}
+                </div>
               </button>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* Fixed Footer Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
-        <div className="w-full max-w-lg mx-auto">
-          <Button
+          {/* Continue Button */}
+          <Button 
             onClick={handleContinue}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 rounded-2xl shadow-lg text-lg h-14"
+            className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+            aria-label={t('language.continue', 'Continue with selected language')}
           >
-            {t('common.continue', 'Continue')}
+            <span>{t('language.continue', 'Continue')}</span>
+            <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
-        </div>
-      </div>
+
+          {/* Accessibility Notice */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500 leading-relaxed">
+              {t('language.accessibility', 'This app supports screen readers and accessibility features')}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
