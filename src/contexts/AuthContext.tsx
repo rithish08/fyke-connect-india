@@ -28,13 +28,15 @@ interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null;
+  session: Session | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (phone: string, otp: string) => Promise<void>;
-  logout: () => void;
-  setRole: (role: 'jobseeker' | 'employer') => void;
-  switchRole: () => void;
-  updateProfile: (updates: Partial<AuthUser>) => void;
+  sendOTP: (phone: string) => Promise<{ error: any }>;
+  verifyOTP: (phone: string, otp: string) => Promise<{ error: any }>;
+  logout: () => Promise<void>;
+  setRole: (role: 'jobseeker' | 'employer') => Promise<void>;
+  switchRole: () => Promise<void>;
+  updateProfile: (updates: Partial<AuthUser>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,27 +51,14 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session in localStorage first
-    const storedUser = localStorage.getItem('fyke_user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        console.log('Restored user from localStorage:', parsedUser);
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('fyke_user');
-      }
-    }
-    
-    // Check for Supabase session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && !user) {
+      if (session) {
         handleAuthSession(session);
       }
       setLoading(false);
@@ -83,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await handleAuthSession(session);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          setSession(null);
           setIsAuthenticated(false);
           localStorage.removeItem('fyke_user');
         }
@@ -95,70 +85,114 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleAuthSession = async (session: Session) => {
     try {
-      const { data: profile, error } = await supabase
+      setSession(session);
+      
+      // Fetch or create user profile
+      let { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-        return;
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create one
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: session.user.id,
+            phone: session.user.phone || '',
+            email: session.user.email || '',
+            role: 'jobseeker',
+            verified: false,
+            profile_complete: false,
+            availability: 'available'
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return;
+        }
+        profile = newProfile;
       }
 
-      const authUser: AuthUser = {
-        id: session.user.id,
-        phone: profile?.phone || session.user.phone || '',
-        name: profile?.name || '',
-        email: profile?.email || session.user.email || '',
-        bio: profile?.bio || '',
-        role: profile?.role || 'jobseeker',
-        verified: profile?.verified || false,
-        profileComplete: profile?.profile_complete || false,
-        profilePhoto: profile?.profile_photo,
-        location: profile?.location,
-        availability: profile?.availability || 'available',
-        skills: [],
-        categories: [],
-        subcategories: [],
-      };
+      if (profile) {
+        const authUser: AuthUser = {
+          id: profile.id,
+          phone: profile.phone || '',
+          name: profile.name || '',
+          email: profile.email || '',
+          bio: profile.bio || '',
+          role: profile.role || 'jobseeker',
+          verified: profile.verified || false,
+          profileComplete: profile.profile_complete || false,
+          profilePhoto: profile.profile_photo,
+          location: profile.location,
+          availability: profile.availability || 'available',
+          skills: [],
+          categories: [],
+          subcategories: [],
+        };
 
-      setUser(authUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('fyke_user', JSON.stringify(authUser));
-      console.log('Set user from Supabase:', authUser);
+        setUser(authUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('fyke_user', JSON.stringify(authUser));
+        console.log('Set user from Supabase:', authUser);
+      }
     } catch (error) {
       console.error('Error in handleAuthSession:', error);
     }
   };
 
-  const login = async (phone: string, otp: string) => {
+  const sendOTP = async (phone: string) => {
     try {
-      console.log('Login attempt:', phone, otp);
+      console.log('Sending OTP to:', phone);
       
-      // Accept demo OTP
-      if (otp === '123456') {
-        const mockUser: AuthUser = {
-          id: `user_${Date.now()}`,
-          phone,
-          name: '',
-          role: 'jobseeker',
-          verified: false,
-          profileComplete: false,
-          availability: 'available',
-        };
-        
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        localStorage.setItem('fyke_user', JSON.stringify(mockUser));
-        console.log('Demo login successful:', mockUser);
-        return;
+      // Format phone number for India (+91)
+      const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: formattedPhone,
+        options: {
+          shouldCreateUser: true
+        }
+      });
+
+      if (error) {
+        console.error('OTP send error:', error);
+        return { error };
       }
-      
-      throw new Error('Invalid OTP');
+
+      localStorage.setItem('fyke_phone', formattedPhone);
+      return { error: null };
     } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      console.error('Send OTP error:', error);
+      return { error };
+    }
+  };
+
+  const verifyOTP = async (phone: string, otp: string) => {
+    try {
+      console.log('Verifying OTP:', phone, otp);
+      
+      const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
+      
+      const { error } = await supabase.auth.verifyOtp({
+        phone: formattedPhone,
+        token: otp,
+        type: 'sms'
+      });
+
+      if (error) {
+        console.error('OTP verification error:', error);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      return { error };
     }
   };
 
@@ -167,6 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Logging out...');
       await supabase.auth.signOut();
       setUser(null);
+      setSession(null);
       setIsAuthenticated(false);
       localStorage.removeItem('fyke_user');
       localStorage.removeItem('fyke_phone');
@@ -176,9 +211,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const setRole = (role: 'jobseeker' | 'employer') => {
+  const setRole = async (role: 'jobseeker' | 'employer') => {
     if (user) {
       console.log('Setting role:', role);
+      
+      // Update in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          role,
+          profile_complete: role === 'employer' ? true : user.profileComplete
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating role:', error);
+        return;
+      }
+
       const updatedUser = { 
         ...user, 
         role,
@@ -189,23 +239,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const switchRole = () => {
+  const switchRole = async () => {
     if (user) {
       const newRole: 'jobseeker' | 'employer' = user.role === 'jobseeker' ? 'employer' : 'jobseeker';
-      console.log('Switching role from', user.role, 'to', newRole);
-      const updatedUser = { 
-        ...user, 
-        role: newRole,
-        profileComplete: newRole === 'employer' ? true : user.profileComplete
-      };
-      setUser(updatedUser);
-      localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
+      await setRole(newRole);
     }
   };
 
-  const updateProfile = (updates: Partial<AuthUser>) => {
+  const updateProfile = async (updates: Partial<AuthUser>) => {
     if (user) {
       console.log('Updating profile:', updates);
+      
+      // Map updates to database columns
+      const dbUpdates: any = {};
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.email !== undefined) dbUpdates.email = updates.email;
+      if (updates.location !== undefined) dbUpdates.location = updates.location;
+      if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+      if (updates.profileComplete !== undefined) dbUpdates.profile_complete = updates.profileComplete;
+      if (updates.verified !== undefined) dbUpdates.verified = updates.verified;
+      if (updates.availability !== undefined) dbUpdates.availability = updates.availability;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(dbUpdates)
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        return;
+      }
+
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
@@ -215,9 +279,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user,
+      session,
       isAuthenticated,
       loading,
-      login,
+      sendOTP,
+      verifyOTP,
       logout,
       setRole,
       switchRole,

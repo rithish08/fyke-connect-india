@@ -17,7 +17,7 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const { t } = useLocalization();
-  const { login, isAuthenticated } = useAuth();
+  const { sendOTP, verifyOTP, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -47,13 +47,22 @@ const LoginScreen = () => {
     
     setLoading(true);
     try {
-      localStorage.setItem('fyke_phone', phone);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await sendOTP(phone);
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to send OTP. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       setShowOTP(true);
       setResendTimer(60);
       toast({
         title: "OTP Sent",
-        description: `Verification code sent to +91 ${phone}. Use 123456 for demo.`
+        description: `Verification code sent to +91 ${phone}`
       });
     } catch (error) {
       toast({
@@ -78,12 +87,23 @@ const LoginScreen = () => {
     
     setLoading(true);
     try {
-      await login(phone, otpCode);
+      const { error } = await verifyOTP(phone, otpCode);
+      
+      if (error) {
+        toast({
+          title: "Verification Failed",
+          description: "Invalid OTP. Please try again.",
+          variant: "destructive"
+        });
+        setOtp(['', '', '', '', '', '']);
+        return;
+      }
+
       toast({
         title: "Login Successful!",
         description: "Welcome to Fyke Connect"
       });
-      // Navigation will be handled by AuthContext after successful login
+      // Navigation will be handled by AuthContext after successful verification
     } catch (error) {
       toast({
         title: "Verification Failed",
@@ -96,12 +116,15 @@ const LoginScreen = () => {
     }
   };
 
-  const handleResend = () => {
-    setResendTimer(60);
-    toast({
-      title: "OTP Resent",
-      description: "New verification code sent to your phone"
-    });
+  const handleResend = async () => {
+    const { error } = await sendOTP(phone);
+    if (!error) {
+      setResendTimer(60);
+      toast({
+        title: "OTP Resent",
+        description: "New verification code sent to your phone"
+      });
+    }
   };
 
   const handleBack = () => {
@@ -123,7 +146,6 @@ const LoginScreen = () => {
                 Enter the 6-digit code sent to<br />
                 <span className="font-semibold text-gray-700">+91 {phone}</span>
               </p>
-              <p className="text-sm text-blue-600 mt-2">Demo: Use 123456</p>
             </div>
           </div>
 
