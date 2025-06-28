@@ -1,14 +1,20 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
+import { definitions } from '@/integrations/supabase/types';
+
+type Profile = definitions['profiles'];
+
+interface ProfileInfoData extends Profile {
+  experience?: string;
+}
 
 interface ProfileInfoProps {
-  profileData: any;
+  profileData: Partial<ProfileInfoData>;
   isEditing: boolean;
-  setProfileData: (cb: any) => void;
+  setProfileData: (cb: (prev: Partial<ProfileInfoData>) => Partial<ProfileInfoData>) => void;
   handleSave: () => void;
   userRole: string;
 }
@@ -23,8 +29,8 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profileData, isEditing, setPr
         <Label htmlFor="name" className="mb-1 block">Full Name</Label>
         <Input
           id="name"
-          value={profileData.name}
-          onChange={(e) => setProfileData((prev: any) => ({ ...prev, name: e.target.value }))}
+          value={profileData.name || ''}
+          onChange={(e) => setProfileData((prev) => ({ ...prev, name: e.target.value }))}
           disabled={!isEditing}
           placeholder="Enter your full name"
           className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
@@ -35,8 +41,8 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profileData, isEditing, setPr
         <Input
           id="email"
           type="email"
-          value={profileData.email}
-          onChange={(e) => setProfileData((prev: any) => ({ ...prev, email: e.target.value }))}
+          value={profileData.email || ''}
+          onChange={(e) => setProfileData((prev) => ({ ...prev, email: e.target.value }))}
           disabled={!isEditing}
           placeholder="Enter your email"
           className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
@@ -46,8 +52,8 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profileData, isEditing, setPr
         <Label htmlFor="location" className="mb-1 block">Location</Label>
         <Input
           id="location"
-          value={profileData.location}
-          onChange={(e) => setProfileData((prev: any) => ({ ...prev, location: e.target.value }))}
+          value={profileData.location || ''}
+          onChange={(e) => setProfileData((prev) => ({ ...prev, location: e.target.value }))}
           disabled={!isEditing}
           className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
         />
@@ -57,8 +63,8 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profileData, isEditing, setPr
           <Label htmlFor="experience" className="mb-1 block">Experience</Label>
           <Input
             id="experience"
-            value={profileData.experience}
-            onChange={(e) => setProfileData((prev: any) => ({ ...prev, experience: e.target.value }))}
+            value={profileData.experience || ''}
+            onChange={(e) => setProfileData((prev) => ({ ...prev, experience: e.target.value }))}
             disabled={!isEditing}
             className="rounded-xl bg-[#f8f9fa] border border-gray-200 focus:ring-2 focus:ring-blue-100"
           />

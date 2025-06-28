@@ -10,22 +10,20 @@ import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<'jobseeker' | 'employer' | null>(null);
-  const { setRole, updateProfile } = useAuth();
+  const { setRole, updateProfile, user } = useAuth();
   const { t } = useLocalization();
   const { goTo } = useScreenNavigation();
 
   const handleContinue = () => {
     if (selectedRole) {
       setRole(selectedRole);
-
-      // Update profile with the selected role
       updateProfile({
         role: selectedRole,
-        profileComplete: selectedRole === 'employer' ? true : false
+        profileComplete: selectedRole === 'employer' ? !!user?.name : false
       });
-
-      // Navigate based on role
-      if (selectedRole === 'employer') {
+      if (selectedRole === 'employer' && !user?.name) {
+        goTo('/profile-setup?minimal=1'); // minimal setup for employer
+      } else if (selectedRole === 'employer') {
         goTo('/home');
       } else {
         goTo('/profile-setup');
@@ -40,7 +38,11 @@ const RoleSelection = () => {
       gradient: "from-blue-500 to-indigo-600",
       title: t("role.jobseeker", "Find Work"),
       subtitle: t("role.jobseeker_desc", "Browse jobs and earn money"),
-      features: ["Quick applications", "Daily payments", "Verified employers"],
+      features: [
+        t('role.feature.quickApplications', 'Quick applications'),
+        t('role.feature.dailyPayments', 'Daily payments'),
+        t('role.feature.verifiedEmployers', 'Verified employers')
+      ],
       bgGradient: "from-blue-50 to-indigo-50",
       iconBg: "bg-blue-500"
     },
@@ -50,7 +52,11 @@ const RoleSelection = () => {
       gradient: "from-green-500 to-emerald-600",
       title: t("role.employer", "Hire Workers"),
       subtitle: t("role.employer_desc", "Find skilled people instantly"),
-      features: ["Verified workers", "Quick hiring", "Secure payments"],
+      features: [
+        t('role.feature.verifiedWorkers', 'Verified workers'),
+        t('role.feature.quickHiring', 'Quick hiring'),
+        t('role.feature.securePayments', 'Secure payments')
+      ],
       bgGradient: "from-green-50 to-emerald-50",
       iconBg: "bg-green-500"
     }
@@ -81,6 +87,10 @@ const RoleSelection = () => {
                   : "border-gray-100 hover:border-gray-300 shadow-lg"
               }`}
               onClick={() => setSelectedRole(role.type)}
+              tabIndex={0}
+              aria-label={t('role.selectRole', 'Select {0}', [role.title])}
+              role="button"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setSelectedRole(role.type); }}
             >
               <div className={`bg-gradient-to-r ${role.bgGradient} p-6`}>
                 <div className="flex items-start space-x-4">
@@ -114,8 +124,11 @@ const RoleSelection = () => {
         <StickyActionButton
           onClick={handleContinue}
           disabled={!selectedRole}
+          aria-label={selectedRole ? t('role.continueAs', 'Continue as {0}', [selectedRole === 'jobseeker' ? t('role.jobseeker', 'Job Seeker') : t('role.employer', 'Employer')]) : t('role.selectYourRole', 'Select your role')}
         >
-          {selectedRole ? `Continue as ${selectedRole === 'jobseeker' ? 'Job Seeker' : 'Employer'}` : 'Select your role'}
+          {selectedRole
+            ? t('role.continueAs', 'Continue as {0}', [selectedRole === 'jobseeker' ? t('role.jobseeker', 'Job Seeker') : t('role.employer', 'Employer')])
+            : t('role.selectYourRole', 'Select your role')}
         </StickyActionButton>
 
         <p className="text-center text-xs text-gray-400">

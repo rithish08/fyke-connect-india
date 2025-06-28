@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Phone, Shield, Info } from 'lucide-react';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 interface CallConfirmModalProps {
   open: boolean;
@@ -21,6 +21,7 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
   phoneNumber,
   jobTitle
 }) => {
+  const { t } = useLocalization();
   const handleCall = () => {
     window.open(`tel:${phoneNumber}`, '_self');
     onConfirm();
@@ -33,14 +34,14 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Phone className="w-5 h-5 text-green-600" />
-            <span>Confirm Phone Call</span>
+            <span>{t('call.confirmTitle', 'Confirm Phone Call')}</span>
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
           <div className="text-center">
             <p className="text-gray-700">
-              You are about to call
+              {t('call.aboutToCall', 'You are about to call')}
             </p>
             <p className="font-semibold text-lg text-gray-900 mt-1">
               {recipientName}
@@ -50,7 +51,7 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
             </p>
             {jobTitle && (
               <p className="text-sm text-gray-500 mt-1">
-                Regarding: {jobTitle}
+                {t('call.regardingJob', 'Regarding: {0}', [jobTitle])}
               </p>
             )}
           </div>
@@ -60,13 +61,13 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
               <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div className="space-y-2">
                 <p className="text-sm font-medium text-green-800">
-                  Professional Call Guidelines
+                  {t('call.guidelinesTitle', 'Professional Call Guidelines')}
                 </p>
                 <ul className="text-xs text-green-700 space-y-1">
-                  <li>• Identify yourself and mention the job</li>
-                  <li>• Keep conversation work-related and respectful</li>
-                  <li>• Confirm meeting details and requirements</li>
-                  <li>• End call professionally</li>
+                  <li>• {t('call.guidelineIdentify', 'Identify yourself and mention the job')}</li>
+                  <li>• {t('call.guidelineRespect', 'Keep conversation work-related and respectful')}</li>
+                  <li>• {t('call.guidelineConfirm', 'Confirm meeting details and requirements')}</li>
+                  <li>• {t('call.guidelineEnd', 'End call professionally')}</li>
                 </ul>
               </div>
             </div>
@@ -76,7 +77,7 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
             <div className="flex items-center space-x-2">
               <Shield className="w-4 h-4 text-blue-600" />
               <p className="text-sm text-blue-800">
-                This will open your phone's dialer to make the call
+                {t('call.dialerNotice', "This will open your phone's dialer to make the call")}
               </p>
             </div>
           </div>
@@ -87,14 +88,14 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
               onClick={onClose}
               className="flex-1"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button
               onClick={handleCall}
               className="flex-1 bg-green-600 hover:bg-green-700"
             >
               <Phone className="w-4 h-4 mr-2" />
-              Call Now
+              {t('call.callNow', 'Call Now')}
             </Button>
           </div>
         </div>

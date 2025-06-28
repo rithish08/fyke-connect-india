@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,12 +5,13 @@ import { ModernCard } from '@/components/ui/modern-card';
 import LocationPicker from '@/components/location/LocationPicker';
 import { MapPin, Search, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Location } from '../hooks/useJobSearchState';
 
 interface LocalizedJobSearchHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  location: any;
-  setLocation: (location: any) => void;
+  location: Location | null;
+  setLocation: (location: Location | null) => void;
   selectedCategory: {id: string, name: string} | null;
   resultsCount: number;
   userRole: string | undefined;

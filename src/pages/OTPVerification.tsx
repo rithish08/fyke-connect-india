@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,13 +26,16 @@ const OTPVerification = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('User authenticated, checking role and profile...');
+      // Defensive: Always check for missing role and redirect
       if (!user.role) {
-        navigate('/role-selection');
+        navigate('/role-selection', { replace: true });
+        return;
       } else if (user.role === 'jobseeker' && !user.profileComplete) {
-        navigate('/profile-setup');
+        navigate('/profile-setup', { replace: true });
+        return;
       } else {
-        navigate('/home');
+        navigate('/home', { replace: true });
+        return;
       }
     }
   }, [isAuthenticated, user, navigate]);
@@ -50,43 +52,32 @@ const OTPVerification = () => {
       toast({
         title: t('auth.invalid_otp', 'Invalid OTP'),
         description: t('auth.enter_complete_code', 'Please enter the complete 6-digit code'),
-        variant: "destructive"
+        variant: 'destructive'
       });
       return;
     }
-
     setLoading(true);
-    
     try {
       const phone = localStorage.getItem('fyke_phone') || '';
-      console.log('Verifying OTP for phone:', phone, 'OTP:', otpCode);
-      
       const { error } = await verifyOTP(phone, otpCode);
-      
       if (error) {
-        console.error('OTP verification failed:', error);
         toast({
           title: t('auth.verification_failed', 'Verification Failed'),
           description: t('auth.invalid_otp_try_again', 'Invalid OTP. Please try again.'),
-          variant: "destructive"
+          variant: 'destructive'
         });
         setOtp(['', '', '', '', '', '']);
         return;
       }
-      
-      console.log('OTP verified successfully');
       toast({
         title: t('auth.phone_verified', 'Phone Verified!'),
         description: t('auth.choose_role_continue', 'Now choose your role to continue')
       });
-      
-      // Navigation will be handled by the useEffect above
     } catch (error) {
-      console.error('OTP verification error:', error);
       toast({
         title: t('auth.verification_failed', 'Verification Failed'),
         description: t('auth.invalid_otp_try_again', 'Invalid OTP. Please try again.'),
-        variant: "destructive"
+        variant: 'destructive'
       });
       setOtp(['', '', '', '', '', '']);
     } finally {

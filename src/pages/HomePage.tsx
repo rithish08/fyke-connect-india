@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -36,7 +35,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <StickyHeader currentTime={currentTime} />
+      <StickyHeader />
       
       {/* Dynamic Role Switcher */}
       <div className="px-4 py-2 bg-gray-50 border-b">
@@ -45,7 +44,7 @@ const HomePage = () => {
       
       <div className="flex justify-center">
         <div className="w-full max-w-2xl">
-          <div className="pt-4 pb-20">
+          <div className="pt-4 pb-20 px-4">
             {user.role === 'jobseeker' ? <JobSeekerHome /> : <EmployerHome />}
           </div>
         </div>

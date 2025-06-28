@@ -1,4 +1,3 @@
-
 import { useLocation } from 'react-router-dom';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,7 +52,7 @@ const BottomNavigation = () => {
   const navItems = user?.role === 'employer' ? EMPLOYER_NAV : JOBSEEKER_NAV;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg" aria-label={t('nav.tabBar', 'Main Tab Navigation')}>
       <div className="max-w-2xl mx-auto flex justify-between items-center px-2 py-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -67,9 +66,10 @@ const BottomNavigation = () => {
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               aria-current={isActive ? 'page' : undefined}
+              aria-label={t(item.labelKey, item.label)}
               tabIndex={0}
               style={{minWidth: 0}}
-              disabled={isActive} // Prevent clicking on already active tab
+              disabled={isActive}
             >
               <span className={`mb-1 transition-transform duration-150 flex items-center justify-center`}>
                 <item.icon size={iconSize} strokeWidth={2} className={isActive ? "text-white" : "text-gray-500 group-hover:text-gray-900"} />

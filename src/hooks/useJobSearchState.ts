@@ -1,8 +1,17 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockWorkers, mockJobs } from '@/data/mockData';
+import { mockWorkers, mockJobs, Job as MockJob, Worker as MockWorker } from '@/data/mockData';
 import { useLocalization } from './useLocalization';
+import { Job } from '@/types/job';
+import { definitions } from '@/integrations/supabase/types';
+
+type Profile = definitions['profiles'];
+
+export interface Location {
+  lat: number;
+  lng: number;
+  area?: string;
+}
 
 interface FilterState {
   distance: number;
@@ -23,9 +32,9 @@ export const useJobSearchState = () => {
   const [currentView, setCurrentView] = useState<ViewState>('category');
   const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string} | null>(null);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
-  const [results, setResults] = useState<null | any[]>(null);
+  const [results, setResults] = useState<(MockJob | MockWorker)[] | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [location, setLocation] = useState<any>(null);
+  const [location, setLocation] = useState<Location | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     distance: 10,
     minRating: 0,
@@ -38,12 +47,12 @@ export const useJobSearchState = () => {
   });
   const [urgentOnly, setUrgentOnly] = useState(false);
 
-  const loadResults = () => {
+  const loadResults = useCallback(() => {
     setTimeout(() => {
       if (user?.role === 'employer') {
         // Enhanced worker data loading with better filtering
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
-        let categoryWorkers: any[] = [];
+        let categoryWorkers: MockWorker[] = [];
         
         if (categoryKey && categoryKey in mockWorkers) {
           categoryWorkers = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
@@ -68,7 +77,7 @@ export const useJobSearchState = () => {
       } else {
         // Enhanced job data loading with better filtering
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
-        let categoryJobs: any[] = [];
+        let categoryJobs: MockJob[] = [];
         
         if (categoryKey && categoryKey in mockJobs) {
           categoryJobs = mockJobs[categoryKey as keyof typeof mockJobs] || [];
@@ -91,13 +100,13 @@ export const useJobSearchState = () => {
         setResults(filteredJobs.length > 0 ? filteredJobs : Object.values(mockJobs).flat().slice(0, 8));
       }
     }, 500);
-  };
+  }, [user?.role, selectedCategory, filters, urgentOnly, searchQuery]);
 
   useEffect(() => {
     if (currentView === 'results') {
       loadResults();
     }
-  }, [currentView, filters, urgentOnly, selectedCategory, searchQuery, location]);
+  }, [currentView, loadResults]);
 
   // For job seekers, auto-navigate to their category
   useEffect(() => {

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Filter, MapPin, Clock, Star, DollarSign, Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -63,7 +62,7 @@ const CompactAdvancedFilters = ({
     }
   ];
 
-  const updateFilter = (key: keyof FilterState, value: any) => {
+  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     const newFilters = { ...filters, [key]: value };
     onFiltersChange(newFilters);
     

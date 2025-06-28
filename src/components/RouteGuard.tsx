@@ -1,138 +1,91 @@
-
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ShimmerLoader from '@/components/ui/ShimmerLoader';
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
-  requireProfile?: boolean;
 }
 
-const RouteGuard = ({ 
-  children, 
-  requireAuth = true, 
-  requireProfile = true 
-}: RouteGuardProps) => {
+const RouteGuard = ({ children }: RouteGuardProps) => {
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [hasChecked, setHasChecked] = useState(false);
+  const currentPath = location.pathname;
 
   useEffect(() => {
-    // Don't redirect while still loading
-    if (loading) {
-      console.log('[RouteGuard] Still loading auth...');
-      return;
-    }
+    if (loading) return; // Wait until authentication status is resolved
 
-    // Mark that we've completed our first check
-    setHasChecked(true);
-
-    const currentPath = location.pathname;
-    console.log('[RouteGuard] Checking route:', currentPath, { 
-      user: !!user, 
-      isAuthenticated, 
-      requireAuth, 
-      requireProfile,
-      role: user?.role,
-      profileComplete: user?.profileComplete
-    });
-
-    // Public routes that don't need authentication
     const publicRoutes = ['/language', '/login', '/otp-verification'];
-    if (publicRoutes.includes(currentPath) && !requireAuth) {
-      console.log('[RouteGuard] Public route, allowing access');
+    const isPublicRoute = publicRoutes.includes(currentPath);
+
+    if (!isAuthenticated) {
+      if (!isPublicRoute) {
+        navigate('/language');
+      }
       return;
     }
 
-    // Check authentication requirement
-    if (requireAuth && !isAuthenticated) {
-      console.log('[RouteGuard] Auth required but not authenticated, redirecting to language selection');
-      navigate('/language');
+    // --- User is Authenticated ---
+    
+    // Redirect away from public pages if logged in
+    if (isPublicRoute) {
+      navigate('/home');
       return;
     }
 
-    // If authenticated, check user state
-    if (isAuthenticated && user) {
-      // Check role requirement
-      if (!user.role && currentPath !== '/role-selection') {
-        console.log('[RouteGuard] No role set, redirecting to role selection');
-        navigate('/role-selection');
-        return;
+    if (user) {
+      // 1. Role Check
+      if (!user.role) {
+        if (currentPath !== '/role-selection') {
+          navigate('/role-selection');
+        }
+        return; // Halt further checks until role is selected
       }
 
-      // Check profile completion for jobseekers only
-      if (requireProfile && user.role === 'jobseeker' && !user.profileComplete && currentPath !== '/profile-setup') {
-        console.log('[RouteGuard] Jobseeker profile incomplete, redirecting to profile setup');
-        navigate('/profile-setup');
-        return;
-      }
-
-      // Redirect completed jobseeker profiles away from setup pages
-      if (user.role === 'jobseeker' && user.profileComplete && currentPath === '/profile-setup') {
-        console.log('[RouteGuard] Jobseeker profile complete, redirecting to home');
+      // If role is selected, redirect away from role selection page
+      if (currentPath === '/role-selection') {
         navigate('/home');
         return;
       }
 
-      // Redirect employers away from profile setup (they don't need it)
-      if (user.role === 'employer' && currentPath === '/profile-setup') {
-        console.log('[RouteGuard] Employer on profile setup, redirecting to home');
-        navigate('/home');
-        return;
+      // 2. Profile Completion Check
+      const isProfileSetupPage = currentPath.startsWith('/profile-setup');
+      let isProfileComplete = false;
+
+      if (user.role === 'employer') {
+        isProfileComplete = !!user.name;
+      } else if (user.role === 'jobseeker') {
+        // A job seeker's profile is complete if they have a name, at least one category, and wages defined.
+        isProfileComplete = !!user.name && !!user.categories?.length && !!user.wages;
       }
 
-      // Redirect away from role selection if role is already set
-      if (user.role && currentPath === '/role-selection') {
-        console.log('[RouteGuard] Role already set, redirecting to appropriate home');
-        if (user.role === 'jobseeker' && !user.profileComplete) {
-          navigate('/profile-setup');
-        } else {
+      if (isProfileComplete) {
+        // If profile is complete, don't allow access to setup pages
+        if (isProfileSetupPage) {
           navigate('/home');
         }
+        // Otherwise, allow access to the intended page
         return;
-      }
-
-      // Redirect from login if already authenticated
-      if (currentPath === '/login' && isAuthenticated) {
-        console.log('[RouteGuard] Already authenticated, redirecting to home');
-        navigate('/home');
+      } else {
+        // If profile is not complete, force user to the setup page
+        if (!isProfileSetupPage) {
+          navigate('/profile-setup');
+        }
+        // Otherwise, they are on the correct setup page, so allow access
         return;
       }
     }
+  }, [user, isAuthenticated, loading, navigate, currentPath]);
 
-    console.log('[RouteGuard] All checks passed, showing content');
-  }, [user, isAuthenticated, loading, requireAuth, requireProfile, navigate, location.pathname]);
-
-  // Show loading while checking authentication or during initial load
-  if (loading || !hasChecked) {
+  if (loading || (!isAuthenticated && !['/language', '/login', '/otp-verification'].includes(currentPath))) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShimmerLoader height={60} width="200px" />
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <ShimmerLoader height={60} width="200px" />
       </div>
     );
   }
 
-  // Add fallback for profile-setup without proper user state
-  if (location.pathname === '/profile-setup' && (!user || !user.role)) {
-    console.log('[RouteGuard] Profile setup without proper user state, redirecting to role selection');
-    navigate('/role-selection');
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShimmerLoader height={60} width="200px" />
-          <p className="text-gray-600">Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show content if all checks pass
   return <>{children}</>;
 };
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,36 +6,39 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, Star, Building2, Users, X } from 'lucide-react';
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { Job } from '@/types/job';
 
 interface JobDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  job: any;
+  job: Job;
 }
 
 const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLocalization();
 
   const handleApply = () => {
     toast({
-      title: "Application Submitted!",
-      description: "Your application has been sent to the employer. You'll be notified of updates.",
+      title: t('job.applySuccessTitle', 'Application Submitted!'),
+      description: t('job.applySuccessDesc', "Your application has been sent to the employer. You'll be notified of updates."),
     });
     onClose();
   };
 
   const handleSave = () => {
     toast({
-      title: "Job Saved",
-      description: "This job has been saved to your favorites.",
+      title: t('job.saveSuccessTitle', 'Job Saved'),
+      description: t('job.saveSuccessDesc', 'This job has been saved to your favorites.'),
     });
   };
 
   const handleContact = () => {
     toast({
-      title: "Contact Employer",
-      description: "Opening message thread with employer.",
+      title: t('job.contactTitle', 'Contact Employer'),
+      description: t('job.contactDesc', 'Opening message thread with employer.'),
     });
     onClose();
   };
@@ -54,7 +56,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
                 <div className="flex items-center space-x-2 mb-2">
                   <DialogTitle className="text-xl font-bold text-gray-900">{job.title}</DialogTitle>
                   {job.urgent && (
-                    <Badge variant="destructive" className="bg-red-500 text-xs">Urgent</Badge>
+                    <Badge variant="destructive" className="bg-red-500 text-xs">{t('job.urgent', 'Urgent')}</Badge>
                   )}
                 </div>
                 
@@ -83,11 +85,11 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
             <div className="flex items-center space-x-4 text-sm text-gray-500 mt-3">
               <span className="flex items-center space-x-1">
                 <Clock className="w-4 h-4" />
-                <span>Posted {job.postedTime}</span>
+                <span>{t('job.posted', 'Posted {0}', [job.postedTime])}</span>
               </span>
               <span className="flex items-center space-x-1">
                 <Users className="w-4 h-4" />
-                <span>{job.applications} applications</span>
+                <span>{t('job.applications', '{0} applications', [job.applications])}</span>
               </span>
             </div>
           </DialogHeader>
@@ -97,7 +99,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
         <div className="p-6 space-y-4">
           {/* Job Description */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Job Description</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('job.description', 'Job Description')}</h3>
             <p className="text-gray-700 leading-relaxed">{job.description}</p>
           </div>
 
@@ -105,7 +107,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
 
           {/* Requirements */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('job.requirements', 'Requirements')}</h3>
             <ul className="space-y-2">
               {job.requirements?.map((req: string, index: number) => (
                 <li key={index} className="flex items-start space-x-2 text-gray-700">
@@ -120,7 +122,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
 
           {/* Benefits */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('job.benefits', 'Benefits')}</h3>
             <ul className="space-y-2">
               {job.benefits?.map((benefit: string, index: number) => (
                 <li key={index} className="flex items-start space-x-2 text-gray-700">
@@ -135,14 +137,14 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
 
           {/* About Employer */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">About Employer</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('job.aboutEmployer', 'About Employer')}</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium text-gray-900">{job.employer?.name}</span>
                   {job.employer?.verified && (
                     <Badge variant="secondary" className="text-xs">
-                      ✓ Verified
+                      ✓ {t('job.verified', 'Verified')}
                     </Badge>
                   )}
                 </div>
@@ -165,7 +167,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
               className="flex items-center space-x-2 h-12 rounded-xl flex-1"
             >
               <span>💾</span>
-              <span>Save</span>
+              <span>{t('job.save', 'Save')}</span>
             </Button>
             
             <Button
@@ -174,14 +176,14 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ isOpen, onClose, job 
               className="flex items-center space-x-2 h-12 rounded-xl flex-1"
             >
               <span>💬</span>
-              <span>Message</span>
+              <span>{t('job.message', 'Message')}</span>
             </Button>
             
             <Button
               onClick={handleApply}
               className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl flex-1"
             >
-              {user?.role === 'employer' ? 'Contact' : 'Apply'}
+              {user?.role === 'employer' ? t('job.contact', 'Contact') : t('job.apply', 'Apply')}
             </Button>
           </div>
         </div>

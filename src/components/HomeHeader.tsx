@@ -1,86 +1,93 @@
-
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import AnimatedWrapper from './AnimatedWrapper';
-import CompactRoleSwitcher from "@/components/CompactRoleSwitcher";
-import { useLocation } from "react-router-dom";
-import { useLocalization } from "@/contexts/LocalizationContext";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Bell, MapPin } from 'lucide-react';
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { geolocationService } from '@/services/geolocationService';
+import { getAreaFromCoordinates, isCoordinates, parsePointString } from '@/utils/locationUtils';
 
-const pageNames: Record<string, string> = {
-  "/home": "Home",
-  "/search": "Job Search",
-  "/my-jobs": "My Jobs",
-  "/profile": "Profile",
-  "/messages": "Messages",
-  "/notifications": "Notifications"
-};
-
-const HomeHeader = ({ currentTime }: { currentTime: Date }) => {
+export function HomeHeader() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useLocalization();
+  const [location, setLocation] = useState('');
+  const [loadingLocation, setLoadingLocation] = useState(true);
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return t('home.greetingMorning', 'Good Morning');
-    if (hour < 17) return t('home.greetingAfternoon', 'Good Afternoon');
-    return t('home.greetingEvening', 'Good Evening');
-  };
+  useEffect(() => {
+    const fetchLocation = async () => {
+      setLoadingLocation(true);
+      let coords: { lat: number; lng: number } | null = null;
 
-  const showPage = pageNames[location.pathname] || "";
+      if (user?.location) {
+        // First, try parsing as a PostGIS POINT string
+        coords = parsePointString(user.location);
+        
+        // If that fails, check if it's a "lat,lng" string
+        if (!coords && isCoordinates(user.location)) {
+          const [lat, lng] = user.location.split(',').map(coord => parseFloat(coord.trim()));
+          coords = { lat, lng };
+        }
+      } 
+      
+      // If location is not a point, maybe we have lat/lng fields
+      if (!coords && user?.latitude && user?.longitude) {
+        coords = { lat: user.latitude, lng: user.longitude };
+      }
+
+      // If still no coordinates, try to get current location from geolocation service
+      if (!coords && geolocationService.isSupported()) {
+        try {
+          const currentLocation = await geolocationService.getCurrentLocation();
+          coords = { lat: currentLocation.latitude, lng: currentLocation.longitude };
+        } catch (error) {
+          console.warn('Could not get current location:', error);
+        }
+      }
+
+      if (coords) {
+        try {
+          const areaName = await getAreaFromCoordinates(coords.lat, coords.lng);
+          setLocation(areaName);
+        } catch (error) {
+          console.error('Error fetching area from coordinates:', error);
+          // Fallback to coordinates if geocoding fails
+          setLocation(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`);
+        }
+      } else if (user?.location) {
+        // If it's not a point or coordinates, display it as is
+        setLocation(user.location);
+      } else {
+        setLocation(t('location.notEnabled', 'Enable location services'));
+      }
+
+      setLoadingLocation(false);
+    };
+
+    fetchLocation();
+  }, [user, t]);
 
   return (
-    <>
-      <div className="relative bg-white p-0 shadow-none w-full">
-        {/* App Brand and User Info */}
-        <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
-          <div className="flex items-center space-x-3">
-            <span 
-              className="font-extrabold text-3xl tracking-tight text-black"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >fyke</span>
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-gray-900">
-                {getGreeting()}! 👋
-              </span>
-              <span className="text-sm text-gray-600">
-                {user?.name ?? user?.phone}
-              </span>
-            </div>
+    <header className="flex items-center justify-between p-4 bg-white">
+      <div className="flex items-center space-x-3">
+        <Avatar>
+          <AvatarImage src={user?.profilePhoto} alt={user?.name} />
+          <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+        </Avatar>
+        <div>
+          <span className="text-sm text-gray-500">{t('home.welcome', 'Welcome back,')}</span>
+          <h1 className="font-bold text-lg">{user?.name}</h1>
+          <div className="flex items-center text-xs text-gray-500 mt-1">
+            <MapPin className="w-3 h-3 mr-1" />
+            {loadingLocation ? (
+              <span className="italic">{t('location.loading', 'Fetching location...')}</span>
+            ) : (
+              <span>{location}</span>
+            )}
           </div>
-          <div className="flex items-center space-x-2">
-            <button onClick={() => navigate('/notifications')}
-              className="relative">
-              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100">
-                <span className="text-xl">🔔</span>
-                <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>
-              </span>
-            </button>
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow border overflow-hidden select-none">
-              <span className="text-lg font-bold text-gray-700 uppercase">
-                {user?.name ? user?.name[0] : user?.phone?.[0] || 'U'}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center min-h-[36px] pl-6 pr-2 text-xs text-gray-400 font-medium select-none">
-          <span>{showPage}</span>
-        </div>
-        
-        {/* Subtitle */}
-        <div className="px-6 pb-3">
-          <p className="text-gray-400 text-xs">
-            {user?.role === 'jobseeker'
-              ? t('home.jobseeker_subtitle', 'Ready to find work?')
-              : t('home.employer_subtitle', 'Ready to hire?')}
-          </p>
         </div>
       </div>
-      <CompactRoleSwitcher />
-    </>
+      <div className="flex items-center space-x-4">
+        <Bell className="w-6 h-6 text-gray-500" />
+      </div>
+    </header>
   );
-};
-
-export default HomeHeader;
+}

@@ -5,6 +5,9 @@ import { ModernCard } from '@/components/ui/modern-card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGlobalToast } from '@/hooks/useGlobalToast';
 import { useScreenNavigation } from '@/hooks/useScreenNavigation';
+import { useApplications } from '@/hooks/useApplications';
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface Job {
   id: string;
@@ -17,6 +20,7 @@ interface Job {
   rating?: number;
   urgent?: boolean;
   description?: string;
+  phone?: string;
 }
 
 interface JobSeekerJobCardProps {
@@ -27,23 +31,52 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
   const { user, isAuthenticated } = useAuth();
   const { showSuccess, showError } = useGlobalToast();
   const { goTo } = useScreenNavigation();
-  const [applicationState, setApplicationState] = useState<'idle' | 'requested'>('idle');
+  const { t } = useLocalization();
+  const { applyToJob, hasApplied, withdrawApplication, refreshApplications } = useApplications();
+  const [loading, setLoading] = useState(false);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!isAuthenticated) {
       localStorage.setItem('fyke_return_intent', `/job/${job.id}`);
-      showError('Please login to apply for jobs');
+      showError(t('job.loginRequired', 'Please login to apply for jobs'));
       goTo('/login');
       return;
     }
-
     if (!user?.profileComplete) {
-      showError('Please complete your profile to apply for jobs');
+      showError(t('job.profileIncomplete', 'Please complete your profile to apply for jobs'));
       goTo('/profile-setup');
       return;
     }
-    setApplicationState('requested');
-    showSuccess(`Applied to ${job.title} successfully!`);
+    setLoading(true);
+    try {
+      await applyToJob(job.id, user.id);
+      showSuccess(t('job.applySuccess', 'Applied to {0} successfully!', [job.title]));
+      await refreshApplications();
+    } catch (err) {
+      showError(t('job.applyError', 'Failed to apply. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    setWithdrawLoading(true);
+    try {
+      const result = await withdrawApplication(job.id);
+      if (result.success) {
+        showSuccess(t('job.withdrawSuccess', 'Application withdrawn.'));
+        await refreshApplications();
+      } else {
+        showError(t('job.withdrawError', 'Failed to withdraw application.'));
+      }
+    } catch (err) {
+      showError(t('job.withdrawError', 'Failed to withdraw application.'));
+    } finally {
+      setWithdrawLoading(false);
+      setWithdrawDialogOpen(false);
+    }
   };
 
   const handleViewDetails = () => {
@@ -54,7 +87,11 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
     if (type === 'chat') {
       goTo('/messages');
     } else if (type === 'call') {
-      showSuccess('Calling feature coming soon!');
+      if (job.phone) {
+        window.location.href = `tel:${job.phone}`;
+      } else {
+        showError('Phone number not available. Please contact through chat first.');
+      }
     }
   };
 
@@ -108,15 +145,21 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
 
         <div className="flex gap-2 pt-2">
           <Button
-            onClick={handleApply}
-            disabled={applicationState === 'requested'}
+            onClick={hasApplied(job.id) ? () => setWithdrawDialogOpen(true) : handleApply}
+            disabled={loading}
             className={`flex-1 h-11 rounded-xl font-medium transition-all ${
-              applicationState === 'requested'
-                ? 'bg-green-600 hover:bg-green-700 text-white'
+              hasApplied(job.id)
+                ? 'bg-gray-400 text-white'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
-            {applicationState === 'requested' ? 'Requested' : 'Apply Now'}
+            {loading ? (
+              <span>{t('job.applying', 'Applying...')}</span>
+            ) : hasApplied(job.id) ? (
+              <>{t('job.applied', 'Applied')}</>
+            ) : (
+              t('job.applyNow', 'Apply Now')
+            )}
           </Button>
           <Button
             onClick={handleViewDetails}
@@ -148,6 +191,21 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('job.withdrawConfirmTitle', 'Withdraw Application?')}</DialogTitle>
+            <DialogDescription>{t('job.withdrawConfirmDesc', 'Are you sure you want to withdraw your application?')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+            <Button variant="destructive" onClick={handleWithdraw} disabled={withdrawLoading}>
+              {withdrawLoading ? t('job.withdrawing', 'Withdrawing...') : t('job.withdraw', 'Withdraw')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ModernCard>
   );
 };

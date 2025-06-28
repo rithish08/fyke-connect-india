@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ElegantModal from '@/components/ui/elegant-modal';
 import SelectionButton from '@/components/ui/selection-button';
 import CategoryIcon from '@/components/ui/category-icon';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Category {
   name: string;
@@ -30,6 +30,7 @@ const ElegantSubcategoryModal: React.FC<ElegantSubcategoryModalProps> = ({
   onSubcategoryToggle,
   onConfirm
 }) => {
+  const { translateText } = useTranslation();
   if (!category) return null;
 
   const handleConfirmAndClose = () => {
@@ -41,8 +42,8 @@ const ElegantSubcategoryModal: React.FC<ElegantSubcategoryModalProps> = ({
     <ElegantModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Choose Specializations"
-      subtitle="Select up to 3 areas that match your expertise"
+      title={translateText('subcategory.choose_specializations', 'Choose Specializations')}
+      subtitle={translateText('subcategory.select_up_to_3', 'Select up to 3 areas that match your expertise')}
       className="max-w-lg"
     >
       <div className="space-y-6">
@@ -51,7 +52,7 @@ const ElegantSubcategoryModal: React.FC<ElegantSubcategoryModalProps> = ({
           <CategoryIcon icon={category.icon} color={category.color} size="md" />
           <div>
             <h4 className="font-bold text-gray-900">{category.name}</h4>
-            <p className="text-sm text-gray-600">{category.subcategories.length} specializations available</p>
+            <p className="text-sm text-gray-600">{category.subcategories.length} {translateText('subcategory.specializations_available', 'specializations available')}</p>
           </div>
         </div>
 
@@ -71,7 +72,7 @@ const ElegantSubcategoryModal: React.FC<ElegantSubcategoryModalProps> = ({
         {/* Selected Count */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
           <span className="text-sm font-medium text-gray-700">
-            Selected Specializations
+            {translateText('subcategory.selected_specializations', 'Selected Specializations')}
           </span>
           <div className="flex items-center space-x-2">
             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -83,7 +84,7 @@ const ElegantSubcategoryModal: React.FC<ElegantSubcategoryModalProps> = ({
         {/* Selected Tags */}
         {selectedSubcategories.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">Your Selections:</p>
+            <p className="text-sm font-medium text-gray-700">{translateText('subcategory.your_selections', 'Your Selections:')}</p>
             <div className="flex flex-wrap gap-2">
               {selectedSubcategories.map(sub => (
                 <Badge key={sub} variant="default" className="bg-blue-500 text-white">
@@ -101,14 +102,14 @@ const ElegantSubcategoryModal: React.FC<ElegantSubcategoryModalProps> = ({
             onClick={onClose}
             className="flex-1 h-12 rounded-xl"
           >
-            Cancel
+            {translateText('common.cancel', 'Cancel')}
           </Button>
           <Button
             onClick={handleConfirmAndClose}
             disabled={selectedSubcategories.length === 0}
             className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700"
           >
-            Confirm {selectedSubcategories.length > 0 && `(${selectedSubcategories.length})`}
+            {translateText('common.confirm', 'Confirm')} {selectedSubcategories.length > 0 && `(${selectedSubcategories.length})`}
           </Button>
         </div>
       </div>

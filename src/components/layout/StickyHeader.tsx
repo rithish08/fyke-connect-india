@@ -1,14 +1,11 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
-import { Bell, Globe, ChevronDown } from 'lucide-react';
+import { Bell, Globe, ChevronDown, MapPin, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
-
-interface StickyHeaderProps {
-  currentTime: Date;
-}
+import { useLocation } from '@/hooks/useLocation';
+import { cn } from '@/lib/utils';
 
 const languageList = [
   { code: 'en', name: 'English', native: 'English', icon: "🇬🇧" },
@@ -19,31 +16,31 @@ const languageList = [
   { code: 'mr', name: 'Marathi', native: 'मराठी', icon: "🇮🇳" }
 ];
 
-const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
+const StickyHeader = () => {
   const { user } = useAuth();
-  const { language, setLanguage, t } = useLocalization();
+  const { language, setLanguage } = useLocalization();
+  const { address, loading, refreshLocation } = useLocation();
   const navigate = useNavigate();
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
+  
   const currentLanguage = languageList.find(lang => lang.code === language) || languageList[0];
 
   return (
-    <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+    <div className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-6">
       <div className="flex items-center justify-between">
-        {/* Left: Greeting */}
-        <div className="flex-1">
-          <div className="text-lg font-bold text-gray-900">
-            {t('greeting.good_morning', 'Good Morning')}, {user?.name || 'User'}!
-          </div>
-          <div className="text-sm text-gray-500">
-            {formatTime(currentTime)} • {user?.location || 'Mumbai, Maharashtra'}
+        {/* Left: Logo and Location */}
+        <div>
+          <span
+            className="font-black text-3xl tracking-tighter text-black"
+            style={{ fontFamily: "sans-serif" }}
+          >
+            fyke
+          </span>
+          <div className="flex items-center gap-1 mt-0">
+            <MapPin className="w-3 h-3 text-gray-400" />
+            <p className="text-xs text-gray-400">{address}</p>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={refreshLocation} disabled={loading}>
+              <RefreshCw className={cn("w-3 h-3 text-gray-400", loading && "animate-spin")} />
+            </Button>
           </div>
         </div>
 
@@ -52,9 +49,9 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
           {/* Language Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 px-2 flex items-center space-x-1">
-                <span className="text-sm">{currentLanguage.icon}</span>
-                <ChevronDown className="w-3 h-3" />
+              <Button variant="ghost" size="sm" className="h-9 px-2 flex items-center space-x-1">
+                <span className="text-lg">{currentLanguage.icon}</span>
+                <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -62,14 +59,14 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code)}
-                  className={`flex items-center space-x-3 ${language === lang.code ? 'bg-blue-50' : ''}`}
+                  className={`flex items-center space-x-3 p-2 ${language === lang.code ? 'bg-blue-50' : ''}`}
                 >
-                  <span>{lang.icon}</span>
+                  <span className="text-xl">{lang.icon}</span>
                   <div className="flex-1">
                     <div className="font-medium">{lang.native}</div>
                     <div className="text-xs text-gray-500">{lang.name}</div>
                   </div>
-                  {language === lang.code && <span className="text-blue-600">✓</span>}
+                  {language === lang.code && <span className="text-blue-600 text-lg">✓</span>}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -78,12 +75,12 @@ const StickyHeader = ({ currentTime }: StickyHeaderProps) => {
           {/* Notifications */}
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => navigate('/notifications')}
-            className="h-8 w-8 p-0 relative"
+            className="h-9 w-9 p-0 relative"
           >
-            <Bell className="w-4 h-4" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+            <Bell className="w-5 h-5" />
+            <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full text-xs text-white flex items-center justify-center">
               3
             </div>
           </Button>

@@ -1,160 +1,120 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Form } from '@/components/ui/form';
 import { ArrowLeft, BadgeCheck } from "lucide-react";
-import { useProfileSetupForm } from '@/hooks/useProfileSetupForm';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
 import ModernMultiSalaryStep from '@/components/profile/ModernMultiSalaryStep';
 import { FloatingCard } from '@/components/ui/floating-card';
 import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
+import { useLocalization } from '@/contexts/LocalizationContext';
+
+// Define a schema for the multi-step form
+const profileSetupSchema = z.object({
+  name: z.string().optional(),
+  selectedCategories: z.array(z.string()).optional(),
+  salaryBySubcategory: z.record(z.object({
+    amount: z.string(),
+    period: z.string(),
+  })).optional(),
+});
+
+type ProfileSetupFormValues = z.infer<typeof profileSetupSchema>;
 
 const ProfileSetup = () => {
   const { user, loading, updateProfile } = useAuth();
+  const { t } = useLocalization();
   const navigate = useNavigate();
-  const {
-    form,
-    currentStep,
-    isSubmitting,
-    nextStep,
-    prevStep,
-    submitProfile,
-    shouldSkipWages,
-    shouldShowPartialWages
-  } = useProfileSetupForm();
-  const [nameStep, setNameStep] = useState(0);
 
+  const form = useForm<ProfileSetupFormValues>({
+    resolver: zodResolver(profileSetupSchema),
+    defaultValues: {
+      selectedCategories: user?.categories || [],
+      salaryBySubcategory: user?.wages || {},
+    },
+  });
+
+  const getCurrentStep = useMemo(() => {
+    if (!user) return 'loading';
+    if (!user.name) return 'name';
+    if (user.role === 'employer') return 'complete'; // Employers only need a name
+    if (!user.categories || user.categories.length === 0) return 'category';
+    if (!user.wages) return 'wages';
+    return 'complete';
+  }, [user]);
+
+  const [currentStep, setCurrentStep] = useState(getCurrentStep);
+  
   useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      navigate('/');
-      return;
-    }
-    if (user.role === 'employer') {
-      navigate('/home');
-      return;
-    }
-    if (!user.role) {
-      navigate('/role-selection');
-      return;
-    }
-    if (user.profileComplete) {
-      navigate('/home');
-      return;
-    }
-    if (!user.name?.trim()) setNameStep(0);
-    else setNameStep(1);
-  }, [user, loading, navigate]);
+    setCurrentStep(getCurrentStep);
+  }, [getCurrentStep]);
+  
 
-  const handleBack = async () => {
-    if (currentStep > 0) {
-      prevStep();
-    } else {
-      setNameStep(0);
-    }
-    return true;
+  const handleNameSubmit = async (name: string) => {
+    await updateProfile({ name });
+    // The RouteGuard will handle redirection
   };
 
-  const handleNameSubmit = (name: string) => {
-    updateProfile({ name: name });
-    setNameStep(1);
+  const handleCategorySubmit = async (data: ProfileSetupFormValues) => {
+    await updateProfile({ categories: data.selectedCategories });
   };
 
-  const handleFinish = async () => {
-    console.log('handleFinish called');
-    
-    // Get all form data
-    const formData = form.getValues();
-    console.log('Form data:', formData);
-    
-    // Force completion by directly updating profile
-    try {
-      // Ensure salary data has required fields with proper types
-      const salaryBySubcategory = formData.salaryBySubcategory || {};
-      const processedSalaryData: Record<string, { amount: string; period: string }> = {};
-      
-      Object.entries(salaryBySubcategory).forEach(([key, value]) => {
-        processedSalaryData[key] = {
-          amount: value?.amount || '500',
-          period: value?.period || 'daily'
-        };
-      });
-
-      const profileData = {
-        ...formData,
-        profileComplete: true,
-        availability: formData.availability || 'available' as const,
-        salaryBySubcategory: Object.keys(processedSalaryData).length > 0 ? processedSalaryData : undefined
-      };
-      
-      console.log('Updating profile with:', profileData);
-      await updateProfile(profileData);
-      
-      console.log('Profile updated successfully, navigating to home');
-      navigate('/home');
-      return true;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      return false;
+  const handleWagesSubmit = async (data: ProfileSetupFormValues) => {
+    await updateProfile({ wages: data.salaryBySubcategory });
+  };
+  
+  const renderStep = () => {
+    switch(currentStep) {
+      case 'name':
+        return <ProfileNameStep onSubmit={handleNameSubmit} initialName={user?.name || ''} />;
+      case 'category':
+        return (
+          <ModernCategoryStep
+            form={form as any}
+            onNext={form.handleSubmit(handleCategorySubmit)}
+            userName={user?.name || ''}
+          />
+        );
+      case 'wages':
+        return (
+          <ModernMultiSalaryStep
+            form={form as any}
+            onNext={form.handleSubmit(handleWagesSubmit)}
+            onBack={() => setCurrentStep('category')}
+          />
+        );
+      default:
+        return <ProfileLoading />;
     }
   };
 
   if (loading) return <ProfileLoading />;
   if (!user) return <ProfileRedirect />;
 
-  if (nameStep === 0) {
-    return (
-      <ProfileNameStep
-        onSubmit={handleNameSubmit}
-        initialName=""
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 px-4 py-6">
       <div className="w-full max-w-lg mx-auto">
-        {/* Floating Header */}
         <FloatingCard variant="glow" size="sm" className="mb-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-all duration-200 hover:scale-110"
-            >
-              <ArrowLeft className="w-4 h-4 text-gray-600" />
-            </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center">
-                <BadgeCheck className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
-                Complete Profile
-              </span>
-            </div>
-            <div className="w-10 h-10"></div>
-          </div>
-        </FloatingCard>
-
-        {/* Step Content */}
+           <div className="flex items-center justify-center">
+             <div className="flex items-center space-x-3">
+               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center">
+                 <BadgeCheck className="w-4 h-4 text-white" />
+               </div>
+               <span className="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+                 {t('profile.completeProfile', 'Complete Your Profile')}
+               </span>
+             </div>
+           </div>
+         </FloatingCard>
+        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(() => {})}>
-            {currentStep === 0 && (
-              <ModernCategoryStep
-                form={form}
-                onNext={nextStep}
-                userName={user?.name || ""}
-              />
-            )}
-            {currentStep === 1 && (shouldShowPartialWages || !shouldSkipWages) && (
-              <ModernMultiSalaryStep
-                form={form}
-                onNext={handleFinish}
-                onBack={prevStep}
-              />
-            )}
+          <form>
+            {renderStep()}
           </form>
         </Form>
       </div>

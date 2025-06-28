@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Phone, MessageSquare } from "lucide-react";
 import EnhancedOTPInput from '@/components/EnhancedOTPInput';
+import { Haptics } from '@capacitor/haptics';
 
 const LoginScreen = () => {
   const [phone, setPhone] = useState('');
@@ -38,10 +38,12 @@ const LoginScreen = () => {
   const handleSendOTP = async () => {
     if (phone.length !== 10) {
       toast({
-        title: "Invalid Input",
-        description: "Please enter a valid 10-digit phone number",
-        variant: "destructive"
+        title: t('login.invalidInputTitle', 'Invalid Input'),
+        description: t('login.invalidInputDesc', 'Please enter a valid 10-digit phone number'),
+        variant: 'destructive'
       });
+      if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
+      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
       return;
     }
     
@@ -51,25 +53,30 @@ const LoginScreen = () => {
       
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to send OTP. Please try again.",
-          variant: "destructive"
+          title: t('common.error', 'Error'),
+          description: t('login.otpSendFailed', 'Failed to send OTP. Please try again.'),
+          variant: 'destructive'
         });
+        if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
+        try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
         return;
       }
 
       setShowOTP(true);
       setResendTimer(60);
       toast({
-        title: "OTP Sent",
-        description: `Verification code sent to +91 ${phone}`
+        title: t('login.otpSentTitle', 'OTP Sent'),
+        description: t('login.otpSentDesc', 'Verification code sent to +91 {0}', [phone])
       });
+      try { await Haptics.notification({ type: 'SUCCESS' }); } catch (e) { /* ignore */ }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to send OTP. Please try again.",
-        variant: "destructive"
+        title: t('common.error', 'Error'),
+        description: t('login.otpSendFailed', 'Failed to send OTP. Please try again.'),
+        variant: 'destructive'
       });
+      if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
+      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
     } finally {
       setLoading(false);
     }
@@ -78,10 +85,12 @@ const LoginScreen = () => {
   const handleOTPComplete = async (otpCode: string) => {
     if (otpCode.length !== 6) {
       toast({
-        title: "Invalid OTP",
-        description: "Please enter the complete 6-digit code",
-        variant: "destructive"
+        title: t('login.invalidOtpTitle', 'Invalid OTP'),
+        description: t('login.invalidOtpDesc', 'Please enter the complete 6-digit code'),
+        variant: 'destructive'
       });
+      if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
+      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
       return;
     }
     
@@ -91,26 +100,31 @@ const LoginScreen = () => {
       
       if (error) {
         toast({
-          title: "Verification Failed",
-          description: "Invalid OTP. Please try again.",
-          variant: "destructive"
+          title: t('login.verificationFailedTitle', 'Verification Failed'),
+          description: t('login.invalidOtpTryAgain', 'Invalid OTP. Please try again.'),
+          variant: 'destructive'
         });
         setOtp(['', '', '', '', '', '']);
+        if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
+        try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
         return;
       }
 
       toast({
-        title: "Login Successful!",
-        description: "Welcome to Fyke Connect"
+        title: t('login.successTitle', 'Login Successful!'),
+        description: t('login.successDesc', 'Welcome to Fyke Connect')
       });
+      try { await Haptics.notification({ type: 'SUCCESS' }); } catch (e) { /* ignore */ }
       // Navigation will be handled by AuthContext after successful verification
     } catch (error) {
       toast({
-        title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
-        variant: "destructive"
+        title: t('login.verificationFailedTitle', 'Verification Failed'),
+        description: t('login.invalidOtpTryAgain', 'Invalid OTP. Please try again.'),
+        variant: 'destructive'
       });
       setOtp(['', '', '', '', '', '']);
+      if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
+      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
     } finally {
       setLoading(false);
     }
@@ -226,8 +240,9 @@ const LoginScreen = () => {
               onClick={handleSendOTP} 
               disabled={phone.length !== 10 || loading} 
               className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+              aria-label={t('login.sendOtp', 'Send OTP')}
             >
-              {loading ? 'Sending...' : 'Send OTP'}
+              {loading ? t('login.sending', 'Sending...') : t('login.sendOtp', 'Send OTP')}
             </Button>
           </div>
 

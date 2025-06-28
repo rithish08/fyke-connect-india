@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface OfflineData {
@@ -14,6 +13,21 @@ export const useOfflineCapabilities = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [offlineData, setOfflineData] = useState<OfflineData | null>(null);
   const { user } = useAuth();
+
+  const syncDataWhenOnline = useCallback(() => {
+    if (isOnline) {
+      // Sync pending actions when back online
+      const pendingActions = JSON.parse(localStorage.getItem('pending_actions') || '[]');
+      
+      pendingActions.forEach((action: any) => {
+        // Process pending actions like job applications, messages, etc.
+        console.log('Syncing pending action:', action);
+      });
+
+      // Clear pending actions after sync
+      localStorage.removeItem('pending_actions');
+    }
+  }, [isOnline]);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -36,7 +50,7 @@ export const useOfflineCapabilities = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [syncDataWhenOnline]);
 
   const cacheCurrentData = () => {
     try {
@@ -63,21 +77,6 @@ export const useOfflineCapabilities = () => {
       }
     } catch (error) {
       console.error('Error loading cached data:', error);
-    }
-  };
-
-  const syncDataWhenOnline = () => {
-    if (isOnline) {
-      // Sync pending actions when back online
-      const pendingActions = JSON.parse(localStorage.getItem('pending_actions') || '[]');
-      
-      pendingActions.forEach((action: any) => {
-        // Process pending actions like job applications, messages, etc.
-        console.log('Syncing pending action:', action);
-      });
-
-      // Clear pending actions after sync
-      localStorage.removeItem('pending_actions');
     }
   };
 

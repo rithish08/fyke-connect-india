@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone } from 'lucide-react';
 import { handlePhoneCall, handleInAppChat, handleEmployerContact } from '@/utils/communicationHandlers';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 interface CommunicationButtonsProps {
   targetId: string;
@@ -29,6 +29,7 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
   context
 }) => {
   const navigate = useNavigate();
+  const { t } = useLocalization();
 
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,9 +56,10 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
           size={buttonSize}
           onClick={handleChat}
           className="flex items-center justify-center flex-1"
+          aria-label={t('job.chat', 'Chat')}
         >
           <MessageCircle className={iconSize} />
-          {size === 'md' && <span className="ml-1">Chat</span>}
+          {size === 'md' && <span className="ml-1">{t('job.chat', 'Chat')}</span>}
         </Button>
       )}
       {showCall && (
@@ -66,9 +68,10 @@ const CommunicationButtons: React.FC<CommunicationButtonsProps> = ({
           size={buttonSize}
           onClick={handleCall}
           className="flex items-center justify-center flex-1"
+          aria-label={t('job.call', 'Call')}
         >
           <Phone className={iconSize} />
-          {size === 'md' && <span className="ml-1">Call</span>}
+          {size === 'md' && <span className="ml-1">{t('job.call', 'Call')}</span>}
         </Button>
       )}
     </div>

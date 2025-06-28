@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/hooks/useLocalization';
+import { useNavigate } from 'react-router-dom';
+import { geolocationService } from '@/services/geolocationService';
+import { notificationService } from '@/services/notificationService';
 import JobSearchHeader from '@/components/search/JobSearchHeader';
 import JobSearchFilters from '@/components/search/JobSearchFilters';
 import JobSearchResults from '@/components/search/JobSearchResults';
@@ -9,25 +12,19 @@ import QuickPostModal from '@/components/job/QuickPostModal';
 import BottomNavigation from '@/components/BottomNavigation';
 import { SkeletonGrid } from '@/components/ui/skeleton-cards';
 import JobSearchBreadcrumbs from './JobSearchBreadcrumbs';
-
-interface FilterState {
-  distance: number;
-  minRating: number;
-  priceRange: [number, number];
-  availability: 'all' | 'online' | 'verified';
-  responseTime: 'all' | 'fast' | 'medium';
-  location: string;
-  urgent: boolean;
-  category: string;
-}
+import { Job } from '@/types/job';
+import { Profile } from '@/hooks/useWorkers';
+import { Location, FilterState } from '@/hooks/useJobSearchState';
+import { useApplications } from '@/hooks/useApplications';
 
 interface JobSearchResultsViewProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  location: any;
-  setLocation: (location: any) => void;
-  selectedCategory: {id: string, name: string} | null;
-  results: any[] | null;
+  location: Location | null;
+  setLocation: (location: Location | null) => void;
+  selectedCategory: { id: string, name: string } | null;
+  selectedSubcategories: string[];
+  results: (Job | Profile)[] | null;
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
   urgentOnly: boolean;
@@ -41,6 +38,7 @@ const JobSearchResultsView = ({
   location,
   setLocation,
   selectedCategory,
+  selectedSubcategories,
   results,
   filters,
   setFilters,
@@ -50,50 +48,52 @@ const JobSearchResultsView = ({
 }: JobSearchResultsViewProps) => {
   const { user } = useAuth();
   const { getLocalizedText } = useLocalization();
-  const [selectedWorker, setSelectedWorker] = useState<any>(null);
+  const navigate = useNavigate();
+  const { applications, applyToJob, withdrawApplication } = useApplications();
+  const [selectedWorker, setSelectedWorker] = useState<Profile | null>(null);
   const [showWorkerModal, setShowWorkerModal] = useState(false);
   const [showQuickPost, setShowQuickPost] = useState(false);
 
-  const handleQuickHire = (workerId: string) => {
+  const appliedJobIds = new Set(applications.map(app => app.job_id));
+
+  const handleQuickHire = async (workerId: string) => {
     console.log('Quick hiring worker:', workerId);
+    
+    // Send notification for quick hire
+    try {
+      await notificationService.sendJobNotification('Quick Hire Request', 'Employer');
+    } catch (notificationError) {
+      console.warn('Could not send quick hire notification:', notificationError);
+    }
+    
+    // Future implementation:
+    // navigate(`/hire/${workerId}`);
   };
 
-  const handleWorkerClick = (worker: any) => {
+  const handleWorkerClick = (worker: Profile) => {
     setSelectedWorker(worker);
     setShowWorkerModal(true);
   };
+  
+  const handleJobClick = async (jobId: string) => {
+    // Get current location for distance calculation
+    try {
+      const currentLocation = await geolocationService.getCurrentLocation();
+      console.log('Current location for job distance:', currentLocation);
+    } catch (error) {
+      console.warn('Could not get current location for distance calculation:', error);
+    }
+    
+    navigate(`/jobs/${jobId}`);
+  };
 
-  if (!results) {
-    return (
-      <div className="min-h-screen bg-gray-50 pb-20" role="main" aria-label={getLocalizedText('search.loading', 'Loading search results')}>
-        <div className="max-w-2xl mx-auto">
-          <JobSearchBreadcrumbs
-            currentStep="results"
-            selectedCategory={selectedCategory}
-            selectedSubcategories={undefined}
-            onStepChange={(step) => {
-              if (step === "subcategory") onBackToSubcategory();
-              if (step === "category") onBackToSubcategory(); // Could add new prop for multi-jump if needed
-            }}
-          />
-        </div>
-        <JobSearchHeader
-          searchQuery=""
-          setSearchQuery={() => {}}
-          location={location}
-          setLocation={setLocation}
-          selectedCategory={selectedCategory}
-          resultsCount={0}
-          userRole={user?.role}
-          onBackToSubcategory={onBackToSubcategory}
-        />
-        <div className="max-w-2xl mx-auto px-4 pt-4">
-          <SkeletonGrid count={5} type={user?.role === 'employer' ? 'worker' : 'job'} />
-        </div>
-        <BottomNavigation />
-      </div>
-    );
+  const breadcrumbStepChange = (step: 'category' | 'subcategory') => {
+    if (step === "subcategory" || step === "category") {
+      onBackToSubcategory();
+    }
   }
+
+  const isLoading = !results;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20" role="main">
@@ -101,11 +101,8 @@ const JobSearchResultsView = ({
         <JobSearchBreadcrumbs
           currentStep="results"
           selectedCategory={selectedCategory}
-          selectedSubcategories={results ? results.map(r => r.subcategory || '').filter(Boolean) : undefined}
-          onStepChange={(step) => {
-            if (step === "subcategory") onBackToSubcategory();
-            if (step === "category") onBackToSubcategory(); // Could add new prop for multi-jump if needed
-          }}
+          selectedSubcategories={selectedSubcategories}
+          onStepChange={breadcrumbStepChange}
         />
       </div>
       <JobSearchHeader
@@ -113,28 +110,36 @@ const JobSearchResultsView = ({
         setSearchQuery={setSearchQuery}
         location={location}
         setLocation={setLocation}
-        selectedCategory={selectedCategory}
-        resultsCount={results.length}
+        resultsCount={results?.length ?? 0}
         userRole={user?.role}
-        onBackToSubcategory={onBackToSubcategory}
+        onBack={onBackToSubcategory}
       />
 
-      <main aria-live="polite" aria-label={getLocalizedText('search.results', 'Search Results')}>
+      <main aria-live="polite">
         <JobSearchFilters
           filters={filters}
           onFiltersChange={setFilters}
           urgentOnly={urgentOnly}
           setUrgentOnly={setUrgentOnly}
-          resultsCount={results.length}
+          resultsCount={results?.length ?? 0}
           userRole={user?.role}
           onShowQuickPost={() => setShowQuickPost(true)}
         />
-
-        <JobSearchResults
-          results={results}
-          userRole={user?.role}
-          onWorkerClick={handleWorkerClick}
-        />
+        
+        {isLoading ? (
+          <div className="max-w-2xl mx-auto px-4 pt-4">
+            <SkeletonGrid count={5} type={user?.role === 'employer' ? 'worker' : 'job'} />
+          </div>
+        ) : (
+          <JobSearchResults
+            results={results}
+            userRole={user?.role}
+            onWorkerClick={handleWorkerClick}
+            onJobClick={handleJobClick}
+            onApply={applyToJob}
+            appliedJobIds={appliedJobIds}
+          />
+        )}
       </main>
       
       {selectedWorker && (

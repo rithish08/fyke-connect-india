@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import EditableProfileCard from './EditableProfileCard';
-import { MapPin, Briefcase, Mail, User, Lock } from 'lucide-react';
+import { MapPin, Briefcase, Mail, User, Lock, Loader2 } from 'lucide-react';
 
 interface ProfileData {
   name: string;
@@ -15,14 +16,18 @@ interface ProfileData {
 
 interface EnhancedProfileInfoProps {
   profileData: ProfileData;
-  userRole: string;
   onUpdate: (data: Partial<ProfileData>) => void;
+  isDetectingLocation: boolean;
+  handleDetectLocation: () => void;
+  userRole: string;
 }
 
 const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
   profileData,
-  userRole,
-  onUpdate
+  onUpdate,
+  isDetectingLocation,
+  handleDetectLocation,
+  userRole
 }) => {
   const [editData, setEditData] = useState(profileData);
 
@@ -34,7 +39,6 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
     onUpdate(editData);
   };
 
-  // Disable name field (protected, not editable)
   const editContent = (
     <div className="space-y-4">
       {/* Name (Protected) */}
@@ -67,13 +71,29 @@ const EnhancedProfileInfo: React.FC<EnhancedProfileInfoProps> = ({
       {/* Location (editable) */}
       <div>
         <Label htmlFor="edit-location" className="text-sm font-medium text-gray-700">Location</Label>
-        <Input
-          id="edit-location"
-          value={editData.location || ''}
-          onChange={(e) => setEditData({...editData, location: e.target.value})}
-          className="mt-1 rounded-xl border-gray-200 focus:border-blue-500"
-          placeholder="Enter your location"
-        />
+        <div className="flex items-center gap-2 mt-1">
+          <Input
+            id="edit-location"
+            value={editData.location || ''}
+            onChange={(e) => setEditData({...editData, location: e.target.value})}
+            className="rounded-xl border-gray-200 focus:border-blue-500"
+            placeholder="Enter your location"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={handleDetectLocation}
+            disabled={isDetectingLocation}
+            aria-label="Detect current location"
+          >
+            {isDetectingLocation ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MapPin className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
       {/* Role-specific: Experience for jobseeker */}
       {userRole === 'jobseeker' && (

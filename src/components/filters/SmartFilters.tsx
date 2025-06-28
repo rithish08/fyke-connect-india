@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Filter, Star, MapPin, Clock, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,7 @@ const SmartFilters: React.FC<SmartFiltersProps> = ({ filters, onFiltersChange, r
   ];
 
   const applyQuickFilter = (filterKey: string) => {
-    let newFilters = { ...filters };
+    const newFilters = { ...filters };
     
     switch (filterKey) {
       case 'nearby':

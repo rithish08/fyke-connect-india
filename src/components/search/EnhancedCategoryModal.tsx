@@ -3,7 +3,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSizing';
 import CategoryCard from './CategoryCard';
 import SubcategoryCardPopup from './SubcategoryCardPopup';
-import { categories } from '@/data/categories';
+import { useCategories } from '@/hooks/useCategories';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface EnhancedCategoryModalProps {
   selectedCategories: { [catId: string]: string[] };
@@ -19,6 +20,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
   onClear,
 }) => {
   const { translateCategory, translateText } = useTranslation();
+  const { categories, loading, error } = useCategories();
   const [popupCategoryId, setPopupCategoryId] = useState<string | null>(null);
   const [tempSelectedSubcategories, setTempSelectedSubcategories] = useState<string[]>([]);
 
@@ -42,12 +44,29 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
     closePopup();
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <LoadingSpinner />
+        <span className="ml-2">Loading categories...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-8 text-red-500">
+        <p>Error loading categories: {error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         {categories.map((category) => {
           const translatedName = translateCategory(category.name);
-          const catId = category.name.toLowerCase();
+          const catId = category.id;
           const selectedSubs = selectedCategories[catId] || [];
           const hasSelections = selectedSubs.length > 0;
           const categoryTextSize = getResponsiveTextSize(translatedName, {
@@ -55,11 +74,20 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
             minSize: 11,
             maxSize: 15
           });
+          
+          // Create a category object that matches the expected interface
+          const categoryObj = {
+            name: category.name,
+            icon: category.icon || '🏢',
+            color: 'from-blue-400 to-indigo-500', // Default color
+            subcategories: [] // Will be populated by subcategories hook
+          };
+          
           return (
             <CategoryCard
               key={catId}
               catId={catId}
-              category={category}
+              category={categoryObj}
               translatedName={translatedName}
               selectedSubs={selectedSubs}
               hasSelections={hasSelections}
@@ -80,7 +108,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
         onConfirm={handleConfirm}
         category={
           popupCategoryId
-            ? categories.find((cat) => cat.name.toLowerCase() === popupCategoryId)
+            ? categories.find((cat) => cat.id === popupCategoryId)
             : undefined
         }
         translateCategory={translateCategory}

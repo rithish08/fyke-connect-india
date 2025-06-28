@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 
 interface StepProps {
@@ -29,7 +28,7 @@ const SalaryStep = ({ salary, setSalary, onNext, onBack }: StepProps) => (
       <select
         className="px-2 py-2 border rounded-lg"
         value={salary.period}
-        onChange={e => setSalary({ ...salary, period: e.target.value as any })}
+        onChange={e => setSalary({ ...salary, period: e.target.value as 'daily' | 'weekly' | 'monthly' })}
       >
         {periods.map(p => (
           <option key={p.key} value={p.key}>{p.label}</option>

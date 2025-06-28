@@ -1,10 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
-import { MapPin, Target, Navigation } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Target, Navigation, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { geolocationService } from '@/services/geolocationService';
 
-interface Location {
+export interface Location {
   lat: number;
   lng: number;
   address: string;
@@ -24,25 +25,25 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, curre
     'HSR Layout', 'Indiranagar', 'Jayanagar', 'BTM Layout'
   ]);
 
-  const detectLocation = () => {
+  const detectLocation = async () => {
     setIsDetecting(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location: Location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            address: 'Current Location',
-            area: 'Auto-detected'
-          };
-          onLocationSelect(location);
-          setIsDetecting(false);
-        },
-        (error) => {
-          console.error('Location detection failed:', error);
-          setIsDetecting(false);
-        }
-      );
+    try {
+      if (geolocationService.isSupported()) {
+        const location = await geolocationService.getCurrentLocation();
+        const locationData: Location = {
+          lat: location.latitude,
+          lng: location.longitude,
+          address: 'Current Location',
+          area: 'Auto-detected'
+        };
+        onLocationSelect(locationData);
+      } else {
+        console.error('Geolocation not supported');
+      }
+    } catch (error) {
+      console.error('Location detection failed:', error);
+    } finally {
+      setIsDetecting(false);
     }
   };
 
@@ -72,9 +73,9 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, curre
           size="icon"
         >
           {isDetecting ? (
-            <Target className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Navigation className="w-4 h-4" />
+            <Search className="w-4 h-4" />
           )}
         </Button>
       </div>

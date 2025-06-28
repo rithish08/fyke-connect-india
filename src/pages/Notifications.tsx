@@ -1,12 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { notificationService } from '@/services/notificationService';
+import { useToast } from '@/hooks/use-toast';
 import BottomNavigation from '@/components/BottomNavigation';
 
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('all');
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check notification permission status
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    try {
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+        setNotificationPermission('granted');
+        toast({
+          title: "Notifications Enabled!",
+          description: "You will now receive notifications for job updates and messages.",
+        });
+        // Send a test notification
+        await notificationService.sendNotification('Notifications Enabled!', {
+          body: 'You will now receive notifications for job updates and messages.',
+          tag: 'permission-granted'
+        });
+      } else {
+        toast({
+          title: "Permission Denied",
+          description: "Please enable notifications in your browser settings to receive updates.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      toast({
+        title: "Error",
+        description: "Failed to request notification permission.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const sendTestNotification = async () => {
+    try {
+      await notificationService.sendNotification('Test Notification', {
+        body: 'This is a test notification from Fyke Connect!',
+        tag: 'test-notification'
+      });
+      toast({
+        title: "Test Notification Sent",
+        description: "Check your notifications to see the test message.",
+      });
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send test notification.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const notifications = [
     {
@@ -134,9 +196,31 @@ const Notifications = () => {
             <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
             <p className="text-sm text-gray-500">Stay updated with your job activities</p>
           </div>
-          <Button variant="ghost" size="sm" className="text-gray-700">
-            Mark All Read
-          </Button>
+          <div className="flex space-x-2">
+            {notificationPermission === 'default' && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={requestNotificationPermission}
+                className="text-xs"
+              >
+                Enable Notifications
+              </Button>
+            )}
+            {notificationPermission === 'granted' && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={sendTestNotification}
+                className="text-xs"
+              >
+                Test Notification
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" className="text-gray-700">
+              Mark All Read
+            </Button>
+          </div>
         </div>
       </div>
       <div className="p-4">

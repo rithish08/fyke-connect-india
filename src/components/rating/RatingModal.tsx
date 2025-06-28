@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Job } from '@/types/job';
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 interface RatingModalProps {
   job: Job;
@@ -19,6 +19,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
   const { user } = useAuth();
   const { submitRating } = useJobs();
   const { toast } = useToast();
+  const { t } = useLocalization();
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -30,27 +31,27 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
   const handleSubmit = async () => {
     if (rating === 0) {
       toast({
-        title: "Rating Required",
-        description: "Please select a star rating before submitting.",
-        variant: "destructive"
+        title: t('rating.requiredTitle', 'Rating Required'),
+        description: t('rating.requiredDesc', 'Please select a star rating before submitting.'),
+        variant: 'destructive'
       });
       return;
     }
 
     if (review.trim().length < 10) {
       toast({
-        title: "Review Required",
-        description: "Please provide a detailed review (minimum 10 characters).",
-        variant: "destructive"
+        title: t('rating.reviewRequiredTitle', 'Review Required'),
+        description: t('rating.reviewRequiredDesc', 'Please provide a detailed review (minimum 10 characters).'),
+        variant: 'destructive'
       });
       return;
     }
 
     if (!otherUserId) {
       toast({
-        title: "Error",
-        description: "Unable to identify the other user.",
-        variant: "destructive"
+        title: t('common.error', 'Error'),
+        description: t('rating.noOtherUser', 'Unable to identify the other user.'),
+        variant: 'destructive'
       });
       return;
     }
@@ -62,22 +63,22 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
       
       if (success) {
         toast({
-          title: "Rating Submitted",
-          description: "Thank you for your feedback!"
+          title: t('rating.submittedTitle', 'Rating Submitted'),
+          description: t('rating.submittedDesc', 'Thank you for your feedback!')
         });
         onClose();
       } else {
         toast({
-          title: "Submission Failed",
-          description: error || "Failed to submit rating. Please try again.",
-          variant: "destructive"
+          title: t('rating.failedTitle', 'Submission Failed'),
+          description: error || t('rating.failedDesc', 'Failed to submit rating. Please try again.'),
+          variant: 'destructive'
         });
       }
     } catch (error) {
       toast({
-        title: "Submission Failed",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
+        title: t('rating.failedTitle', 'Submission Failed'),
+        description: t('rating.unexpectedError', 'An unexpected error occurred. Please try again.'),
+        variant: 'destructive'
       });
     } finally {
       setSubmitting(false);
@@ -88,14 +89,14 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">Rate Your Experience</DialogTitle>
+          <DialogTitle className="text-center">{t('rating.title', 'Rate Your Experience')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
           <div className="text-center">
-            <p className="text-gray-600 mb-2">How was your experience with</p>
-            <p className="font-semibold text-lg">{otherUserName || 'this user'}?</p>
-            <p className="text-sm text-gray-500 mt-1">Job: {job.title}</p>
+            <p className="text-gray-600 mb-2">{t('rating.experiencePrompt', 'How was your experience with')}</p>
+            <p className="font-semibold text-lg">{otherUserName || t('rating.thisUser', 'this user')}?</p>
+            <p className="text-sm text-gray-500 mt-1">{t('rating.jobLabel', 'Job')}: {job.title}</p>
           </div>
 
           {/* Star Rating */}
@@ -105,6 +106,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
                 key={star}
                 onClick={() => setRating(star)}
                 className="p-1 transition-colors"
+                aria-label={t('rating.star', 'Rate {0} star', [star.toString()])}
               >
                 <Star
                   className={`w-8 h-8 ${
@@ -119,36 +121,35 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
 
           {rating > 0 && (
             <div className="text-center text-sm text-gray-600">
-              {rating === 1 && "Poor"}
-              {rating === 2 && "Fair"}
-              {rating === 3 && "Good"}
-              {rating === 4 && "Very Good"}
-              {rating === 5 && "Excellent"}
+              {rating === 1 && t('rating.poor', 'Poor')}
+              {rating === 2 && t('rating.fair', 'Fair')}
+              {rating === 3 && t('rating.good', 'Good')}
+              {rating === 4 && t('rating.veryGood', 'Very Good')}
+              {rating === 5 && t('rating.excellent', 'Excellent')}
             </div>
           )}
 
           {/* Review Text */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Share your experience (required)
+              {t('rating.reviewLabel', 'Share your experience (required')}
             </label>
             <Textarea
               value={review}
               onChange={(e) => setReview(e.target.value)}
-              placeholder="Describe your experience working together. This helps other users make informed decisions."
+              placeholder={t('rating.reviewPlaceholder', 'Describe your experience working together. This helps other users make informed decisions.')}
               className="min-h-[100px] resize-none"
               maxLength={500}
             />
             <div className="text-xs text-gray-500 mt-1 text-right">
-              {review.length}/500 characters
+              {t('rating.charCount', '{0}/500 characters', [review.length.toString()])}
             </div>
           </div>
 
           {/* Professional Warning */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-sm text-blue-800">
-              <strong>Professional Responsibility:</strong> Your rating and review will be visible to other users. 
-              Please be honest, constructive, and professional in your feedback.
+              <strong>{t('rating.professionalResponsibility', 'Professional Responsibility:')}</strong> {t('rating.professionalWarning', 'Your rating and review will be visible to other users. Please be honest, constructive, and professional in your feedback.')}
             </p>
           </div>
 
@@ -157,8 +158,9 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
             onClick={handleSubmit}
             disabled={rating === 0 || review.trim().length < 10 || submitting}
             className="w-full bg-blue-600 hover:bg-blue-700"
+            aria-label={submitting ? t('rating.submitting', 'Submitting...') : t('rating.submit', 'Submit Rating')}
           >
-            {submitting ? 'Submitting...' : 'Submit Rating'}
+            {submitting ? t('rating.submitting', 'Submitting...') : t('rating.submit', 'Submit Rating')}
           </Button>
         </div>
       </DialogContent>

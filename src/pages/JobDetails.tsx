@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,126 +13,147 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomNavigation from '@/components/BottomNavigation';
-
-interface JobDetail {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  salary: string;
-  salaryPeriod: string;
-  postedTime: string;
-  urgent: boolean;
-  category: string;
-  description: string;
-  requirements: string[];
-  benefits: string[];
-  workType: string;
-  experience: string;
-  contactPerson: string;
-  contactPhone: string;
-  totalPositions: number;
-  applicationsReceived: number;
-}
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { notificationService } from '@/services/notificationService';
+import { supabase } from '@/integrations/supabase/client';
+import { Job } from '@/hooks/useJobSeekerJobs';
+import { useApplications } from '@/hooks/useApplications';
+import { formatDistanceToNow } from 'date-fns';
 
 const JobDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [job, setJob] = useState<JobDetail | null>(null);
-  const [applied, setApplied] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
+  const { t } = useLocalization();
+  const { applyToJob, hasApplied } = useApplications();
+  const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookmarked, setBookmarked] = useState(() => {
+    const bookmarks = JSON.parse(localStorage.getItem('fyke_bookmarks') || '[]');
+    return bookmarks.includes(job?.id);
+  });
+  
+  const fetchJobDetails = useCallback(async () => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
-  // Mock job data - in real app, this would come from Supabase
-  const mockJob: JobDetail = {
-    id: id || '1',
-    title: 'Construction Worker',
-    company: 'ABC Construction Pvt Ltd',
-    location: 'Bangalore, Karnataka',
-    salary: '800',
-    salaryPeriod: 'day',
-    postedTime: '2 hours ago',
-    urgent: true,
-    category: 'Construction',
-    description: 'We are looking for experienced construction workers to join our team for a residential project. The ideal candidate should have experience in masonry, concrete work, and basic construction activities.',
-    requirements: [
-      'Minimum 2 years of construction experience',
-      'Knowledge of basic construction tools',
-      'Physical fitness and ability to work outdoors',
-      'Good communication skills in Hindi/English',
-      'Own transportation preferred'
-    ],
-    benefits: [
-      'Daily payment',
-      'Free lunch provided',
-      'Overtime compensation',
-      'Performance bonuses',
-      'Medical assistance'
-    ],
-    workType: 'Full-time',
-    experience: '2+ years',
-    contactPerson: 'Rajesh Kumar',
-    contactPhone: '+91 9876543210',
-    totalPositions: 5,
-    applicationsReceived: 12
-  };
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          employer:profiles ( name )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        const fetchedJob: Job = {
+          id: data.id,
+          title: data.title,
+          // @ts-ignore
+          company: data.employer?.name || 'A Reputed Company',
+          category: data.category,
+          salary_min: data.salary_min,
+          salary_max: data.salary_max,
+          salary_period: data.salary_period,
+          location: data.location,
+          urgent: data.urgent,
+          posted_at: data.created_at,
+          skills: data.skills || [],
+          description: data.description,
+          employer_id: data.employer_id,
+        };
+        setJob(fetchedJob);
+      }
+    } catch (error) {
+      console.error('Error fetching job details:', error);
+      toast({
+        variant: 'destructive',
+        title: t('job.loadErrorTitle', 'Error'),
+        description: t('job.loadErrorDesc', 'Failed to load job details.'),
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [id, toast, t]);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setJob(mockJob);
-      setLoading(false);
-    }, 1000);
-  }, [id]);
+    fetchJobDetails();
+  }, [fetchJobDetails]);
 
-  const handleApply = () => {
-    if (applied) return;
+  const handleApply = async () => {
+    if (!job || !user) return;
+    if (hasApplied(job.id)) return;
+
+    await applyToJob(job.id, job.employer_id);
     
-    setApplied(true);
+    // Send notification for job application
+    try {
+      await notificationService.sendApplicationNotification(job.title, user.name || 'User');
+    } catch (notificationError) {
+      console.warn('Could not send application notification:', notificationError);
+    }
+    
     toast({
-      title: "Application Requested!",
-      description: `Your request for ${job?.title} has been sent to the employer.`,
+      title: t('job.applyRequestedTitle', 'Application Requested!'),
+      description: t('job.applyRequestedDesc', 'Your request for {0} has been sent to the employer.', [job.title]),
     });
   };
 
   const handleChat = () => {
-    toast({
-      title: "Starting Conversation",
-      description: `Opening chat with ${job?.company}...`,
-    });
-    navigate(`/messages?jobId=${job?.id}&company=${job?.company}`);
+    if (!job) return;
+    navigate(`/messages?conversationId=new&participantId=${job.employer_id}`);
+  };
+
+  const handleBookmark = () => {
+    const bookmarks = JSON.parse(localStorage.getItem('fyke_bookmarks') || '[]');
+    let updated;
+    if (bookmarked) {
+      updated = bookmarks.filter((id: string) => id !== job.id);
+      toast({ title: 'Job removed from bookmarks' });
+    } else {
+      updated = [...bookmarks, job.id];
+      toast({ title: 'Job added to bookmarks' });
+    }
+    localStorage.setItem('fyke_bookmarks', JSON.stringify(updated));
+    setBookmarked(!bookmarked);
   };
 
   const handleCall = () => {
-    if (job?.contactPhone) {
-      window.open(`tel:${job.contactPhone}`, '_self');
+    if (job?.employer_phone) {
+      window.location.href = `tel:${job.employer_phone}`;
+    } else {
+      toast({
+        title: 'Phone number not available',
+        description: 'Please contact through chat first.',
+        variant: 'destructive'
+      });
     }
   };
 
   const handleShare = () => {
-    if (navigator.share) {
+    if (navigator.share && job) {
       navigator.share({
-        title: job?.title,
-        text: `Check out this job: ${job?.title} at ${job?.company}`,
+        title: job.title,
+        text: t('job.shareText', 'Check out this job: {0} at {1}', [job.title, job.company]),
         url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
       toast({
-        title: "Link Copied",
-        description: "Job link copied to clipboard",
+        title: t('job.linkCopiedTitle', 'Link Copied'),
+        description: t('job.linkCopiedDesc', 'Job link copied to clipboard'),
       });
     }
-  };
-
-  const handleBookmark = () => {
-    setBookmarked(!bookmarked);
-    toast({
-      title: bookmarked ? "Removed from Bookmarks" : "Added to Bookmarks",
-      description: bookmarked ? "Job removed from your bookmarks" : "Job added to your bookmarks",
-    });
   };
 
   if (loading) {
@@ -141,7 +161,7 @@ const JobDetails = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading job details...</p>
+          <p className="text-gray-500">{t('job.loadingDetails', 'Loading job details...')}</p>
         </div>
       </div>
     );
@@ -151,16 +171,18 @@ const JobDetails = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Job Not Found</h2>
-          <p className="text-gray-500">The job you're looking for doesn't exist.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('job.notFoundTitle', 'Job Not Found')}</h2>
+          <p className="text-gray-500">{t('job.notFoundDesc', 'The job you\'re looking for doesn\'t exist.')}</p>
           <Button onClick={() => navigate('/search')} className="mt-4">
-            Browse Jobs
+            {t('job.browseJobs', 'Browse Jobs')}
           </Button>
         </div>
       </div>
     );
   }
-
+  
+  const applied = hasApplied(job.id);
+  
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
@@ -179,12 +201,12 @@ const JobDetails = () => {
           
           <div className="flex space-x-2">
             <Button
-              variant="ghost"
+              variant={bookmarked ? 'default' : 'ghost'}
               size="sm"
               onClick={handleBookmark}
               className="p-2"
             >
-              <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current text-blue-500' : ''}`} />
+              <Bookmark className={'w-5 h-5'} fill={bookmarked ? 'currentColor' : 'none'} />
             </Button>
             <Button
               variant="ghost"
@@ -223,83 +245,31 @@ const JobDetails = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
-                  <span>Posted {job.postedTime}</span>
+                  <span>Posted {formatDistanceToNow(new Date(job.posted_at), { addSuffix: true })}</span>
                 </div>
               </div>
             </div>
             
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">₹{job.salary}</div>
-              <div className="text-sm text-gray-500">per {job.salaryPeriod}</div>
+              <div className="text-2xl font-bold text-green-600">₹{job.salary_max || job.salary_min}</div>
+              <div className="text-sm text-gray-500">per {job.salary_period}</div>
             </div>
           </div>
 
           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
             <Badge variant="outline">{job.category}</Badge>
-            <Badge variant="outline">{job.workType}</Badge>
-            <Badge variant="outline">{job.experience}</Badge>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 text-gray-500" />
-              <span>{job.applicationsReceived} applied</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span>{job.totalPositions} positions available</span>
-            </div>
+            {job.skills && job.skills.map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
           </div>
         </Card>
 
-        {/* Description */}
+        {/* Job Description */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Job Description</h2>
-          <p className="text-gray-700 leading-relaxed">{job.description}</p>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {job.description}
+          </p>
         </Card>
 
-        {/* Requirements */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h2>
-          <ul className="space-y-2">
-            {job.requirements.map((req, index) => (
-              <li key={index} className="flex items-start space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700 text-sm">{req}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        {/* Benefits */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h2>
-          <ul className="space-y-2">
-            {job.benefits.map((benefit, index) => (
-              <li key={index} className="flex items-start space-x-2">
-                <CheckCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700 text-sm">{benefit}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        {/* Contact Info */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Contact Information</h2>
-          <div className="flex items-center space-x-3">
-            <Avatar className="w-12 h-12">
-              <AvatarFallback className="bg-blue-100 text-blue-700">
-                {job.contactPerson.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium text-gray-900">{job.contactPerson}</h3>
-              <p className="text-sm text-gray-500">Hiring Manager</p>
-              <p className="text-sm text-gray-600">{job.contactPhone}</p>
-            </div>
-          </div>
-        </Card>
       </div>
 
       {/* Sticky Bottom Actions */}
@@ -311,7 +281,12 @@ const JobDetails = () => {
               disabled={applied}
               className={`flex-1 h-12 ${applied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
             >
-              {applied ? '✓ Requested' : 'Apply Now'}
+              {applied ? (
+                <>
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Requested
+                </>
+              ) : 'Apply Now'}
             </Button>
             
             <Button

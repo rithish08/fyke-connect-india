@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Job, JobApplication, Rating } from '@/types/job';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +14,7 @@ interface JobContextType {
   finishJob: (jobId: string) => Promise<{ success: boolean; error?: string }>;
   submitRating: (jobId: string, ratedUserId: string, rating: number, review: string) => Promise<{ success: boolean; error?: string }>;
   sharePhoneNumber: (jobId: string, otherUserId: string) => Promise<{ success: boolean; error?: string }>;
+  addPendingRating: (jobId: string) => Promise<{ success: boolean; error?: string }>;
   refreshJobs: () => Promise<void>;
 }
 
@@ -71,13 +71,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   ];
 
-  useEffect(() => {
-    if (user) {
-      loadJobs();
-    }
-  }, [user]);
-
-  const loadJobs = async () => {
+  const loadJobs = useCallback(async () => {
     try {
       setLoading(true);
       // For now using mock data - replace with Supabase calls
@@ -85,24 +79,32 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (user?.role === 'employer') {
         setMyJobs(mockJobs.filter(job => job.employer_id === user.id));
-      } else {
+      } else if (user) {
         setMyJobs(mockJobs.filter(job => job.applicant_id === user.id));
       }
       
       // Check for pending ratings
-      const completedJobs = mockJobs.filter(job => 
-        job.status === 'completed' && 
-        (job.employer_id === user.id || job.applicant_id === user.id) &&
-        (!job.rating_employer || !job.rating_worker)
-      );
-      setPendingRatings(completedJobs);
+      if (user) {
+        const completedJobs = mockJobs.filter(job => 
+          job.status === 'completed' && 
+          (job.employer_id === user.id || job.applicant_id === user.id) &&
+          (!job.rating_employer || !job.rating_worker)
+        );
+        setPendingRatings(completedJobs);
+      }
       
     } catch (error) {
       console.error('Error loading jobs:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadJobs();
+    }
+  }, [user, loadJobs]);
 
   const applyToJob = async (jobId: string, message?: string): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
@@ -222,6 +224,21 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const addPendingRating = async (jobId: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'Not authenticated' };
+    
+    try {
+      const job = jobs.find(j => j.id === jobId);
+      if (job) {
+        setPendingRatings(prev => [...prev, job]);
+        return { success: true };
+      }
+      return { success: false, error: 'Job not found' };
+    } catch (error) {
+      return { success: false, error: 'Failed to add pending rating' };
+    }
+  };
+
   const refreshJobs = async () => {
     await loadJobs();
   };
@@ -238,6 +255,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       finishJob,
       submitRating,
       sharePhoneNumber,
+      addPendingRating,
       refreshJobs
     }}>
       {children}

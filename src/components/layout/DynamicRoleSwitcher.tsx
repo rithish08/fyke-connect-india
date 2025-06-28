@@ -1,60 +1,50 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { User, Briefcase } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocalization } from '@/hooks/useLocalization';
+import { useLocalization } from '@/contexts/LocalizationContext';
 import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSizing';
 
 const DynamicRoleSwitcher = () => {
   const { user, switchRole } = useAuth();
-  const { getLocalizedText } = useLocalization();
+  const { t } = useLocalization();
 
   if (!user) return null;
 
   const isJobSeeker = user.role === 'jobseeker';
-  const currentRoleText = getLocalizedText(`role.${user.role}`, user.role);
-  const otherRoleText = getLocalizedText(`role.${isJobSeeker ? 'employer' : 'jobseeker'}`, isJobSeeker ? 'employer' : 'jobseeker');
-
-  const currentRoleTextSize = getResponsiveTextSize(currentRoleText, {
-    baseSize: 14,
-    minSize: 11,
-    maxSize: 15
-  });
-
-  const otherRoleTextSize = getResponsiveTextSize(otherRoleText, {
-    baseSize: 12,
-    minSize: 10,
-    maxSize: 13
-  });
 
   const handleRoleSwitch = (checked: boolean) => {
-    console.log('Role switch triggered, current role:', user.role, 'checked:', checked);
-    switchRole();
+    // The switch is 'on' when it's the employer role
+    if ((checked && isJobSeeker) || (!checked && !isJobSeeker)) {
+      switchRole();
+    }
   };
 
   return (
-    <div className="flex items-center space-x-3">
-      {/* Current Role Badge */}
-      <Badge 
-        variant={isJobSeeker ? "default" : "secondary"}
-        className={`${getFlexibleContainerClass(currentRoleText, 'flex items-center space-x-1.5 transition-all duration-300')} ${currentRoleTextSize}`}
-      >
-        {isJobSeeker ? <User className="w-3.5 h-3.5" /> : <Briefcase className="w-3.5 h-3.5" />}
-        <span className="font-medium">{currentRoleText}</span>
-      </Badge>
-
-      {/* Role Switch */}
+    <div className="flex items-center justify-between w-full">
+      {/* Job Seeker Role */}
       <div className="flex items-center space-x-2">
-        <Switch
-          checked={!isJobSeeker}
-          onCheckedChange={handleRoleSwitch}
-          className="data-[state=checked]:bg-blue-600"
-        />
-        <span className={`text-gray-600 ${otherRoleTextSize} ${getFlexibleContainerClass(otherRoleText)}`}>
-          {otherRoleText}
+        <User className={`w-5 h-5 ${isJobSeeker ? 'text-blue-600' : 'text-gray-400'}`} />
+        <span className={`font-semibold ${isJobSeeker ? 'text-gray-900' : 'text-gray-500'}`}>
+          {t('role.jobseeker', 'Job Seeker')}
+        </span>
+      </div>
+
+      {/* The Actual Switch */}
+      <Switch
+        checked={!isJobSeeker}
+        onCheckedChange={handleRoleSwitch}
+        aria-label={t('role.switchRole', 'Switch Role')}
+        className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-blue-600"
+      />
+
+      {/* Employer Role */}
+      <div className="flex items-center space-x-2">
+        <Briefcase className={`w-5 h-5 ${!isJobSeeker ? 'text-green-600' : 'text-gray-400'}`} />
+        <span className={`font-semibold ${!isJobSeeker ? 'text-gray-900' : 'text-gray-500'}`}>
+          {t('role.employer', 'Employer')}
         </span>
       </div>
     </div>

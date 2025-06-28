@@ -2,7 +2,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useJobSearchState } from '@/hooks/useJobSearchState';
 import JobSearchCategoryView from '@/components/search/JobSearchCategoryView';
 import JobSearchResultsView from '@/components/search/JobSearchResultsView';
-import { useState } from 'react';
 
 const JobSearch = () => {
   const { user } = useAuth();
@@ -14,7 +13,6 @@ const JobSearch = () => {
     selectedSubcategories,
     setSelectedSubcategories,
     results,
-    setResults,
     searchQuery,
     setSearchQuery,
     location,
@@ -23,38 +21,53 @@ const JobSearch = () => {
     setFilters,
     urgentOnly,
     setUrgentOnly,
-    loadResults
   } = useJobSearchState();
 
-  const [selectedCategories, setSelectedCategories] = useState<{ [catId: string]: string[] }>({});
-  const [showResults, setShowResults] = useState(false);
-
-  const handleSelectionComplete = (selected: { [catId: string]: string[] }) => {
-    setSelectedCategories(selected);
-    setShowResults(true);
-    // Could trigger search, for now just switch view
+  const handleCategorySelect = (category: any) => {
+    setSelectedCategory(category);
+    setCurrentView('subcategories');
   };
 
-  if (!showResults) {
+  const handleSubcategorySelect = (subcategories: string[]) => {
+    setSelectedSubcategories(subcategories);
+    setCurrentView('results');
+  };
+
+  const handleBackToCategories = () => {
+    setSelectedCategory(null);
+    setSelectedSubcategories([]);
+    setCurrentView('categories');
+  };
+
+  const handleBackToSubcategories = () => {
+    setCurrentView('subcategories');
+  };
+
+  if (currentView === 'categories' || currentView === 'subcategories') {
     return (
-      <JobSearchCategoryView onSelectionComplete={handleSelectionComplete} />
+      <JobSearchCategoryView 
+        onCategorySelect={handleCategorySelect}
+        onSubcategorySelect={handleSubcategorySelect}
+        selectedCategory={selectedCategory}
+        onBack={handleBackToCategories}
+        currentView={currentView}
+      />
     );
   }
 
-  // For demo, treat selectedCategories as results filter; adapt as needed.
   return (
     <JobSearchResultsView
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
       location={location}
       setLocation={setLocation}
-      selectedCategory={null}
       results={results}
       filters={filters}
       setFilters={setFilters}
       urgentOnly={urgentOnly}
       setUrgentOnly={setUrgentOnly}
-      onBackToSubcategory={() => setShowResults(false)}
+      onBackToSubcategory={handleBackToSubcategories}
+      selectedCategory={selectedCategory}
     />
   );
 };
