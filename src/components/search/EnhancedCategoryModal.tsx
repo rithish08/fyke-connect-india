@@ -4,7 +4,7 @@ import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSi
 import CategoryCard from './CategoryCard';
 import SubcategoryCardPopup from './SubcategoryCardPopup';
 import { useCategories } from '@/hooks/useCategories';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface EnhancedCategoryModalProps {
   selectedCategories: { [catId: string]: string[] };
