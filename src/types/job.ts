@@ -5,7 +5,12 @@ export interface Job {
   category?: { name: string; icon?: string; } | string;
   subcategory?: string;
   employer_id?: string;
-  employer?: { name: string; };
+  employer?: { 
+    name: string; 
+    verified?: boolean;
+    rating?: number;
+    totalReviews?: number;
+  };
   employer_name?: string;
   employer_phone?: string;
   location: string;
@@ -20,6 +25,7 @@ export interface Job {
   created_at: string;
   updated_at?: string;
   posted_at?: string;
+  postedTime?: string;
   urgent?: boolean;
   requirements?: string[];
   benefits?: string[];
@@ -31,6 +37,18 @@ export interface Job {
   review_employer?: string;
   review_worker?: string;
   company?: string;
+  // Additional fields for UI compatibility
+  distance?: number;
+  type?: string;
+  applications?: number;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  subcategories: string[];
 }
 
 export interface JobApplication {

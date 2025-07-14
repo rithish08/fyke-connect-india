@@ -3,13 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ModernCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
-import { definitions } from '@/integrations/supabase/types';
-
-type Profile = definitions['profiles'];
-
-interface ProfileInfoData extends Profile {
-  experience?: string;
-}
+import { ProfileInfoData } from '@/types/profile';
 
 interface ProfileInfoProps {
   profileData: Partial<ProfileInfoData>;

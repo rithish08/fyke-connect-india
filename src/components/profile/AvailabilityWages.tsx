@@ -6,9 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertCircle, Briefcase, PlusCircle, Edit } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { WageEditModal, Wage } from './WageEditModal';
+import { WageEditModal } from './WageEditModal';
+import { Wage, AvailabilityStatus } from '@/types/profile';
 
-type AvailabilityStatus = 'online' | 'busy' | 'offline';
+// Map online to available for compatibility
+const mapAvailabilityStatus = (status: AvailabilityStatus): 'available' | 'busy' | 'offline' => {
+  return status === 'online' ? 'available' : status as 'available' | 'busy' | 'offline';
+};
 
 export const AvailabilityWages: React.FC = () => {
   const { user, updateProfile } = useAuth();
@@ -47,7 +51,7 @@ export const AvailabilityWages: React.FC = () => {
   const handleAvailabilityChange = async (value: AvailabilityStatus) => {
     setIsLoading(true);
     setAvailability(value);
-    await updateProfile({ availability: value });
+    await updateProfile({ availability: mapAvailabilityStatus(value) });
     setIsLoading(false);
   };
 
