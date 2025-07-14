@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/job';
 
+export type { Job };
+
 export const useJobSeekerJobs = () => {
   const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -16,7 +18,7 @@ export const useJobSeekerJobs = () => {
       const { data, error: fetchError } = await supabase
         .from('jobs')
         .select(`
-          id, title, location, urgent, posted_at, description, salary_min, salary_max, salary_period,
+          id, title, location, urgent, created_at, description, salary_min, salary_max, salary_period,
           employer:profiles ( name ),
           category:categories ( name, icon )
         `)

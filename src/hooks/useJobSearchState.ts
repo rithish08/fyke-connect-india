@@ -7,6 +7,7 @@ export interface Location {
   lat: number;
   lng: number;
   area?: string;
+  address?: string;
 }
 
 export interface FilterState {

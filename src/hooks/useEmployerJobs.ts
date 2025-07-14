@@ -52,7 +52,7 @@ export const useEmployerJobs = () => {
     fetchEmployerJobs();
     // Expose refreshJobs globally for cross-screen refresh
     if (typeof window !== 'undefined') {
-      window.refreshJobs = fetchEmployerJobs;
+      (window as any).refreshJobs = fetchEmployerJobs;
     }
   }, [fetchEmployerJobs]);
 

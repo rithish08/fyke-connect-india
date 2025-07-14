@@ -68,7 +68,7 @@ export const useWages = (userId?: string) => {
 
       if (error) throw error;
 
-      setWages(prev => [...prev, { ...data, updated_at: data.updated_at || data.created_at }]);
+      setWages(prev => [...prev, { ...data, updated_at: data.created_at }]);
       return data;
     } catch (err: any) {
       console.error("Error adding wage:", err);
@@ -87,7 +87,7 @@ export const useWages = (userId?: string) => {
 
       if (error) throw error;
 
-      setWages(prev => prev.map(wage => wage.id === wageId ? { ...data, updated_at: data.updated_at || data.created_at } : wage));
+      setWages(prev => prev.map(wage => wage.id === wageId ? { ...data, updated_at: data.created_at } : wage));
       return data;
     } catch (err: any) {
       console.error("Error updating wage:", err);

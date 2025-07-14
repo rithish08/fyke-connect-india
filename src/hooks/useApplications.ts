@@ -40,7 +40,7 @@ export const useApplications = () => {
     fetchApplications();
     // Expose refreshApplications globally for cross-screen refresh
     if (typeof window !== 'undefined') {
-      window.refreshApplications = fetchApplications;
+      (window as any).refreshApplications = fetchApplications;
     }
   }, [fetchApplications]);
 

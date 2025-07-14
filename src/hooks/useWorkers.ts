@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { definitions } from '@/integrations/supabase/types';
+import { Tables } from '@/integrations/supabase/types';
 
-export type Profile = definitions['profiles'];
+export type Profile = Tables<'profiles'>;
 
 export const useWorkers = () => {
   const { user } = useAuth();

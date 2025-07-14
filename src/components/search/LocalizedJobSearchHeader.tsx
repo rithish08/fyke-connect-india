@@ -5,17 +5,17 @@ import { ModernCard } from '@/components/ui/modern-card';
 import LocationPicker from '@/components/location/LocationPicker';
 import { MapPin, Search, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Location } from '../hooks/useJobSearchState';
+import { Location } from '@/hooks/useJobSearchState';
 
 interface LocalizedJobSearchHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   location: Location | null;
   setLocation: (location: Location | null) => void;
-  selectedCategory: {id: string, name: string} | null;
+  selectedCategory?: {id: string, name: string} | null;
   resultsCount: number;
-  userRole: string | undefined;
-  onBackToSubcategory: () => void;
+  userRole?: string | undefined;
+  onBackToSubcategory?: () => void;
 }
 
 const LocalizedJobSearchHeader = ({
@@ -42,9 +42,11 @@ const LocalizedJobSearchHeader = ({
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <Button variant="ghost" size="sm" onClick={onBackToSubcategory} className="p-2">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
+            {onBackToSubcategory && (
+              <Button variant="ghost" size="sm" onClick={onBackToSubcategory} className="p-2">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input

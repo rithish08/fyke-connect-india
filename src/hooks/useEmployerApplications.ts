@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { definitions } from '@/integrations/supabase/types';
+import { Tables } from '@/integrations/supabase/types';
 
 // Expanding the Application type to potentially include joined data
-export type EmployerApplication = definitions['applications'] & {
+export type EmployerApplication = Tables<'applications'> & {
   jobs?: { title: string };
   profiles?: { name: string; phone: string | null; };
 };
@@ -47,7 +47,7 @@ export const useEmployerApplications = () => {
         .select(`
           *,
           jobs ( title ),
-          profiles ( name, phone )
+          profiles!applicant_id ( name, phone )
         `)
         .in('job_id', jobIds)
         .order('updated_at', { ascending: false });

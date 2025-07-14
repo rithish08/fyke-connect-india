@@ -85,7 +85,7 @@ export const useMyApplications = () => {
     fetchMyApplications();
     // Expose refreshApplications globally for cross-screen refresh
     if (typeof window !== 'undefined') {
-      window.refreshApplications = fetchMyApplications;
+      (window as any).refreshApplications = fetchMyApplications;
     }
   }, [fetchMyApplications]);
 
