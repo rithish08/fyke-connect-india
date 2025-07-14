@@ -4,6 +4,7 @@ import { getResponsiveTextSize, getFlexibleContainerClass } from '@/utils/textSi
 import CategoryCard from './CategoryCard';
 import SubcategoryCardPopup from './SubcategoryCardPopup';
 import { useCategories } from '@/hooks/useCategories';
+import { useSubcategories } from '@/hooks/useSubcategories';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface EnhancedCategoryModalProps {
@@ -21,6 +22,7 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
 }) => {
   const { translateCategory, translateText } = useTranslation();
   const { categories, loading, error } = useCategories();
+  const { subcategories } = useSubcategories();
   const [popupCategoryId, setPopupCategoryId] = useState<string | null>(null);
   const [tempSelectedSubcategories, setTempSelectedSubcategories] = useState<string[]>([]);
 
@@ -108,7 +110,11 @@ const EnhancedCategoryModal: React.FC<EnhancedCategoryModalProps> = ({
         onConfirm={handleConfirm}
         category={
           popupCategoryId
-            ? categories.find((cat) => cat.id === popupCategoryId)
+            ? {
+                ...categories.find((cat) => cat.id === popupCategoryId)!,
+                color: '#3B82F6',
+                subcategories: subcategories.filter(sub => sub.category_id === popupCategoryId).map(sub => sub.name)
+              }
             : undefined
         }
         translateCategory={translateCategory}

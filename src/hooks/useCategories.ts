@@ -31,7 +31,10 @@ export const useCategories = () => {
         throw fetchError;
       }
 
-      setCategories(data || []);
+      setCategories((data || []).map(cat => ({
+        ...cat,
+        name_hindi: (cat as any).name_hindi || cat.name
+      })));
     } catch (err) {
       const error = err as Error;
       console.error("Error fetching categories:", error);

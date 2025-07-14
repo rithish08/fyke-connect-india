@@ -128,7 +128,7 @@ const QuickPostModal: React.FC<QuickPostModalProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       const err = error as Error;
       console.error("Error posting job:", err);
-      showError(t('job.postError', 'Failed to post job. Please try again.'), err.message);
+      showError(t('job.postError', 'Failed to post job. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }

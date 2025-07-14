@@ -236,7 +236,7 @@ const CompactAdvancedFilters = ({
           </label>
           <Slider
             value={filters.priceRange}
-            onValueChange={(value) => updateFilter('priceRange', value)}
+            onValueChange={(value) => updateFilter('priceRange', value as [number, number])}
             max={2000}
             min={0}
             step={50}

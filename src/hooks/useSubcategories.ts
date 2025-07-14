@@ -37,7 +37,10 @@ export const useSubcategories = (categoryId?: string) => {
         throw fetchError;
       }
 
-      setSubcategories(data || []);
+      setSubcategories((data || []).map(sub => ({
+        ...sub,
+        name_hindi: (sub as any).name_hindi || sub.name
+      })));
     } catch (err: any) {
       console.error("Error fetching subcategories:", err);
       setError("Failed to load subcategories.");

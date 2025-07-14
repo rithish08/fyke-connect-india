@@ -31,7 +31,6 @@ export class AdMobService {
 
     try {
       await AdMob.initialize({
-        requestTrackingAuthorization: true,
         testingDevices: ['YOUR_TESTING_DEVICE_ID'],
         initializeForTesting: true,
       });
@@ -51,8 +50,8 @@ export class AdMobService {
     try {
       await AdMob.showBanner({
         adId,
-        adSize: 'BANNER',
-        position: 'BOTTOM_CENTER',
+        adSize: 'BANNER' as any,
+        position: 'BOTTOM_CENTER' as any,
         margin: 0,
       });
     } catch (error) {

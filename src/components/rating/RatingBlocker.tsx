@@ -52,7 +52,7 @@ const RatingBlocker: React.FC = () => {
   }
 
   return (
-    <Dialog open={true} onOpenChange={() => {}} aria-modal="true" role="dialog" aria-labelledby="rating-required-title">
+    <Dialog open={true} onOpenChange={() => {}}>
       <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" aria-hidden="false">
         <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4" tabIndex={0} aria-labelledby="rating-required-title">
           <div className="text-center">
