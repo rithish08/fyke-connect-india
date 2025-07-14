@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { useJobSearchState } from '@/hooks/useJobSearchState';
+import { useJobSearchState, ViewState } from '@/hooks/useJobSearchState';
 import JobSearchCategoryView from '@/components/search/JobSearchCategoryView';
 import JobSearchResultsView from '@/components/search/JobSearchResultsView';
 
@@ -25,7 +25,7 @@ const JobSearch = () => {
 
   const handleCategorySelect = (category: any) => {
     setSelectedCategory(category);
-    setCurrentView('subcategories');
+    setCurrentView('subcategory' as ViewState);
   };
 
   const handleSubcategorySelect = (subcategories: string[]) => {
@@ -36,21 +36,26 @@ const JobSearch = () => {
   const handleBackToCategories = () => {
     setSelectedCategory(null);
     setSelectedSubcategories([]);
-    setCurrentView('categories');
+    setCurrentView('category' as ViewState);
   };
 
   const handleBackToSubcategories = () => {
-    setCurrentView('subcategories');
+    setCurrentView('subcategory' as ViewState);
   };
 
-  if (currentView === 'categories' || currentView === 'subcategories') {
+  if (currentView === 'category' || currentView === 'subcategory') {
     return (
       <JobSearchCategoryView 
         onCategorySelect={handleCategorySelect}
         onSubcategorySelect={handleSubcategorySelect}
-        selectedCategory={selectedCategory}
+        selectedCategory={selectedCategory ? { 
+          ...selectedCategory, 
+          icon: '🔧', 
+          color: 'blue', 
+          subcategories: [] 
+        } : null}
         onBack={handleBackToCategories}
-        currentView={currentView}
+        currentView={currentView === 'category' ? 'categories' : 'subcategories'}
       />
     );
   }
@@ -61,7 +66,8 @@ const JobSearch = () => {
       setSearchQuery={setSearchQuery}
       location={location}
       setLocation={setLocation}
-      results={results}
+      results={results as any}
+      selectedSubcategories={selectedSubcategories}
       filters={filters}
       setFilters={setFilters}
       urgentOnly={urgentOnly}

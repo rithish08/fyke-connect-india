@@ -92,7 +92,11 @@ const LocalizedJobSearchHeader = ({
                 setLocation(loc);
                 setShowLocationPicker(false);
               }}
-              currentLocation={location}
+              currentLocation={location ? { 
+                ...location, 
+                address: location.address || location.area || '',
+                area: location.area || ''
+              } : null}
             />
           </ModernCard>
         </div>

@@ -108,7 +108,7 @@ const EditJob = () => {
       if (error) throw error;
       showSuccess(t('job.updateSuccess', 'Job updated successfully!'));
       if (refreshJobs) await refreshJobs();
-      if (window.refreshApplications) await window.refreshApplications();
+      if ((window as any).refreshApplications) await (window as any).refreshApplications();
       navigate('/my-jobs');
     } catch (error) {
       showError(t('job.updateError', 'Failed to update job. Please try again.'));

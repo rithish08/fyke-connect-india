@@ -21,7 +21,7 @@ export interface FilterState {
   category: string;
 }
 
-type ViewState = 'category' | 'subcategory' | 'results';
+export type ViewState = 'category' | 'subcategory' | 'results';
 
 export const useJobSearchState = () => {
   const { user } = useAuth();

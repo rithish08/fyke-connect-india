@@ -56,7 +56,7 @@ const WorkerCard = ({ worker }: WorkerCardProps) => {
               
               <div className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-gray-400"/>
-                {t(`job.category.${worker.primary_category}`, worker.primary_category || 'General Worker')}
+                {t('worker.generalWorker', 'General Worker')}
               </div>
 
               {worker.location && (
@@ -68,25 +68,21 @@ const WorkerCard = ({ worker }: WorkerCardProps) => {
             </div>
           </div>
 
-          {/* Skills */}
-          {worker.skills && (worker.skills as string[]).length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-              {(worker.skills as string[]).slice(0, 4).map((skill: string, index: number) => (
-                <Badge 
-                  key={index} 
-                  variant="secondary" 
-                  className="text-sm px-3 py-1 bg-blue-50 text-blue-800 border-blue-100 font-normal"
-                >
-                  {t(`skill.${skill}`, skill)}
-                </Badge>
-              ))}
-              {(worker.skills as string[]).length > 4 && (
-                <Badge variant="outline" className="text-sm px-3 py-1 font-normal">
-                  +{(worker.skills as string[]).length - 4}
-                </Badge>
-              )}
-            </div>
-          )}
+          {/* Skills - Using placeholder since skills field doesn't exist in DB */}
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+            <Badge 
+              variant="secondary" 
+              className="text-sm px-3 py-1 bg-blue-50 text-blue-800 border-blue-100 font-normal"
+            >
+              {t('skill.general', 'General Skills')}
+            </Badge>
+            <Badge 
+              variant="secondary" 
+              className="text-sm px-3 py-1 bg-green-50 text-green-800 border-green-100 font-normal"
+            >
+              {t('skill.available', 'Available')}
+            </Badge>
+          </div>
 
           {/* Status */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">

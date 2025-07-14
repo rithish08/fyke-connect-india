@@ -72,7 +72,7 @@ const WorkerProfileModal: React.FC<WorkerProfileModalProps> = ({ isOpen, onClose
               <DialogTitle className="text-xl font-bold text-gray-900 mb-1">{worker.name}</DialogTitle>
               <div className="text-gray-600 mb-2 flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-gray-500"/>
-                {t(`job.category.${worker.primary_category}`, worker.primary_category || 'General Worker')}
+                {t('worker.generalWorker', 'General Worker')}
               </div>
             </div>
           </DialogHeader>
@@ -86,16 +86,13 @@ const WorkerProfileModal: React.FC<WorkerProfileModalProps> = ({ isOpen, onClose
               <p className="text-gray-700 leading-relaxed">{worker.bio}</p>
             </div>
           )}
-          {worker.skills && (worker.skills as string[]).length > 0 && (
-            <div>
-              <h3 className="font-bold text-gray-900 mb-3">{t('worker.skillsTitle', 'Skills')}</h3>
-              <div className="flex flex-wrap gap-2">
-                {(worker.skills as string[]).map((skill: string, index: number) => (
-                  <Badge key={index} variant="secondary">{t(`skill.${skill}`, skill)}</Badge>
-                ))}
-              </div>
+          <div>
+            <h3 className="font-bold text-gray-900 mb-3">{t('worker.skillsTitle', 'Skills')}</h3>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">{t('skill.general', 'General Skills')}</Badge>
+              <Badge variant="secondary">{t('skill.available', 'Available')}</Badge>
             </div>
-          )}
+          </div>
           {worker.location &&
             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
               <MapPin className="w-5 h-5 text-gray-400" />
