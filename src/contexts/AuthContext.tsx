@@ -18,6 +18,13 @@ import {
 } from 'firebase/firestore';
 import { geolocationService } from '@/services/geolocationService';
 
+// Extend Window interface for recaptcha
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier | null;
+  }
+}
+
 interface AuthUser {
   id: string;
   phone: string;

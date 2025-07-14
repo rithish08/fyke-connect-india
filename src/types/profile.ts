@@ -1,6 +1,6 @@
 export interface Wage {
   rate: string | number;
-  unit: string;
+  unit: 'fixed' | 'per_hour' | 'per_day';
 }
 
 export type AvailabilityStatus = 'available' | 'busy' | 'offline' | 'online';

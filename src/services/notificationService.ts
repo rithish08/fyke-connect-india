@@ -15,7 +15,7 @@ class NotificationService {
 
   async getPermissionStatus() {
     if (!this.isSupported()) return 'denied';
-    return Notification.permission;
+    return await Notification.requestPermission();
   }
 
   async requestPermission() {
@@ -33,6 +33,15 @@ class NotificationService {
     
     new Notification('Welcome to Fyke!', {
       body: 'Your gig economy journey starts here.',
+      icon: '/favicon.ico'
+    });
+  }
+
+  async sendJobNotification(title: string, message: string) {
+    if (!this.hasNotificationPermission()) return;
+    
+    new Notification(title, {
+      body: message,
       icon: '/favicon.ico'
     });
   }
