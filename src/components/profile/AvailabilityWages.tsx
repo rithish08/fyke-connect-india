@@ -27,7 +27,7 @@ export const AvailabilityWages: React.FC = () => {
   useEffect(() => {
     if (user) {
       setAvailability(user.availability as AvailabilityStatus || 'offline');
-      setWages(user.category_wages || {});
+      setWages(user.category_wages as Record<string, Wage> || {});
     }
   }, [user]);
 

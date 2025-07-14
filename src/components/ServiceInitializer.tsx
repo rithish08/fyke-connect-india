@@ -15,13 +15,13 @@ const ServiceInitializer: React.FC<ServiceInitializerProps> = ({ children }) => 
     const initNotifications = async () => {
       try {
         // Request notification permission if not already granted
-        if (notificationService.isSupported() && notificationService.getPermissionStatus() === 'default') {
+        if (notificationService.isSupported() && Notification.permission === 'default') {
           await notificationService.requestPermission();
         }
 
         // Send welcome notification if user is logged in and permission granted
         if (user && notificationService.hasNotificationPermission()) {
-          await notificationService.sendWelcomeNotification(user.name || 'User');
+          await notificationService.sendWelcomeNotification();
         }
       } catch (error) {
         console.error('Error initializing notifications:', error);

@@ -32,15 +32,15 @@ export const useConversations = () => {
     setError(null);
     try {
       const { data, error: rpcError } = await supabase.rpc(
-        'get_user_conversations_with_details_v3',
-        { p_user_id: user.id }
+        'get_user_conversations_with_details_v5',
+        { user_id: user.id }
       );
 
       if (rpcError) {
         throw rpcError;
       }
 
-      setConversations(data || []);
+      setConversations(data as ConversationWithDetails[] || []);
     } catch (err: any) {
       console.error('Error fetching conversations:', err);
       setError('Failed to load your conversations.');

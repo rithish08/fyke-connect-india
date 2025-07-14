@@ -21,12 +21,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { useConversations, ConversationWithDetails } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
-import { Message as BaseMessage } from '@/hooks/useMessages';
-
-interface Message extends BaseMessage {
-  type?: 'text' | 'system' | 'number_shared';
-  phone_number?: string;
-}
+import { Message } from '@/types/message';
 import { formatDistanceToNow } from 'date-fns';
 import { notificationService } from '@/services/notificationService';
 
@@ -101,7 +96,7 @@ const EnhancedMessaging = () => {
         id: Date.now().toString(),
         content: t('chat.jobAcceptedSystemMsg', 'Job has been accepted! You can now share contact details for coordination.'),
         sender_id: 'system',
-        receiver_id: '',
+        conversation: conversation.conversation_id,
         created_at: new Date().toISOString(),
         read: true,
         type: 'system',
@@ -135,7 +130,7 @@ const EnhancedMessaging = () => {
           id: Date.now().toString(),
           content: t('chat.ratingRequiredMsg', 'Please rate your experience to continue using the app'),
           sender_id: 'system',
-          receiver_id: '',
+          conversation: conversation.conversation_id,
           created_at: new Date().toISOString(),
           read: true,
           type: 'system',
@@ -163,7 +158,7 @@ const EnhancedMessaging = () => {
         id: Date.now().toString(),
         content: `You have shared your phone number: ${user?.phone}`,
         sender_id: 'system',
-        receiver_id: '',
+        conversation: conversation.conversation_id,
         created_at: new Date().toISOString(),
         read: true,
         type: 'number_shared',
@@ -423,7 +418,7 @@ const EnhancedMessaging = () => {
             {messagesError && <div className="text-red-500">{messagesError}</div>}
             <div className="space-y-4">
               {messages.map((message) => {
-                if (message.type === 'system') {
+                if ((message as any).type === 'system') {
                   return (
                     <div key={message.id} className="flex justify-center">
                       <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 max-w-[80%]">
@@ -436,7 +431,7 @@ const EnhancedMessaging = () => {
                   );
                 }
 
-                if (message.type === 'number_shared') {
+                if ((message as any).type === 'number_shared') {
                   return (
                     <div key={message.id} className="flex justify-center">
                       <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 max-w-[80%]">
@@ -541,7 +536,7 @@ const EnhancedMessaging = () => {
                     id: Date.now().toString(),
                     content: t('chat.reportedSystemMsg', 'You have reported {0}.', [conversation?.other_user_name]),
                     sender_id: 'system',
-                    receiver_id: '',
+                    conversation: conversation.conversation_id,
                     created_at: new Date().toISOString(),
                     read: true,
                     type: 'system',
@@ -576,7 +571,7 @@ const EnhancedMessaging = () => {
                     id: Date.now().toString(),
                     content: t('chat.blockedSystemMsg', 'You have blocked {0}.', [conversation?.other_user_name]),
                     sender_id: 'system',
-                    receiver_id: '',
+                    conversation: conversation.conversation_id,
                     created_at: new Date().toISOString(),
                     read: true,
                     type: 'system',
@@ -616,8 +611,8 @@ const EnhancedMessaging = () => {
               {filteredConversations.map((conv) => {
                 // Use available properties from ConversationWithDetails
                 const initials = conv.other_user_name?.split(' ').map(n => n[0]).join('') || 'U';
-                const lastMessageTime = conv.last_message_created_at 
-                  ? formatDistanceToNow(new Date(conv.last_message_created_at), { addSuffix: true })
+                const lastMessageTime = conv.last_message_at 
+                  ? formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })
                   : 'No messages';
                   
                 return (
@@ -635,7 +630,7 @@ const EnhancedMessaging = () => {
                         <span className="text-xs text-gray-500">{lastMessageTime}</span>
                       </div>
                       <p className="text-sm text-gray-500 truncate">
-                        {conv.last_message_content || 'Start a conversation'}
+                        {conv.last_message || 'Start a conversation'}
                       </p>
                     </div>
                   </div>

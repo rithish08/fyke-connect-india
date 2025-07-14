@@ -3,17 +3,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { mockWorkers, mockJobs, Job as MockJob, Worker as MockWorker } from '@/data/mockData';
 import { useLocalization } from './useLocalization';
 import { Job } from '@/types/job';
-import { definitions } from '@/integrations/supabase/types';
-
-type Profile = definitions['profiles'];
-
 export interface Location {
   lat: number;
   lng: number;
   area?: string;
 }
 
-interface FilterState {
+export interface FilterState {
   distance: number;
   minRating: number;
   priceRange: [number, number];
@@ -55,35 +51,35 @@ export const useJobSearchState = () => {
         let categoryWorkers: MockWorker[] = [];
         
         if (categoryKey && categoryKey in mockWorkers) {
-          categoryWorkers = mockWorkers[categoryKey as keyof typeof mockWorkers] || [];
+          categoryWorkers = (mockWorkers as any)[categoryKey] || [];
         } else {
           // Show workers from all categories with better variety
-          categoryWorkers = Object.values(mockWorkers).flat();
+          categoryWorkers = Object.values(mockWorkers).flat() as any;
         }
         
         // Apply comprehensive filters
         const filteredWorkers = categoryWorkers.filter(worker => {
-          const ratingMatch = worker.rating >= filters.minRating;
-          const urgentMatch = urgentOnly ? worker.isOnline : true;
-          const priceMatch = worker.hourlyRate >= filters.priceRange[0] && worker.hourlyRate <= filters.priceRange[1];
+          const ratingMatch = (worker as any).rating >= filters.minRating;
+          const urgentMatch = urgentOnly ? (worker as any).isOnline : true;
+          const priceMatch = (worker as any).hourlyRate >= filters.priceRange[0] && (worker as any).hourlyRate <= filters.priceRange[1];
           const availabilityMatch = filters.availability === 'all' || 
-            (filters.availability === 'online' && worker.isOnline) ||
-            (filters.availability === 'verified' && worker.verificationLevel !== 'basic');
+            (filters.availability === 'online' && (worker as any).isOnline) ||
+            (filters.availability === 'verified' && (worker as any).verificationLevel !== 'basic');
           
           return ratingMatch && urgentMatch && priceMatch && availabilityMatch;
         });
         
-        setResults(filteredWorkers.length > 0 ? filteredWorkers : Object.values(mockWorkers).flat().slice(0, 8));
+        setResults(filteredWorkers.length > 0 ? filteredWorkers as any : Object.values(mockWorkers).flat().slice(0, 8) as any);
       } else {
         // Enhanced job data loading with better filtering
         const categoryKey = selectedCategory?.name.toLowerCase() || '';
         let categoryJobs: MockJob[] = [];
         
         if (categoryKey && categoryKey in mockJobs) {
-          categoryJobs = mockJobs[categoryKey as keyof typeof mockJobs] || [];
+          categoryJobs = (mockJobs as any)[categoryKey] || [];
         } else {
           // Show jobs from all categories with better variety
-          categoryJobs = Object.values(mockJobs).flat();
+          categoryJobs = Object.values(mockJobs).flat() as any;
         }
         
         // Apply comprehensive filters
@@ -97,7 +93,7 @@ export const useJobSearchState = () => {
           return urgentMatch && queryMatch;
         });
         
-        setResults(filteredJobs.length > 0 ? filteredJobs : Object.values(mockJobs).flat().slice(0, 8));
+        setResults(filteredJobs.length > 0 ? filteredJobs as any : Object.values(mockJobs).flat().slice(0, 8) as any);
       }
     }, 500);
   }, [user?.role, selectedCategory, filters, urgentOnly, searchQuery]);

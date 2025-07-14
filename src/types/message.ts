@@ -6,7 +6,10 @@ export interface Message {
   conversation: string;
   created_at: string;
   read: boolean;
-  type?: 'user' | 'system';
+  type?: 'user' | 'system' | 'number_shared';
+  application_id?: string;
+  job_id?: string;
+  phone_number?: string;
 }
 
 // Alternative for system messages
