@@ -109,7 +109,7 @@ const PostJob = () => {
 
       // Send notification for successful job posting
       try {
-        await notificationService.sendJobPostedNotification(formData.title);
+        await notificationService.sendJobPostedNotification();
       } catch (notificationError) {
         console.warn('Could not send job posted notification:', notificationError);
       }
@@ -238,7 +238,7 @@ const PostJob = () => {
                     </div>
                     <div>
                       <Label htmlFor="salary_period">{t('job.salaryPeriod', 'Salary Period')} *</Label>
-                      <Select value={formData.salary_period} onValuechange={(value) => handleInputChange('salary_period', value)} required>
+                      <Select value={formData.salary_period} onValueChange={(value) => handleInputChange('salary_period', value)} required>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="daily">{t('job.perDay', 'per Day')}</SelectItem>

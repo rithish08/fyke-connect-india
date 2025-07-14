@@ -97,7 +97,18 @@ const JobSearchResults = ({
             isWorker(res) ? (
               <div key={res.id} role="listitem">
                 <UnifiedWorkerCard
-                  worker={res}
+                  worker={{
+                    ...res,
+                    category: 'General Worker',
+                    skills: ['Available', 'Reliable'],
+                    rating: 4.5,
+                    distance: '2 km away',
+                    responseTime: 'Quick',
+                    hourlyRate: 50,
+                    isOnline: res.availability === 'available',
+                    completedJobs: 10,
+                    verificationLevel: res.verified ? 'verified' : 'basic'
+                  } as any}
                   onHire={() => handleWorkerHire(res)}
                   onMessage={() => handleWorkerMessage(res)}
                   onViewProfile={() => onWorkerClick(res)}

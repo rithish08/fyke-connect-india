@@ -29,10 +29,7 @@ const Notifications = () => {
           description: "You will now receive notifications for job updates and messages.",
         });
         // Send a test notification
-        await notificationService.sendNotification('Notifications Enabled!', {
-          body: 'You will now receive notifications for job updates and messages.',
-          tag: 'permission-granted'
-        });
+        await notificationService.sendNotification('Notifications Enabled!', 'You will now receive notifications for job updates and messages.');
       } else {
         toast({
           title: "Permission Denied",
@@ -52,10 +49,7 @@ const Notifications = () => {
 
   const sendTestNotification = async () => {
     try {
-      await notificationService.sendNotification('Test Notification', {
-        body: 'This is a test notification from Fyke Connect!',
-        tag: 'test-notification'
-      });
+      await notificationService.sendNotification('Test Notification', 'This is a test notification from Fyke Connect!');
       toast({
         title: "Test Notification Sent",
         description: "Check your notifications to see the test message.",

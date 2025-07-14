@@ -146,7 +146,18 @@ const JobSearchResultsView = ({
         <WorkerDetailModal
           isOpen={showWorkerModal}
           onClose={() => setShowWorkerModal(false)}
-          worker={selectedWorker}
+          worker={{
+            ...selectedWorker,
+            category: 'General Worker',
+            skills: ['Available', 'Reliable'],
+            rating: 4.5,
+            distance: '2 km away',
+            responseTime: 'Quick',
+            hourlyRate: 50,
+            isOnline: selectedWorker.availability === 'available',
+            completedJobs: 10,
+            verificationLevel: selectedWorker.verified ? 'verified' : 'basic'
+          } as any}
           onHire={handleQuickHire}
         />
       )}

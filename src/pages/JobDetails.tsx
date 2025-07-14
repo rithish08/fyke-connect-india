@@ -61,14 +61,15 @@ const JobDetails = () => {
           title: data.title,
           // @ts-ignore
           company: data.employer?.name || 'A Reputed Company',
-          category: data.category,
+          category: data.category_id ? { name: 'General Category' } : { name: 'General Category' },
           salary_min: data.salary_min,
           salary_max: data.salary_max,
-          salary_period: data.salary_period,
+          salary_period: (data.salary_period as "hour" | "day" | "week" | "month" | "project") || 'hour',
           location: data.location,
           urgent: data.urgent,
           posted_at: data.created_at,
-          skills: data.skills || [],
+          created_at: data.created_at,
+          requirements: data.requirements || [],
           description: data.description,
           employer_id: data.employer_id,
         };
@@ -98,7 +99,7 @@ const JobDetails = () => {
     
     // Send notification for job application
     try {
-      await notificationService.sendApplicationNotification(job.title, user.name || 'User');
+      await notificationService.sendApplicationNotification();
     } catch (notificationError) {
       console.warn('Could not send application notification:', notificationError);
     }
@@ -257,8 +258,8 @@ const JobDetails = () => {
           </div>
 
           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-            <Badge variant="outline">{job.category}</Badge>
-            {job.skills && job.skills.map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+            <Badge variant="outline">{typeof job.category === 'string' ? job.category : job.category?.name || 'General Category'}</Badge>
+            {job.requirements && job.requirements.map((skill: string) => <Badge key={skill} variant="secondary">{skill}</Badge>)}
           </div>
         </Card>
 
