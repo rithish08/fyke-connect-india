@@ -43,7 +43,7 @@ const LoginScreen = () => {
         variant: 'destructive'
       });
       if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
-      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
+      try { await Haptics.notification({ type: 'ERROR' as any }); } catch (e) { /* ignore */ }
       return;
     }
     
@@ -58,7 +58,7 @@ const LoginScreen = () => {
           variant: 'destructive'
         });
         if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
-        try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
+        try { await Haptics.notification({ type: 'ERROR' as any }); } catch (e) { /* ignore */ }
         return;
       }
 
@@ -68,7 +68,7 @@ const LoginScreen = () => {
         title: t('login.otpSentTitle', 'OTP Sent'),
         description: t('login.otpSentDesc', 'Verification code sent to +91 {0}', [phone])
       });
-      try { await Haptics.notification({ type: 'SUCCESS' }); } catch (e) { /* ignore */ }
+      try { await Haptics.notification({ type: 'SUCCESS' as any }); } catch (e) { /* ignore */ }
     } catch (error) {
       toast({
         title: t('common.error', 'Error'),
@@ -76,7 +76,7 @@ const LoginScreen = () => {
         variant: 'destructive'
       });
       if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
-      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
+      try { await Haptics.notification({ type: 'ERROR' as any }); } catch (e) { /* ignore */ }
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ const LoginScreen = () => {
         variant: 'destructive'
       });
       if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
-      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
+      try { await Haptics.notification({ type: 'ERROR' as any }); } catch (e) { /* ignore */ }
       return;
     }
     
@@ -106,7 +106,7 @@ const LoginScreen = () => {
         });
         setOtp(['', '', '', '', '', '']);
         if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
-        try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
+        try { await Haptics.notification({ type: 'ERROR' as any }); } catch (e) { /* ignore */ }
         return;
       }
 
@@ -114,7 +114,7 @@ const LoginScreen = () => {
         title: t('login.successTitle', 'Login Successful!'),
         description: t('login.successDesc', 'Welcome to Fyke Connect')
       });
-      try { await Haptics.notification({ type: 'SUCCESS' }); } catch (e) { /* ignore */ }
+      try { await Haptics.notification({ type: 'SUCCESS' as any }); } catch (e) { /* ignore */ }
       // Navigation will be handled by AuthContext after successful verification
     } catch (error) {
       toast({
@@ -124,7 +124,7 @@ const LoginScreen = () => {
       });
       setOtp(['', '', '', '', '', '']);
       if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);
-      try { await Haptics.notification({ type: 'ERROR' }); } catch (e) { /* ignore */ }
+      try { await Haptics.notification({ type: 'ERROR' as any }); } catch (e) { /* ignore */ }
     } finally {
       setLoading(false);
     }

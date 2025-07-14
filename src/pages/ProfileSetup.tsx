@@ -35,7 +35,12 @@ const ProfileSetup = () => {
     resolver: zodResolver(profileSetupSchema),
     defaultValues: {
       selectedCategories: user?.categories || [],
-      salaryBySubcategory: user?.wages || {},
+      salaryBySubcategory: user?.wages ? Object.fromEntries(
+        Object.entries(user.wages).map(([key, value]) => [
+          key, 
+          { amount: String(value.rate || ''), period: value.unit || 'hour' }
+        ])
+      ) : {},
     },
   });
 
@@ -65,7 +70,13 @@ const ProfileSetup = () => {
   };
 
   const handleWagesSubmit = async (data: ProfileSetupFormValues) => {
-    await updateProfile({ wages: data.salaryBySubcategory });
+    const wagesData = data.salaryBySubcategory ? Object.fromEntries(
+      Object.entries(data.salaryBySubcategory).map(([key, value]) => [
+        key,
+        { rate: value.amount, unit: value.period }
+      ])
+    ) : {};
+    await updateProfile({ wages: wagesData });
   };
   
   const renderStep = () => {
@@ -76,7 +87,10 @@ const ProfileSetup = () => {
         return (
           <ModernCategoryStep
             form={form as any}
-            onNext={form.handleSubmit(handleCategorySubmit)}
+            onNext={() => {
+              form.handleSubmit(handleCategorySubmit)();
+              return Promise.resolve(true);
+            }}
             userName={user?.name || ''}
           />
         );
@@ -84,7 +98,14 @@ const ProfileSetup = () => {
         return (
           <ModernMultiSalaryStep
             form={form as any}
-            onNext={form.handleSubmit(handleWagesSubmit)}
+            onNext={async () => {
+              const isValid = await form.trigger();
+              if (isValid) {
+                await handleWagesSubmit(form.getValues());
+                return true;
+              }
+              return false;
+            }}
             onBack={() => setCurrentStep('category')}
           />
         );

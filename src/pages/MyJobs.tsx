@@ -52,7 +52,7 @@ const MyJobs = () => {
           </div>
           <div className="flex items-center space-x-2">
             <Badge variant="outline" className="text-xs capitalize">{job.application_status}</Badge>
-            <Badge variant="outline" className="text-xs">{job.category}</Badge>
+            <Badge variant="outline" className="text-xs">{typeof job.category === 'string' ? job.category : job.category?.name || 'N/A'}</Badge>
           </div>
         </div>
         <div className="text-right">
@@ -223,7 +223,7 @@ const MyJobs = () => {
     }
 
     const jobsData = {
-      active: postedJobs.filter(job => job.status === 'active'),
+      active: postedJobs.filter(job => job.status === 'posted' || job.status === 'open'),
       completed: postedJobs.filter(job => ['filled', 'expired', 'draft'].includes(job.status)),
     };
 

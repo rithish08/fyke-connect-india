@@ -122,7 +122,7 @@ const Profile = () => {
     const fields = [
       !!user.name,
       !!user.email,
-      !!user.avatar_url,
+      !!user.profilePhoto,
       !!user.skills && user.skills.length > 0,
       !!user.location,
       !!user.bio,
@@ -158,16 +158,12 @@ const Profile = () => {
 
   const JobSeekerProfileContent = () => (
     <div className="space-y-4">
-       <AvailabilityWages 
-          availability={user.availability || 'offline'} 
-          wages={user.wages || {}} 
-          onUpdate={updateProfile}
-        />
+       <AvailabilityWages />
       <ProfileCategoryManager
         categories={user.categories}
         onAdd={() => navigate('/profile-setup/category')}
       />
-      <ProfileSkills skills={user.skills || []} onEdit={() => navigate('/profile-setup/skills')} />
+      <ProfileSkills skills={user.skills || []} userRole={user.role || 'jobseeker'} isEditing={true} />
     </div>
   );
 
@@ -175,17 +171,13 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50 pb-24">
       <ProfileHeader
         name={user.name || t('common.unnamed', 'Unnamed User')}
-        avatarUrl={user.avatar_url}
-        role={user.role}
-        location={user.location}
-        onEdit={() => navigate('/profile-setup/name')}
+        phone={user.phone || ''}
+        role={user.role || 'jobseeker'}
+        verified={user.verified || false}
       />
 
       <div className="p-4 space-y-6">
-        <ProfileProgress
-          progress={completePercent}
-          onCompleteProfile={() => navigate('/profile-setup')}
-        />
+        <ProfileProgress />
 
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -193,7 +185,19 @@ const Profile = () => {
             <TabsTrigger value="settings">{t('profile.settings', 'Settings')}</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
-            <EnhancedProfileInfo bio={user.bio} onEdit={() => navigate('/profile-setup/bio')} />
+            <EnhancedProfileInfo 
+              profileData={{
+                name: user.name || '',
+                email: user.email || '',
+                location: user.location || '',
+                experience: '2 years',
+                bio: user.bio || ''
+              }}
+              onUpdate={updateProfile}
+              isDetectingLocation={isDetectingLocation}
+              handleDetectLocation={handleDetectLocation}
+              userRole={user.role || 'jobseeker'}
+            />
             {isEmployer ? <EmployerProfileContent /> : <JobSeekerProfileContent />}
           </TabsContent>
           <TabsContent value="settings" className="space-y-4">
@@ -211,7 +215,7 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
         
-        {showBanner && <BannerAd onClose={() => setShowBanner(false)} />}
+        {/* Banner ad placeholder */}
       </div>
       <BottomNavigation />
     </div>
