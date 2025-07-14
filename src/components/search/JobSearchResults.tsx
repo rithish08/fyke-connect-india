@@ -13,8 +13,12 @@ import { useWorkers, Profile } from '@/hooks/useWorkers';
 import { Job } from '@/types/job';
 
 interface JobSearchResultsProps {
-  userRole: string | undefined;
-  onWorkerClick: (worker: Profile) => void;
+  results?: any[]; // Added for compatibility
+  userRole?: string | undefined;
+  onWorkerClick?: (worker: Profile) => void;
+  onJobClick?: (jobId: string) => Promise<void>;
+  onApply?: (jobId: string, employerId: string) => Promise<void>;
+  appliedJobIds?: Set<string>;
   category?: string;
   selectedCategories?: { [catId: string]: string[] };
 }

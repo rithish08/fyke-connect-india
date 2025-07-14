@@ -6,14 +6,19 @@ export const useNotificationService = () => {
   const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
-    setIsSupported(notificationService.isSupported());
-    setPermission(notificationService.getPermissionStatus());
+    const initPermission = async () => {
+      setIsSupported(notificationService.isSupported());
+      const status = await notificationService.getPermissionStatus();
+      setPermission(status);
+    };
+    initPermission();
   }, []);
 
   const requestPermission = async () => {
     try {
       const granted = await notificationService.requestPermission();
-      setPermission(notificationService.getPermissionStatus());
+      const status = await notificationService.getPermissionStatus();
+      setPermission(status);
       return granted;
     } catch (error) {
       console.error('Error requesting notification permission:', error);
@@ -23,7 +28,7 @@ export const useNotificationService = () => {
 
   const sendNotification = async (title: string, options?: NotificationOptions) => {
     try {
-      await notificationService.sendNotification(title, options);
+      await notificationService.sendJobNotification(title, options?.body || '');
     } catch (error) {
       console.error('Error sending notification:', error);
     }
@@ -39,7 +44,7 @@ export const useNotificationService = () => {
 
   const sendApplicationNotification = async (jobTitle: string, applicantName: string) => {
     try {
-      await notificationService.sendApplicationNotification(jobTitle, applicantName);
+      await notificationService.sendJobNotification(jobTitle, applicantName);
     } catch (error) {
       console.error('Error sending application notification:', error);
     }
@@ -55,7 +60,7 @@ export const useNotificationService = () => {
 
   const sendOTPNotification = async (phoneNumber: string) => {
     try {
-      await notificationService.sendOTPNotification(phoneNumber);
+      await notificationService.sendJobNotification('OTP Sent', phoneNumber);
     } catch (error) {
       console.error('Error sending OTP notification:', error);
     }
@@ -63,7 +68,7 @@ export const useNotificationService = () => {
 
   const sendProfileUpdateNotification = async () => {
     try {
-      await notificationService.sendProfileUpdateNotification();
+      await notificationService.sendJobNotification('Profile Updated', 'Your profile has been updated successfully');
     } catch (error) {
       console.error('Error sending profile update notification:', error);
     }
@@ -71,7 +76,7 @@ export const useNotificationService = () => {
 
   const sendJobPostedNotification = async (jobTitle: string) => {
     try {
-      await notificationService.sendJobPostedNotification(jobTitle);
+      await notificationService.sendJobNotification('Job Posted', jobTitle);
     } catch (error) {
       console.error('Error sending job posted notification:', error);
     }
@@ -79,7 +84,7 @@ export const useNotificationService = () => {
 
   const sendApplicationStatusNotification = async (jobTitle: string, status: string) => {
     try {
-      await notificationService.sendApplicationStatusNotification(jobTitle, status);
+      await notificationService.sendJobNotification(`Application ${status}`, jobTitle);
     } catch (error) {
       console.error('Error sending application status notification:', error);
     }
@@ -87,7 +92,7 @@ export const useNotificationService = () => {
 
   const sendWelcomeNotification = async (userName: string) => {
     try {
-      await notificationService.sendWelcomeNotification(userName);
+      await notificationService.sendWelcomeNotification();
     } catch (error) {
       console.error('Error sending welcome notification:', error);
     }
@@ -95,7 +100,7 @@ export const useNotificationService = () => {
 
   const sendReminderNotification = async (message: string) => {
     try {
-      await notificationService.sendReminderNotification(message);
+      await notificationService.sendJobNotification('Reminder', message);
     } catch (error) {
       console.error('Error sending reminder notification:', error);
     }
