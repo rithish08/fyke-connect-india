@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Form } from '@/components/ui/form';
 import { ArrowLeft, BadgeCheck } from "lucide-react";
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ModernCategoryStep from '@/components/profile/ModernCategoryStep';
@@ -17,10 +17,10 @@ import { useLocalization } from '@/contexts/LocalizationContext';
 // Define a schema for the multi-step form
 const profileSetupSchema = z.object({
   name: z.string().optional(),
-  selectedCategories: z.array(z.string()).optional(),
+  categories: z.array(z.string()).optional(),
   salaryBySubcategory: z.record(z.object({
     amount: z.string(),
-    period: z.string(),
+    period: z.enum(['daily', 'weekly', 'monthly']),
   })).optional(),
 });
 
@@ -34,11 +34,11 @@ const ProfileSetup = () => {
   const form = useForm<ProfileSetupFormValues>({
     resolver: zodResolver(profileSetupSchema),
     defaultValues: {
-      selectedCategories: user?.categories || [],
+      categories: user?.categories || [],
       salaryBySubcategory: user?.wages ? Object.fromEntries(
         Object.entries(user.wages).map(([key, value]) => [
           key, 
-          { amount: String(value.rate || ''), period: value.unit || 'hour' }
+          { amount: String(value.rate || ''), period: (['daily', 'weekly', 'monthly'].includes(value.unit) ? value.unit : 'daily') as 'daily' | 'weekly' | 'monthly' }
         ])
       ) : {},
     },
@@ -66,7 +66,9 @@ const ProfileSetup = () => {
   };
 
   const handleCategorySubmit = async (data: ProfileSetupFormValues) => {
-    await updateProfile({ categories: data.selectedCategories });
+    await updateProfile({ categories: data.categories, profileComplete: true });
+    // After updating, navigate to home or next step
+    navigate('/home');
   };
 
   const handleWagesSubmit = async (data: ProfileSetupFormValues) => {
@@ -86,7 +88,7 @@ const ProfileSetup = () => {
       case 'category':
         return (
           <ModernCategoryStep
-            form={form as any}
+            form={form as UseFormReturn<ProfileSetupFormValues>}
             onNext={() => {
               form.handleSubmit(handleCategorySubmit)();
               return Promise.resolve(true);
@@ -97,7 +99,7 @@ const ProfileSetup = () => {
       case 'wages':
         return (
           <ModernMultiSalaryStep
-            form={form as any}
+            form={form as UseFormReturn<ProfileSetupFormValues>}
             onNext={async () => {
               const isValid = await form.trigger();
               if (isValid) {

@@ -60,7 +60,7 @@ const ServiceInitializer: React.FC<ServiceInitializerProps> = ({ children }) => 
         geolocationService.stopLocationTracking();
       }
     };
-  }, [user]);
+  }, []);
 
   return <>{children}</>;
 };

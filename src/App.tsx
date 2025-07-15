@@ -27,6 +27,7 @@ import EditJob from '@/pages/EditJob';
 import { useState } from 'react';
 import { CommunicationProvider } from '@/contexts/CommunicationContext';
 import { ServiceInitializer } from '@/services/ServiceInitializer';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,16 +41,6 @@ const queryClient = new QueryClient({
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
-  if (showSplash) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <LocalizationProvider>
-          <SplashScreen onComplete={() => setShowSplash(false)} />
-        </LocalizationProvider>
-      </QueryClientProvider>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
@@ -59,7 +50,11 @@ function App() {
               <CommunicationProvider>
                 <ServiceInitializer>
                   <Router>
+                  <ErrorBoundary>
                   <div className="App min-h-screen">
+                    {showSplash ? (
+                      <SplashScreen onComplete={() => setShowSplash(false)} />
+                    ) : (
                     <Routes>
                       <Route path="/language" element={<LanguageSelection />} />
                       <Route path="/login" element={<LoginScreen />} />
@@ -163,9 +158,11 @@ function App() {
                       <Route path="/" element={<LanguageSelection />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    )}
                     <Toaster />
                     <RatingBlocker />
                   </div>
+                  </ErrorBoundary>
                   </Router>
                 </ServiceInitializer>
               </CommunicationProvider>

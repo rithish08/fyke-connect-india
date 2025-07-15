@@ -9,8 +9,10 @@ export const useEmployerJobs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Always use the latest user context
   const fetchEmployerJobs = useCallback(async () => {
     if (!user || user.role !== 'employer') {
+      setPostedJobs([]);
       setLoading(false);
       return;
     }
@@ -38,6 +40,15 @@ export const useEmployerJobs = () => {
           posted_at: job.created_at,
         }));
         setPostedJobs(formattedJobs as Job[]);
+        // Logging for debugging
+        if (formattedJobs.length === 0) {
+          console.warn('No jobs found for employer:', user.id);
+        } else {
+          console.log('Fetched jobs for employer:', user.id, formattedJobs);
+        }
+      } else {
+        setPostedJobs([]);
+        console.warn('No jobs data returned from Supabase for employer:', user.id);
       }
     } catch (err) {
       const error = err as Error;
@@ -46,13 +57,20 @@ export const useEmployerJobs = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     fetchEmployerJobs();
     // Expose refreshJobs globally for cross-screen refresh
     if (typeof window !== 'undefined') {
       (window as any).refreshJobs = fetchEmployerJobs;
+    }
+  }, [fetchEmployerJobs]);
+
+  // Utility to force refresh from anywhere
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).forceRefreshEmployerJobs = fetchEmployerJobs;
     }
   }, [fetchEmployerJobs]);
 

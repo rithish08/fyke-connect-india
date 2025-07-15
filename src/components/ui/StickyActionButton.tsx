@@ -30,10 +30,6 @@ const StickyActionButton: React.FC<StickyActionButtonProps> = ({
         pointer-events-none
         transition-all
       `}
-      style={{
-        // Spread any extra style (so we can customize per screen)
-        ...style,
-      }}
     >
       <div
         className={`
@@ -42,10 +38,6 @@ const StickyActionButton: React.FC<StickyActionButtonProps> = ({
           border border-gray-100
           p-0
         `}
-        style={{
-          boxShadow: "0 3px 20px 0 rgba(23,36,61,.09)",
-          // Soft shadow for floating effect
-        }}
       >
         <Button
           className={`w-full h-12 rounded-2xl font-semibold text-base transition-colors 

@@ -40,9 +40,6 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
       }
     `}
-    style={{
-      minHeight: hasSelections ? 160 + selectedSubs.length * 24 : 140,
-    }}
     onClick={() => openSubcategoryPopup(catId)}
   >
     {/* Selection Indicator */}

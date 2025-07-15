@@ -120,10 +120,10 @@ const JobDetails = () => {
     let updated;
     if (bookmarked) {
       updated = bookmarks.filter((id: string) => id !== job.id);
-      toast({ title: 'Job removed from bookmarks' });
+      toast({ title: t('job.bookmarkRemoved', 'Job removed from bookmarks') });
     } else {
       updated = [...bookmarks, job.id];
-      toast({ title: 'Job added to bookmarks' });
+      toast({ title: t('job.bookmarkAdded', 'Job added to bookmarks') });
     }
     localStorage.setItem('fyke_bookmarks', JSON.stringify(updated));
     setBookmarked(!bookmarked);
@@ -134,8 +134,8 @@ const JobDetails = () => {
       window.location.href = `tel:${job.employer_phone}`;
     } else {
       toast({
-        title: 'Phone number not available',
-        description: 'Please contact through chat first.',
+        title: t('job.phoneNotAvailable', 'Phone number not available'),
+        description: t('job.contactViaChat', 'Please contact through chat first.'),
         variant: 'destructive'
       });
     }

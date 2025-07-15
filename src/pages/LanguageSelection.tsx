@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Check, Globe, ArrowRight } from 'lucide-react';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { useAccessibility } from '@/components/accessibility/AccessibilityProvider';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LanguageSelection = () => {
   const navigate = useNavigate();
   const { language, setLanguage, getSupportedLanguages, t } = useLocalization();
   const { announceMessage } = useAccessibility();
   const [selectedLanguage, setSelectedLanguage] = useState(language);
+  const { user, isAuthenticated } = useAuth();
+
+  // Redirect authenticated users away from language screen
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (!user.role) {
+        navigate('/role-selection', { replace: true });
+      } else if (user.role === 'jobseeker' && !user.profileComplete) {
+        navigate('/profile-setup', { replace: true });
+      } else {
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
   
   const supportedLanguages = getSupportedLanguages();
 

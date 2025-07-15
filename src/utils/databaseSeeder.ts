@@ -202,6 +202,17 @@ export async function seedDatabase() {
   }
 }
 
+// CLI entrypoint for Node.js
+if (require.main === module) {
+  seedDatabase().then(() => {
+    console.log('✅ Seeding complete.');
+    process.exit(0);
+  }).catch((err) => {
+    console.error('❌ Seeding failed:', err);
+    process.exit(1);
+  });
+}
+
 // Make it available globally for browser console access
 if (typeof window !== 'undefined') {
   (window as any).seedDatabase = seedDatabase;

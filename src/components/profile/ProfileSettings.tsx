@@ -103,6 +103,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onLogout }) => {
               value={fontSize}
               onChange={(e) => setFontSize(e.target.value as 'small' | 'medium' | 'large')}
               className="border border-gray-300 rounded-lg px-3 py-1 text-sm"
+              aria-label={t('profile.fontSizeSelect', 'Select font size')}
             >
               <option value="small">{t('settings.small', 'Small')}</option>
               <option value="medium">{t('settings.medium', 'Medium')}</option>

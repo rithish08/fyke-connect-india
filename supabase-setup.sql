@@ -35,8 +35,9 @@ CREATE POLICY "Users can insert own profile" ON public.profiles
     FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Policy for public read access (for job seekers to view employer profiles)
-CREATE POLICY "Public can view profiles" ON public.profiles
-    FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public can view profiles" ON public.profiles;
+CREATE POLICY "Public can view employer profiles only" ON public.profiles
+    FOR SELECT USING (role = 'employer');
 
 -- 4. Create a trigger to automatically create a profile when a new user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()

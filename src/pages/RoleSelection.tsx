@@ -19,15 +19,9 @@ const RoleSelection = () => {
       setRole(selectedRole);
       updateProfile({
         role: selectedRole,
-        profileComplete: selectedRole === 'employer' ? !!user?.name : false
+        profileComplete: false
       });
-      if (selectedRole === 'employer' && !user?.name) {
-        goTo('/profile-setup?minimal=1'); // minimal setup for employer
-      } else if (selectedRole === 'employer') {
-        goTo('/home');
-      } else {
         goTo('/profile-setup');
-      }
     }
   };
 

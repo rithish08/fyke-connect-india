@@ -1,30 +1,32 @@
 
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 export const useGlobalToast = () => {
   const { toast } = useToast();
+  const { t } = useLocalization();
 
-  const showSuccess = (message: string) => {
+  const showSuccess = (messageKey: string, params?: (string|number)[], fallback?: string) => {
     toast({
-      title: "Success",
-      description: message,
-      variant: "default"
+      title: t('common.success', 'Success'),
+      description: t(messageKey, fallback, params),
+      variant: 'default'
     });
   };
 
-  const showError = (message: string) => {
+  const showError = (messageKey: string, params?: (string|number)[], fallback?: string) => {
     toast({
-      title: "Error",
-      description: message,
-      variant: "destructive"
+      title: t('common.error', 'Error'),
+      description: t(messageKey, fallback, params),
+      variant: 'destructive'
     });
   };
 
-  const showInfo = (message: string) => {
+  const showInfo = (messageKey: string, params?: (string|number)[], fallback?: string) => {
     toast({
-      title: "Info",
-      description: message,
-      variant: "default"
+      title: t('common.info', 'Info'),
+      description: t(messageKey, fallback, params),
+      variant: 'default'
     });
   };
 

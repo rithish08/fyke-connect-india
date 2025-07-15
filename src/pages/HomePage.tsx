@@ -21,14 +21,6 @@ const HomePage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle role switching redirect logic
-  useEffect(() => {
-    if (user && user.role === 'jobseeker' && !user.profileComplete) {
-      console.log('Jobseeker without completed profile detected, redirecting to profile setup');
-      navigate('/profile-setup');
-    }
-  }, [user, navigate]);
-
   if (!user || !isFlowComplete) {
     return null; // RouteGuard will handle redirects
   }

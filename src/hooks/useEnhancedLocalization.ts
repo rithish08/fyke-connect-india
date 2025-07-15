@@ -33,7 +33,8 @@ const extendedTranslations = {
     'notifications.messageReceived': 'नया संदेश प्राप्त',
     'app.name': 'फाइक कनेक्ट',
     'app.tagline': 'जुड़ें। काम करें। कमाएं।'
-  }
+  },
+  // Add similar keys for all other supported languages, fallback to English if not present
 };
 
 export const useEnhancedLocalization = () => {

@@ -24,6 +24,7 @@ const LoginScreen = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('[LoginScreen] isAuthenticated true, navigating to /');
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
@@ -49,7 +50,10 @@ const LoginScreen = () => {
     
     setLoading(true);
     try {
-      const { error } = await sendOTP(phone);
+      const { error, testBypass } = await sendOTP(phone);
+      if (testBypass) {
+        setShowOTP(true);
+      }
       
       if (error) {
         toast({
@@ -62,7 +66,6 @@ const LoginScreen = () => {
         return;
       }
 
-      setShowOTP(true);
       setResendTimer(60);
       toast({
         title: t('login.otpSentTitle', 'OTP Sent'),

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { categories as staticCategories } from '@/data/categories';
 
 export interface Category {
   id: string;
@@ -31,14 +32,21 @@ export const useCategories = () => {
         throw fetchError;
       }
 
-      setCategories((data || []).map(cat => ({
-        ...cat,
-        name_hindi: (cat as any).name_hindi || cat.name
-      })));
+      if (data && data.length > 0) {
+        setCategories((data || []).map(cat => ({
+          ...cat,
+          name_hindi: (cat as any).name_hindi || cat.name
+        })));
+      } else {
+        // Fallback to static categories if Supabase is empty
+        setCategories(staticCategories);
+      }
     } catch (err) {
       const error = err as Error;
       console.error("Error fetching categories:", error);
       setError("Failed to load categories.");
+      // Fallback to static categories on error
+      setCategories(staticCategories);
     } finally {
       setLoading(false);
     }

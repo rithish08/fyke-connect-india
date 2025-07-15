@@ -181,224 +181,188 @@ const QuickPostModal: React.FC<QuickPostModalProps> = ({ isOpen, onClose }) => {
     navigate(`/search?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`);
   };
 
-  // Card-style category selection
-  const renderCategoryCards = () => (
-    <div className="grid grid-cols-2 gap-3">
-      {categories.map((cat) => (
-        <button
-          key={cat}
-          type="button"
-          className={cn(
-            'flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all focus:outline-none',
-            selectedCategory === cat
-              ? 'border-blue-600 bg-blue-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-blue-300'
-          )}
-          onClick={() => handleCategoryChange(cat)}
-          aria-label={t(`job.category.${cat}`, cat)}
-        >
-          <span className="text-lg font-semibold text-gray-900 mb-1">{t(`job.category.${cat}`, cat)}</span>
-        </button>
-      ))}
-    </div>
-  );
-
-  // Card-style subcategory selection
-  const renderSubcategoryCards = () => (
-    <div className="grid grid-cols-2 gap-3">
-      {(subcategoriesMap[selectedCategory] || []).map((subcat) => (
-        <button
-          key={subcat}
-          type="button"
-          className={cn(
-            'flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all focus:outline-none',
-            selectedSubcategory === subcat
-              ? 'border-blue-600 bg-blue-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-blue-300'
-          )}
-          onClick={() => handleSubcategoryChange(subcat)}
-          aria-label={t(`job.subcategory.${subcat}`, subcat)}
-        >
-          <span className="text-base font-medium text-gray-900">{t(`job.subcategory.${subcat}`, subcat)}</span>
-        </button>
-      ))}
-    </div>
-  );
-
-  // Prominent urgent toggle
-  const renderUrgentToggle = () => (
-    <div className="flex items-center gap-4 mt-2">
-      <span className="text-sm font-semibold text-gray-700">{t('job.urgency', 'Urgency')}</span>
-      <button
-        type="button"
-        className={cn(
-          'px-4 py-2 rounded-full font-semibold transition-all',
-          isUrgent ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 border border-gray-300'
-        )}
-        onClick={() => {
-          setIsUrgent((prev) => !prev);
-          handleInputChange('urgency', !isUrgent ? 'urgent' : 'normal');
-        }}
-        aria-label={t('job.urgent', 'Urgent')}
-      >
-        {isUrgent ? t('job.urgent', 'Urgent') : t('job.normal', 'Normal')}
-      </button>
-    </div>
-  );
-
+  // --- UI/UX Redesign ---
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-sm w-full p-4 sm:p-8 rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-            <Briefcase className="w-6 h-6 text-blue-600" />
-            {t('job.quickPost', 'Quick Job Post')}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-lg w-full p-0 rounded-2xl overflow-hidden">
+        <form onSubmit={handleSubmit} className="space-y-0">
+          <Card className="p-6 border-0 rounded-none">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold mb-2 text-center">{t('job.quickPost', 'Quick Post a Job')}</DialogTitle>
+              <p className="text-gray-500 text-center mb-4">{t('job.quickPostHint', 'Fill the minimum details to post your job fast!')}</p>
+            </DialogHeader>
 
-        {showFindWorker ? (
-          <div className="flex flex-col items-center space-y-6 py-8">
-            <div className="text-2xl font-bold text-green-700">{t('job.postedSuccess', 'Job posted!')}</div>
-            <Button className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-lg" onClick={handleFindWorker} aria-label={t('job.findWorker', 'Find Worker')}>
-              {t('job.findWorker', 'Find Worker')}
-            </Button>
-          </div>
-        ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Business Type Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-semibold text-gray-700">{t('job.businessType', 'Business Type')}</Label>
-            <RadioGroup value={formData.businessType} onValueChange={(v) => handleInputChange('businessType', v)} className="grid grid-cols-1 gap-3">
-              {businessTypes.map((type) => (
-                <div key={type.id} className="flex items-center">
-                  <RadioGroupItem value={type.id} id={`bt-${type.id}`} className="sr-only" />
-                  <Label
-                    htmlFor={`bt-${type.id}`}
+            {/* Step 1: Category */}
+            <div className="mb-4">
+              <Label className="block mb-2 font-semibold">{t('job.category', 'Category')} <span className="text-red-500">*</span></Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
                     className={cn(
-                      'flex items-center space-x-3 w-full p-4 rounded-xl border-2 cursor-pointer transition-all',
-                      formData.businessType === type.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      'flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all focus:outline-none',
+                      selectedCategory === cat
+                        ? 'border-blue-600 bg-blue-50 shadow-md'
+                        : 'border-gray-200 bg-white hover:border-blue-300'
                     )}
+                    onClick={() => handleCategoryChange(cat)}
+                    aria-label={t(`job.category.${cat}`, cat)}
                   >
-                    <div className={cn(
-                      'flex items-center justify-center w-10 h-10 rounded-lg',
-                      formData.businessType === type.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-                    )}>
-                      {type.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{t(`job.businessType.${type.id}`, type.label)}</div>
-                      <div className="text-sm text-gray-500">{t(`job.businessTypeDesc.${type.id}`, type.description)}</div>
-                    </div>
-                  </Label>
+                    <span className="text-base font-semibold text-gray-900 mb-1">{t(`job.category.${cat}`, cat)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 2: Subcategory */}
+            {selectedCategory && (
+              <div className="mb-4">
+                <Label className="block mb-2 font-semibold">{t('job.subcategory', 'Specialization')} <span className="text-red-500">*</span></Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {(subcategoriesMap[selectedCategory] || []).map((subcat) => (
+                    <button
+                      key={subcat}
+                      type="button"
+                      className={cn(
+                        'flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all focus:outline-none',
+                        selectedSubcategory === subcat
+                          ? 'border-blue-600 bg-blue-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-blue-300'
+                      )}
+                      onClick={() => handleSubcategoryChange(subcat)}
+                      aria-label={t(`job.subcategory.${subcat}`, subcat)}
+                    >
+                      <span className="text-sm font-medium text-gray-900">{t(`job.subcategory.${subcat}`, subcat)}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Job Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-sm font-semibold text-gray-700">{t('job.title', 'Job Title')} *</Label>
-            <Input
-              id="title"
-              placeholder={t('job.titlePlaceholder', 'e.g., Construction Worker Needed')}
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="h-12 text-base"
-              required
-            />
-          </div>
-
-          {/* Category Cards */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-gray-700">{t('job.category', 'Category')} *</Label>
-            {renderCategoryCards()}
-          </div>
-
-          {/* Subcategory Cards */}
-          {selectedCategory && (
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700">{t('job.subcategory', 'Subcategory')} *</Label>
-              {renderSubcategoryCards()}
-            </div>
-          )}
-
-          {/* Location */}
-            <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm font-semibold text-gray-700">{t('job.location', 'Location')}</Label>
-              <Input
-                id="location"
-              placeholder={t('job.locationPlaceholder', 'e.g., Mumbai, Maharashtra')}
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                className="h-12 text-base"
-              />
-          </div>
-
-          {/* Wages (optional) */}
-          <div className="space-y-3">
-            <Label htmlFor="salary" className="text-sm font-semibold text-gray-700">{t('job.salary', 'Salary (Optional)')}</Label>
-            <div className="flex items-center gap-2">
-              <Input id="salary" placeholder={t('job.salaryPlaceholder', 'e.g., 500 or 500-700')} value={formData.salary} onChange={(e) => handleInputChange('salary', e.target.value)} />
-              <select 
-                aria-label={t('job.salaryPeriod', 'Salary Period')}
-                value={formData.salaryType} 
-                onChange={(e) => handleInputChange('salaryType', e.target.value)} 
-                className="border-gray-300 rounded-md p-2 bg-white"
-              >
-                <option value="daily">{t('job.daily', 'daily')}</option>
-                <option value="weekly">{t('job.weekly', 'weekly')}</option>
-                <option value="monthly">{t('job.monthly', 'monthly')}</option>
-                <option value="hourly">{t('job.hourly', 'hourly')}</option>
-              </select>
-            </div>
-            {!formData.salary && (
-              <div className="text-xs text-blue-600 mt-1 flex items-center gap-2">
-                {t('job.noWageSet', 'You can discuss wages in chat or call.')}
-                <Button type="button" size="sm" variant="outline" className="ml-2 px-2 py-1 h-8 text-xs" onClick={handleSkipWage} aria-label={t('job.skipWage', 'Skip Wage')}>
-                  {t('job.skipWage', 'Skip Wage')}
-                </Button>
               </div>
             )}
-          </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-semibold text-gray-700">{t('job.description', 'Job Description')}</Label>
-            <Textarea
-              id="description"
-              placeholder={t('job.descriptionPlaceholder', 'Describe the job requirements, timing, and any specific skills needed...')}
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              rows={4}
-              className="text-base"
-            />
-          </div>
+            {/* Step 3: Wage (optional) */}
+            <div className="mb-4">
+              <Label className="block mb-1 font-semibold">{t('job.salary', 'Wage (optional)')}</Label>
+              <Input
+                type="text"
+                placeholder={t('job.salaryPlaceholder', 'e.g. 500 or 500-700')}
+                value={formData.salary}
+                onChange={e => handleInputChange('salary', e.target.value)}
+                className="mb-1"
+              />
+              <div className="flex gap-2 mt-1">
+                <Select value={formData.salaryType} onValueChange={val => handleInputChange('salaryType', val)}>
+                  <SelectTrigger className="w-32 h-9 text-sm">
+                    <SelectValue placeholder={t('job.salaryPeriod', 'per Day')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">{t('job.perDay', 'per Day')}</SelectItem>
+                    <SelectItem value="weekly">{t('job.perWeek', 'per Week')}</SelectItem>
+                    <SelectItem value="monthly">{t('job.perMonth', 'per Month')}</SelectItem>
+                    <SelectItem value="hourly">{t('job.perHour', 'per Hour')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="ghost" size="sm" onClick={handleSkipWage}>{t('job.skip', 'Skip')}</Button>
+              </div>
+            </div>
 
-          {/* Urgency Toggle */}
-          {renderUrgentToggle()}
+            {/* Step 4: Urgency (optional) */}
+            <div className="mb-4">
+              <Label className="block mb-1 font-semibold">{t('job.urgency', 'Urgency (optional)')}</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={isUrgent ? 'default' : 'outline'}
+                  className={isUrgent ? 'bg-red-600 text-white' : ''}
+                  onClick={() => {
+                    setIsUrgent((prev) => !prev);
+                    handleInputChange('urgency', !isUrgent ? 'urgent' : 'normal');
+                  }}
+                >
+                  {isUrgent ? t('job.urgent', 'Urgent') : t('job.normal', 'Normal')}
+                </Button>
+              </div>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 h-12 text-base"
-            >
-              {t('common.cancel', 'Cancel')}
-            </Button>
-            <Button
-              type="submit"
-              className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
-              aria-label={t('job.post', 'Post Job')}
-              disabled={!formData.title || !selectedCategory || !selectedSubcategory}
-            >
-              {t('job.post', 'Post Job')}
-            </Button>
-          </div>
+            {/* Step 5: Type (optional) */}
+            <div className="mb-4">
+              <Label className="block mb-1 font-semibold">{t('job.type', 'Type (optional)')}</Label>
+              <RadioGroup
+                value={formData.businessType}
+                onValueChange={val => handleInputChange('businessType', val)}
+                className="flex gap-2"
+              >
+                {businessTypes.map(type => (
+                  <RadioGroupItem key={type.id} value={type.id} className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-200 bg-white hover:border-blue-300 cursor-pointer">
+                    {type.icon}
+                    <span className="ml-1 text-sm font-medium">{type.label}</span>
+                  </RadioGroupItem>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Step 6: Title/Description (optional, auto-generated) */}
+            <div className="mb-4">
+              <Label className="block mb-1 font-semibold">{t('job.title', 'Title (optional)')}</Label>
+              <Input
+                type="text"
+                placeholder={t('job.titlePlaceholder', 'e.g. Urgent Mason Needed')}
+                value={formData.title}
+                onChange={e => handleInputChange('title', e.target.value)}
+              />
+              <Label className="block mt-2 mb-1 font-semibold">{t('job.description', 'Description (optional)')}</Label>
+              <Textarea
+                placeholder={t('job.descriptionPlaceholder', 'Describe job responsibilities...')}
+                value={formData.description}
+                onChange={e => handleInputChange('description', e.target.value)}
+              />
+            </div>
+
+            {/* Step 7: Location (optional) */}
+            <div className="mb-4">
+              <Label className="block mb-1 font-semibold">{t('job.location', 'Location (optional)')}</Label>
+              <Input
+                type="text"
+                placeholder={t('job.locationPlaceholder', 'e.g. Mumbai, India')}
+                value={formData.location}
+                onChange={e => handleInputChange('location', e.target.value)}
+              />
+            </div>
+
+            {/* Summary/Confirmation */}
+            <div className="mb-4">
+              <Card className="p-3 bg-blue-50 border-blue-200">
+                <div className="text-sm text-blue-900 font-semibold mb-1">{t('job.summary', 'Summary')}</div>
+                <div className="text-xs text-blue-800">
+                  {selectedCategory && <div><b>{t('job.category', 'Category')}:</b> {selectedCategory}</div>}
+                  {selectedSubcategory && <div><b>{t('job.subcategory', 'Specialization')}:</b> {selectedSubcategory}</div>}
+                  {formData.salary && <div><b>{t('job.salary', 'Wage')}:</b> {formData.salary} ({t('job.salaryPeriod', formData.salaryType)})</div>}
+                  <div><b>{t('job.urgency', 'Urgency')}:</b> {isUrgent ? t('job.urgent', 'Urgent') : t('job.normal', 'Normal')}</div>
+                  <div><b>{t('job.type', 'Type')}:</b> {businessTypes.find(t => t.id === formData.businessType)?.label}</div>
+                  {formData.location && <div><b>{t('job.location', 'Location')}:</b> {formData.location}</div>}
+                </div>
+              </Card>
+            </div>
+
+            {/* Post Job Button */}
+            <div className="flex flex-col gap-2 mt-4">
+              <Button
+                type="submit"
+                className="w-full h-12 text-lg font-bold"
+                disabled={isSubmitting || !selectedCategory || !selectedSubcategory}
+              >
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : t('job.postJob', 'Post Job')}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={handleClose}>{t('common.cancel', 'Cancel')}</Button>
+            </div>
+          </Card>
         </form>
+        {/* Success: Show Find Worker button */}
+        {showFindWorker && (
+          <div className="p-6 text-center">
+            <div className="text-green-600 font-bold mb-2">{t('job.postSuccess', 'Job posted successfully!')}</div>
+            <Button className="w-full" onClick={handleFindWorker}>{t('job.findWorkers', 'Find Workers')}</Button>
+          </div>
         )}
       </DialogContent>
     </Dialog>

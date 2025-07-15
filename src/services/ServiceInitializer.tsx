@@ -17,7 +17,7 @@ export const ServiceInitializer: React.FC<React.PropsWithChildren> = ({ children
       // Cleanup notification service
       notificationService.cleanup();
     };
-  }, [user]);
+  }, []); // Only run once on mount
 
   return <>{children}</>;
 };

@@ -5,7 +5,7 @@
 - heading "Welcome to Fyke" [level=1]
 - paragraph: Enter your phone number to get started
 - text: "+91"
-- textbox "9876543210": "123456"
+- textbox "9876543210": "111111"
 - button "Send OTP" [disabled]
 - paragraph: By continuing, you agree to our Terms of Service and Privacy Policy
 - region "Notifications (F8)":

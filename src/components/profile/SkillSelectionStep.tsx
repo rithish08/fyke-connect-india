@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { Plus, X, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 
 interface StepProps {
   skills: string[];
@@ -27,6 +28,7 @@ const SkillSelectionStep = ({ skills, setSkills, category, onNext, onBack }: Ste
   const [customSkill, setCustomSkill] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useTranslation();
   
   const suggestedSkills = categorySkills[category] || [];
   const filteredSkills = suggestedSkills.filter(skill => 
@@ -142,9 +144,11 @@ const SkillSelectionStep = ({ skills, setSkills, category, onNext, onBack }: Ste
           <button
             onClick={() => setShowCustomInput(true)}
             className="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
+            aria-label={t('profile.addCustomSkill', 'Add custom skill')}
+            title={t('profile.addCustomSkill', 'Add custom skill')}
           >
             <Plus className="w-4 h-4" />
-            Add custom skill
+            <span className="sr-only">{t('profile.addCustomSkill', 'Add custom skill')}</span>
           </button>
         ) : (
           <div className="space-y-3">
