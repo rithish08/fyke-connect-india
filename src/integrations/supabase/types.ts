@@ -299,47 +299,86 @@ export type Database = {
         Row: {
           availability: string | null
           bio: string | null
+          categories: string[] | null
+          category_wages: Json | null
           created_at: string | null
           email: string | null
+          firebase_uid: string | null
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           name: string | null
           phone: string | null
+          primary_category: string | null
           profile_complete: boolean | null
           profile_photo: string | null
           role: string | null
+          salary_by_subcategory: Json | null
+          salary_expectation: Json | null
+          salary_period: string | null
+          skills: string[] | null
+          subcategories: string[] | null
           updated_at: string | null
+          vehicle: string | null
           verified: boolean | null
+          wages: Json | null
         }
         Insert: {
           availability?: string | null
           bio?: string | null
+          categories?: string[] | null
+          category_wages?: Json | null
           created_at?: string | null
           email?: string | null
+          firebase_uid?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name?: string | null
           phone?: string | null
+          primary_category?: string | null
           profile_complete?: boolean | null
           profile_photo?: string | null
           role?: string | null
+          salary_by_subcategory?: Json | null
+          salary_expectation?: Json | null
+          salary_period?: string | null
+          skills?: string[] | null
+          subcategories?: string[] | null
           updated_at?: string | null
+          vehicle?: string | null
           verified?: boolean | null
+          wages?: Json | null
         }
         Update: {
           availability?: string | null
           bio?: string | null
+          categories?: string[] | null
+          category_wages?: Json | null
           created_at?: string | null
           email?: string | null
+          firebase_uid?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name?: string | null
           phone?: string | null
+          primary_category?: string | null
           profile_complete?: boolean | null
           profile_photo?: string | null
           role?: string | null
+          salary_by_subcategory?: Json | null
+          salary_expectation?: Json | null
+          salary_period?: string | null
+          skills?: string[] | null
+          subcategories?: string[] | null
           updated_at?: string | null
+          vehicle?: string | null
           verified?: boolean | null
+          wages?: Json | null
         }
         Relationships: []
       }

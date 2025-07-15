@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { 
   signInWithPhoneNumber, 
   RecaptchaVerifier, 
@@ -8,14 +8,7 @@ import {
   onAuthStateChanged,
   signOut
 } from 'firebase/auth';
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  collection,
-  addDoc 
-} from 'firebase/firestore';
+import { supabase } from '@/integrations/supabase/client';
 import { geolocationService } from '@/services/geolocationService';
 
 // Extend Window interface for recaptcha
@@ -134,28 +127,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleFirebaseUser = async (firebaseUser: User) => {
     try {
-      // Get user profile from Firestore
-      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-      
+      // Check if user profile exists in Supabase
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('firebase_uid', firebaseUser.uid)
+        .single();
+
       let userData;
-      if (!userDoc.exists()) {
-        // Create new user profile
-        userData = {
-          id: firebaseUser.uid,
+      if (!existingProfile && fetchError?.code === 'PGRST116') {
+        // Create new user profile in Supabase
+        const newProfile = {
+          firebase_uid: firebaseUser.uid,
           phone: firebaseUser.phoneNumber || '',
           email: firebaseUser.email || '',
           name: '',
           bio: '',
-          role: undefined,
+          role: 'jobseeker',
           verified: false,
-          profileComplete: false,
+          profile_complete: false,
           availability: 'available',
-          createdAt: new Date().toISOString(),
+          skills: [],
+          categories: [],
+          subcategories: [],
+          wages: {},
+          category_wages: {},
         };
         
-        await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+        const { data: createdProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert(newProfile)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return;
+        }
+        
+        userData = createdProfile;
+      } else if (existingProfile) {
+        userData = existingProfile;
       } else {
-        userData = { id: firebaseUser.uid, ...userDoc.data() };
+        console.error('Error fetching profile:', fetchError);
+        return;
       }
 
       const authUser: AuthUser = {
@@ -164,22 +179,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: userData.name || '',
         email: userData.email || '',
         bio: userData.bio || '',
-        role: userData.role || undefined,
+        role: userData.role || 'jobseeker',
         verified: userData.verified || false,
-        profileComplete: userData.profileComplete || false,
-        profilePhoto: userData.profilePhoto,
+        profileComplete: userData.profile_complete || false,
+        profilePhoto: userData.profile_photo,
         location: userData.location,
         availability: userData.availability || 'available',
         skills: userData.skills || [],
         categories: userData.categories || [],
         subcategories: userData.subcategories || [],
         wages: userData.wages || {},
-        salaryExpectation: userData.salaryExpectation,
-        category: userData.category,
+        salaryExpectation: userData.salary_expectation,
+        category: userData.primary_category,
         vehicle: userData.vehicle,
-        salaryPeriod: userData.salaryPeriod,
-        primaryCategory: userData.primaryCategory,
-        salaryBySubcategory: userData.salaryBySubcategory,
+        salaryPeriod: userData.salary_period,
+        primaryCategory: userData.primary_category,
+        salaryBySubcategory: userData.salary_by_subcategory || {},
         category_wages: userData.category_wages || {},
         latitude: userData.latitude,
         longitude: userData.longitude,
@@ -188,7 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(authUser);
       setIsAuthenticated(true);
       localStorage.setItem('fyke_user', JSON.stringify(authUser));
-      console.log('Set user from Firebase:', authUser);
+      console.log('Set user from Firebase/Supabase:', authUser);
     } catch (error) {
       console.error('Error in handleFirebaseUser:', error);
     }
@@ -267,9 +282,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log(`Setting role to ${role} for user ${user.id}`);
       
-      await updateDoc(doc(db, 'users', firebaseUser.uid), {
-        role: role
-      });
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('firebase_uid', firebaseUser.uid);
+
+      if (error) {
+        console.error('Error updating role in Supabase:', error);
+        return;
+      }
 
       setUser(currentUser => {
         if (!currentUser) return null;
@@ -296,7 +317,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      await updateDoc(doc(db, 'users', firebaseUser.uid), updates);
+      // Convert AuthUser fields to Supabase fields
+      const supabaseUpdates: any = {};
+      Object.entries(updates).forEach(([key, value]) => {
+        switch (key) {
+          case 'profileComplete':
+            supabaseUpdates.profile_complete = value;
+            break;
+          case 'profilePhoto':
+            supabaseUpdates.profile_photo = value;
+            break;
+          case 'primaryCategory':
+            supabaseUpdates.primary_category = value;
+            break;
+          case 'salaryExpectation':
+            supabaseUpdates.salary_expectation = value;
+            break;
+          case 'salaryPeriod':
+            supabaseUpdates.salary_period = value;
+            break;
+          case 'salaryBySubcategory':
+            supabaseUpdates.salary_by_subcategory = value;
+            break;
+          case 'category_wages':
+            supabaseUpdates.category_wages = value;
+            break;
+          default:
+            supabaseUpdates[key] = value;
+        }
+      });
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(supabaseUpdates)
+        .eq('firebase_uid', firebaseUser.uid);
+
+      if (error) {
+        console.error('Error updating profile in Supabase:', error);
+        return;
+      }
 
       const updatedUser: AuthUser = { ...user, ...updates };
       setUser(updatedUser);
