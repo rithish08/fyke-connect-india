@@ -44,27 +44,34 @@ const QuickPostModal: React.FC<QuickPostModalProps> = ({ isOpen, onClose }) => {
   const businessTypes = [
     {
       id: 'individual',
-      label: 'Individual',
+      label: t('job.businessType.individual', 'Individual'),
       icon: <User className="w-5 h-5" />,
-      description: 'Personal job posting'
+      description: t('job.businessType.individualDesc', 'Personal job posting')
     },
     {
       id: 'commercial',
-      label: 'Commercial',
+      label: t('job.businessType.commercial', 'Commercial'),
       icon: <Building2 className="w-5 h-5" />,
-      description: 'Small business/shop'
+      description: t('job.businessType.commercialDesc', 'Small business/shop')
     },
     {
       id: 'business',
-      label: 'Business',
+      label: t('job.businessType.business', 'Business'),
       icon: <Factory className="w-5 h-5" />,
-      description: 'Company/organization'
+      description: t('job.businessType.businessDesc', 'Company/organization')
     }
   ];
 
   const categories = [
-    'Construction', 'Delivery', 'Cleaning', 'Security',
-    'Driver', 'Cooking', 'Gardening', 'Beauty', 'Repair'
+    t('job.category.Construction', 'Construction'),
+    t('job.category.Delivery', 'Delivery'),
+    t('job.category.Cleaning', 'Cleaning'),
+    t('job.category.Security', 'Security'),
+    t('job.category.Driver', 'Driver'),
+    t('job.category.Cooking', 'Cooking'),
+    t('job.category.Gardening', 'Gardening'),
+    t('job.category.Beauty', 'Beauty'),
+    t('job.category.Repair', 'Repair')
   ];
 
   // Example subcategories per category
