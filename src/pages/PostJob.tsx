@@ -73,7 +73,7 @@ const QuickPostStepper: React.FC<{
   loading: boolean,
 }> = ({ formData, setFormData, categories, categoriesLoading, categoriesError, onBack, onSubmit, loading }) => {
   const { t } = useLocalization();
-  const [step, setStep] = useState<QuickStep>('category');
+  const [step, setStep] = useState<'category' | 'subcategory' | 'details' | 'location' | 'review' | 'success'>('category');
   const [submitting, setSubmitting] = useState(false);
   const { showError, showSuccess } = useGlobalToast();
   const { user } = useAuth();
@@ -268,7 +268,7 @@ const QuickPostStepper: React.FC<{
           <div><span className="font-semibold">{t('job.location', 'Location')}:</span> <span className="truncate max-w-[180px] inline-block align-middle">{formData.location}</span></div>
         </div>
         <StickyFooterButton
-          loading={loading || submitting}
+          isLoading={loading || submitting}
           onClick={async () => {
             setSubmitting(true);
             await onSubmit(formData);
@@ -311,7 +311,7 @@ const DetailedPostStepper: React.FC<{
   loading: boolean,
 }> = ({ formData, setFormData, categories, categoriesLoading, categoriesError, onBack, onSubmit, loading }) => {
   const { t } = useLocalization();
-  const [step, setStep] = useState<DetailedStep>('category');
+  const [step, setStep] = useState<'category' | 'subcategory' | 'details' | 'requirements' | 'location' | 'review' | 'success'>('category');
   const [submitting, setSubmitting] = useState(false);
   const { showError, showSuccess } = useGlobalToast();
   const { user } = useAuth();
@@ -551,7 +551,7 @@ const DetailedPostStepper: React.FC<{
           <div><span className="font-semibold">{t('job.location', 'Location')}:</span> <span className="truncate max-w-[180px] inline-block align-middle">{formData.location}</span></div>
         </div>
         <StickyFooterButton
-          loading={loading || submitting}
+          isLoading={loading || submitting}
           onClick={async () => {
             setSubmitting(true);
             await onSubmit(formData);

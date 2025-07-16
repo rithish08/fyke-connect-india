@@ -39,14 +39,26 @@ export const useCategories = () => {
         })));
       } else {
         // Fallback to static categories if Supabase is empty
-        setCategories(staticCategories);
+        setCategories(staticCategories.map(cat => ({
+          ...cat,
+          name_hindi: cat.name,
+          description: cat.name,
+          active: true,
+          created_at: new Date().toISOString()
+        })));
       }
     } catch (err) {
       const error = err as Error;
       console.error("Error fetching categories:", error);
       setError("Failed to load categories.");
       // Fallback to static categories on error
-      setCategories(staticCategories);
+      setCategories(staticCategories.map(cat => ({
+        ...cat,
+        name_hindi: cat.name,
+        description: cat.name,
+        active: true,
+        created_at: new Date().toISOString()
+      })));
     } finally {
       setLoading(false);
     }

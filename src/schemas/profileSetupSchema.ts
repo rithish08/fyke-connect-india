@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export const profileSetupSchema = z.object({
   name: z.string().min(1, 'Please enter your name'),
+  categories: z.array(z.string()).min(1, 'Please select at least one category').optional(),
   category: z.string().optional(),
   subcategories: z.array(z.string()).min(1, 'Please select at least one specialization').max(3, 'You can select up to 3 specializations'),
   vehicle: z.string().optional(),
