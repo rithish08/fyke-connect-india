@@ -73,8 +73,12 @@ const EnhancedMessaging = () => {
     }
     
     // Send the message using the hook's sendMessage function
-    await sendMessage(newMessage);
-    setNewMessage('');
+    try {
+      await sendMessage(newMessage);
+      setNewMessage('');
+    } catch (err: any) {
+      toast({ title: 'Failed to send message', variant: 'destructive' });
+    }
   };
   
   // Using conversation_id for selection

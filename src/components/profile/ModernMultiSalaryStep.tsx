@@ -13,9 +13,10 @@ interface ModernMultiSalaryStepProps {
   form: UseFormReturn<ProfileSetupFormData>;
   onNext: () => void;
   onBack: () => void;
+  allowSkip?: boolean;
 }
 
-const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onNext, onBack }) => {
+const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onNext, onBack, allowSkip }) => {
   const subcategories = form.watch('subcategories') || [];
   const vehicleOwnerSubs = [
     'Cargo Auto', 'Mini Truck (e.g., Tata Ace)', 'Lorry / Truck (6–12 wheeler)',
@@ -61,7 +62,7 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
             Set Your Rates
           </h2>
           <p className="text-gray-600">
-            Set competitive rates for your selected specializations
+            Set competitive rates for your selected specializations (optional)
           </p>
         </div>
       </FloatingCard>
@@ -124,6 +125,17 @@ const ModernMultiSalaryStep: React.FC<ModernMultiSalaryStepProps> = ({ form, onN
       <StickyFooterButton onClick={handleComplete}>
         Complete Profile
       </StickyFooterButton>
+      {allowSkip && (
+        <div className="w-full max-w-lg mx-auto px-4 mt-2">
+          <button
+            type="button"
+            onClick={onNext}
+            className="w-full h-12 rounded-2xl border border-blue-300 text-blue-700 bg-white/60 hover:bg-blue-50 font-semibold shadow-sm transition-all duration-200 text-base mt-2"
+          >
+            Skip for now
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+// All category IDs for subcategory seeding must match the 'id' field in the categories table
 import { geolocationService } from '@/services/geolocationService';
 
 // Location utility functions for converting coordinates to area names
@@ -12,13 +13,35 @@ export interface LocationData {
 }
 
 /**
+ * Calculate the distance (in meters and kilometers) between two lat/lng points using the Haversine formula.
+ * @param lat1 Latitude of point 1
+ * @param lng1 Longitude of point 1
+ * @param lat2 Latitude of point 2
+ * @param lng2 Longitude of point 2
+ * @returns { meters: number, kilometers: number }
+ */
+export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const R = 6371000; // Radius of Earth in meters
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const meters = R * c;
+  return { meters, kilometers: meters / 1000 };
+}
+
+/**
  * Convert coordinates to area name using reverse geocoding
  */
 export const getAreaFromCoordinates = async (lat: number, lng: number): Promise<string> => {
   try {
     // Using Nominatim (OpenStreetMap) for reverse geocoding - free and no API key required
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
     );
     
     if (!response.ok) {
@@ -29,29 +52,39 @@ export const getAreaFromCoordinates = async (lat: number, lng: number): Promise<
     
     if (data && data.address) {
       const address = data.address;
-      
       // Try to get the most specific area name
-      const area = address.suburb || address.neighbourhood || address.quarter || address.district;
+      const area = address.suburb || address.neighbourhood || address.quarter || address.road || address.locality;
       const city = address.city || address.town || address.village;
+      const district = address.district;
       const state = address.state;
-      
+      const country = address.country;
+      const postcode = address.postcode;
+      const fullAddress = data.display_name;
       // Return the most specific location name available
       if (area && city) {
         return `${area}, ${city}`;
       } else if (area) {
         return area;
-      } else if (city && state) {
-        return `${city}, ${state}`;
+      } else if (city && district) {
+        return `${city}, ${district}`;
       } else if (city) {
         return city;
+      } else if (district) {
+        // If only district, fallback to full address if available
+        return fullAddress || district;
+      } else if (state && country) {
+        return `${state}, ${country}`;
       } else if (state) {
         return state;
+      } else if (country) {
+        return country;
+      } else if (fullAddress) {
+        return fullAddress;
       }
     }
-    
-    // Fallback: return coordinates as string
+    // Fallback: log the full response for debugging
+    console.warn('Reverse geocoding fallback. Full response:', data);
     return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    
   } catch (error) {
     console.error('Error getting area from coordinates:', error);
     // Fallback: return coordinates as string

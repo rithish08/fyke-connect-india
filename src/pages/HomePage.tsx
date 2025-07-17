@@ -16,24 +16,30 @@ const HomePage = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
 
+  // Debug logging
+  console.log('[HomePage] Render', {
+    user,
+    isFlowComplete,
+    currentTime,
+  });
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  if (!user || !isFlowComplete) {
+  if (!user) {
+    console.warn('[HomePage] Not rendering: user is falsy', { user });
     return null; // RouteGuard will handle redirects
   }
 
   return (
     <div className="min-h-screen bg-white">
       <StickyHeader />
-      
       {/* Dynamic Role Switcher */}
       <div className="px-4 py-2 bg-gray-50 border-b">
         <DynamicRoleSwitcher />
       </div>
-      
       <div className="flex justify-center">
         <div className="w-full max-w-2xl">
           <div className="pt-4 pb-20 px-4">

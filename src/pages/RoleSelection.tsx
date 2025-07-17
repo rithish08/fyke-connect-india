@@ -13,15 +13,28 @@ const RoleSelection = () => {
   const { setRole, updateProfile, user } = useAuth();
   const { t } = useLocalization();
   const { goTo } = useScreenNavigation();
+  const navigate = useNavigate();
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedRole) {
-      setRole(selectedRole);
-      updateProfile({
+      await setRole(selectedRole);
+      // If switching to jobseeker and user has a name, auto-fill it
+      let nameToSet = '';
+      if (selectedRole === 'jobseeker' && user?.role === 'employer' && user?.name) {
+        nameToSet = user.name;
+      }
+      await updateProfile({
         role: selectedRole,
+        name: nameToSet,
+        categories: [],
+        wages: undefined,
         profileComplete: false
       });
-        goTo('/profile-setup');
+      // Clear localStorage/sessionStorage for user data
+      window.localStorage.removeItem('fyke_user');
+      window.sessionStorage.clear();
+      // Use navigate for smooth navigation
+      navigate('/profile-setup', { replace: true });
     }
   };
 

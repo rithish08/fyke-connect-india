@@ -10,6 +10,7 @@ export interface Category {
   icon: string | null;
   active: boolean | null;
   created_at: string | null;
+  subcategories?: string[]; // <-- add this
 }
 
 export const useCategories = () => {
@@ -22,7 +23,8 @@ export const useCategories = () => {
     setError(null);
 
     try {
-      const { data, error: fetchError } = await supabase
+      // Fetch categories
+      const { data: catData, error: fetchError } = await supabase
         .from("categories")
         .select("*")
         .eq("active", true)
@@ -32,11 +34,27 @@ export const useCategories = () => {
         throw fetchError;
       }
 
-      if (data && data.length > 0) {
-        setCategories((data || []).map(cat => ({
-          ...cat,
-          name_hindi: (cat as any).name_hindi || cat.name
-        })));
+      // Fetch subcategories
+      const { data: subData, error: subError } = await supabase
+        .from("subcategories")
+        .select("id, name, category_id, active")
+        .eq("active", true);
+
+      if (subError) {
+        throw subError;
+      }
+
+      // Attach subcategories to categories
+      const categoriesWithSubs = (catData || []).map(cat => ({
+        ...cat,
+        name_hindi: (cat as any).name_hindi || cat.name,
+        subcategories: (subData || [])
+          .filter(sub => sub.category_id === cat.id)
+          .map(sub => sub.name)
+      }));
+
+      if (categoriesWithSubs.length > 0) {
+        setCategories(categoriesWithSubs);
       } else {
         // Fallback to static categories if Supabase is empty
         setCategories(staticCategories.map(cat => ({
@@ -44,7 +62,8 @@ export const useCategories = () => {
           name_hindi: cat.name,
           description: cat.name,
           active: true,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          subcategories: cat.subcategories || []
         })));
       }
     } catch (err) {
@@ -57,7 +76,8 @@ export const useCategories = () => {
         name_hindi: cat.name,
         description: cat.name,
         active: true,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        subcategories: cat.subcategories || []
       })));
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { categories as allCategories } from '@/data/categories';
+import { useCategories } from '@/hooks/useCategories';
 import { FloatingCard } from '@/components/ui/floating-card';
 import { Badge } from '@/components/ui/badge';
 import { Search, ArrowRight, Users, Briefcase, ChevronLeft } from 'lucide-react';
@@ -25,6 +25,7 @@ const JobSearchCategoryView = ({
 }: JobSearchCategoryViewProps) => {
   const { user } = useAuth();
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
+  const { categories: allCategories, loading: categoriesLoading, error: categoriesError } = useCategories();
 
   const isEmployer = user?.role === 'employer';
 
@@ -74,7 +75,13 @@ const JobSearchCategoryView = ({
 
   const renderCategoryList = () => (
     <div className="grid grid-cols-2 gap-3 p-4">
-      {allCategories.map((category) => (
+      {categoriesLoading ? (
+        <div className="col-span-2 text-center text-gray-400">Loading categories...</div>
+      ) : categoriesError ? (
+        <div className="col-span-2 text-center text-red-500">{categoriesError}</div>
+      ) : allCategories.length === 0 ? (
+        <div className="col-span-2 text-center text-gray-400">No categories found.</div>
+      ) : allCategories.map((category) => (
         <FloatingCard
           key={category.id}
           variant="elevated"
@@ -86,7 +93,7 @@ const JobSearchCategoryView = ({
             <div className="text-3xl">{category.icon}</div>
             <div>
               <h3 className="font-semibold text-sm text-gray-900">{category.name}</h3>
-              <p className="text-xs text-gray-600">{category.subcategories.length} specializations</p>
+              <p className="text-xs text-gray-600">{category.subcategories ? category.subcategories.length : 0} specializations</p>
             </div>
           </div>
         </FloatingCard>

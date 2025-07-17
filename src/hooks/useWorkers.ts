@@ -5,7 +5,7 @@ import { Tables } from '@/integrations/supabase/types';
 
 export type Profile = Tables<'profiles'>;
 
-export const useWorkers = () => {
+export const useWorkers = (categoryId?: string, subcategoryName?: string) => {
   const { user } = useAuth();
   const [workers, setWorkers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,12 +18,21 @@ export const useWorkers = () => {
     setError(null);
 
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('profiles')
         .select('*')
         .eq('role', 'jobseeker')
-        .neq('id', user.id) // Exclude the employer themselves
-        .limit(20); // Limit for performance
+        .neq('id', user.id); // Exclude the employer themselves
+
+      if (categoryId) {
+        query = query.contains('categories', [categoryId]);
+      }
+      if (subcategoryName) {
+        query = query.contains('skills', [subcategoryName]);
+      }
+      query = query.limit(20); // Limit for performance
+
+      const { data, error: fetchError } = await query;
 
       if (fetchError) {
         throw fetchError;
@@ -36,7 +45,7 @@ export const useWorkers = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, categoryId, subcategoryName]);
 
   useEffect(() => {
     fetchWorkers();

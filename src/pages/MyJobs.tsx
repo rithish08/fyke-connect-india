@@ -15,7 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useGlobalToast } from '@/hooks/useGlobalToast';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useTranslation } from 'react-i18next';
+import { useLocalization } from '@/contexts/LocalizationContext';
+import { useToast } from '@/hooks/use-toast';
 
 const MyJobs = () => {
   const { user } = useAuth();
@@ -27,7 +28,8 @@ const MyJobs = () => {
   const { applications, loading: applicationsLoading, error: applicationsError, withdrawApplication, refreshApplications } = useMyApplications();
   const { postedJobs, loading: jobsLoading, error: jobsError, refreshJobs } = useEmployerJobs();
   const { showSuccess, showError } = useGlobalToast();
-  const { t } = useTranslation();
+  const { toast } = useToast();
+  const { t } = useLocalization();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
@@ -111,7 +113,7 @@ const MyJobs = () => {
           <Button variant="outline" size="sm" onClick={() => navigate(`/edit-job/${job.id}`)}>
             <Edit className="w-3 h-3 mr-1" /> Edit
           </Button>
-          <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-100 hover:text-red-600" onClick={() => handleDeleteClick(job.id)}>
+          <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-100 hover:text-red-600" onClick={() => handleDeleteJob(job.id)}>
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
@@ -156,6 +158,28 @@ const MyJobs = () => {
       setWithdrawLoading(false);
       setWithdrawDialogOpen(false);
       setApplicationToWithdraw(null);
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    try {
+      const { error } = await supabase.from('jobs').delete().eq('id', jobId);
+      if (error) throw error;
+      toast({ title: 'Job deleted!' });
+      // Refresh jobs
+      refreshJobs();
+    } catch (err: any) {
+      toast({ title: 'Failed to delete job', variant: 'destructive' });
+    }
+  };
+  const handleMarkCompleted = async (jobId: string) => {
+    try {
+      const { error } = await supabase.from('jobs').update({ status: 'completed' }).eq('id', jobId);
+      if (error) throw error;
+      toast({ title: 'Job marked as completed!' });
+      refreshJobs();
+    } catch (err: any) {
+      toast({ title: 'Failed to mark as completed', variant: 'destructive' });
     }
   };
 

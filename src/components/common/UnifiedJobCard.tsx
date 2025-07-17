@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { Job } from '@/types/job';
 import { formatDistanceToNow } from 'date-fns';
-import { getAreaFromCoordinates, parsePointString } from '@/utils/locationUtils';
+import { getAreaFromCoordinates, parsePointString, calculateDistance } from '@/utils/locationUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
@@ -57,6 +57,7 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
   const { t } = useLocalization();
   const { user } = useAuth();
   const [locationDisplay, setLocationDisplay] = useState(job.location);
+  const [distanceDisplay, setDistanceDisplay] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
@@ -68,16 +69,32 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
         try {
           const areaName = await getAreaFromCoordinates(coords.lat, coords.lng);
           setLocationDisplay(areaName);
+          // Calculate distance if user has coordinates
+          if (user?.location_lat && user?.location_lng) {
+            const { meters, kilometers } = calculateDistance(
+              user.location_lat,
+              user.location_lng,
+              coords.lat,
+              coords.lng
+            );
+            const distanceText = kilometers < 1
+              ? `${Math.round(meters)} meters away`
+              : `${kilometers.toFixed(1)} km away`;
+            setDistanceDisplay(distanceText);
+          } else {
+            setDistanceDisplay(null);
+          }
         } catch (error) {
           console.error("Failed to convert coordinates to area name", error);
           setLocationDisplay(`${coords.lat.toFixed(3)}, ${coords.lng.toFixed(3)}`);
+          setDistanceDisplay(null);
         }
       }
     };
     if (job.location) {
         processLocation();
     }
-  }, [job.location]);
+  }, [job.location, user?.location_lat, user?.location_lng]);
 
   const handleApply = async () => {
     if (hasApplied || !onApply) return;
@@ -138,6 +155,9 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
           <div className="flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-gray-500" />
             <span>{locationDisplay}</span>
+            {distanceDisplay && (
+              <span className="ml-2 text-xs text-blue-500 font-medium">{distanceDisplay}</span>
+            )}
           </div>
           <div className="flex items-center gap-1.5 col-span-2 sm:col-span-1">
             <DollarSign className="w-4 h-4 text-gray-500" />

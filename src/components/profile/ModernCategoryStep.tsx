@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { FloatingCard } from '@/components/ui/floating-card';
 import { CheckCircle, X, Sparkles } from 'lucide-react';
 import StickyFooterButton from '@/components/ui/StickyFooterButton';
+import LoadingSkeleton from '@/components/common/LoadingSkeleton';
 
 interface ModernCategoryStepProps {
   form: UseFormReturn<ProfileSetupFormData>;
@@ -17,14 +18,15 @@ interface ModernCategoryStepProps {
 
 const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, userName }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // On mount, initialize selectedCategories from form and sync form state
+  // On mount or when form categories change, sync local state and form state
   useEffect(() => {
     const initial = form.getValues('categories') || [];
     setSelectedCategories(initial);
     form.setValue('categories', initial);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [form]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories(prev => {
@@ -37,23 +39,29 @@ const ModernCategoryStep: React.FC<ModernCategoryStepProps> = ({ form, onNext, u
       } else {
         newSelection = prev;
       }
-      form.setValue('categories', newSelection);
+      // Only update form state after local state is set
+      setTimeout(() => form.setValue('categories', newSelection), 0);
       return newSelection;
     });
   };
 
   const removeCategory = (category: string) => {
-    const newSelection = selectedCategories.filter(sub => sub !== category);
-    setSelectedCategories(newSelection);
-    form.setValue('categories', newSelection);
+    setSelectedCategories(prev => {
+      const newSelection = prev.filter(sub => sub !== category);
+      setTimeout(() => form.setValue('categories', newSelection), 0);
+      return newSelection;
+    });
   };
 
   const handleNext = async () => {
+    setLoading(true);
     await onNext();
+    setLoading(false);
   };
 
   return (
     <div className="pb-24">
+      {loading && <div className="mb-6"><LoadingSkeleton width="100%" height="3rem" /></div>}
       <div className="space-y-6">
         {/* Welcome Header */}
         <div className="text-center mb-6">

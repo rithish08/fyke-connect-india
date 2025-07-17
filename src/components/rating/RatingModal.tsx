@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
@@ -90,6 +90,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">{t('rating.title', 'Rate Your Experience')}</DialogTitle>
+          <DialogDescription>{t('rating.description', 'Please rate your experience and leave a review. Your feedback helps improve the community.')}</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">

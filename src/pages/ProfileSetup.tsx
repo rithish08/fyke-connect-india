@@ -13,6 +13,7 @@ import ProfileLoading from '@/components/profile/setup/ProfileLoading';
 import ProfileRedirect from '@/components/profile/setup/ProfileRedirect';
 import ProfileNameStep from '@/components/profile/setup/ProfileNameStep';
 import { useLocalization } from '@/contexts/LocalizationContext';
+import WagesPopup from '@/components/profile/setup/WagesPopup';
 
 // Define a schema for the multi-step form
 const profileSetupSchema = z.object({
@@ -31,58 +32,53 @@ const ProfileSetup = () => {
   const { t } = useLocalization();
   const navigate = useNavigate();
 
+  // Local step state, always starts at name for new user
+  const [step, setStep] = useState<'name' | 'category' | 'wages' | 'complete'>('name');
+  const [loadingStep, setLoadingStep] = useState(false);
+  const [showWagesPopup, setShowWagesPopup] = useState(false);
+
   const form = useForm<ProfileSetupFormValues>({
     resolver: zodResolver(profileSetupSchema),
     defaultValues: {
-      categories: user?.categories || [],
-      salaryBySubcategory: user?.wages ? Object.fromEntries(
-        Object.entries(user.wages).map(([key, value]) => [
-          key, 
-          { amount: String(value.rate || ''), period: (['daily', 'weekly', 'monthly'].includes(value.unit) ? value.unit : 'daily') as 'daily' | 'weekly' | 'monthly' }
-        ])
-      ) : {},
+      categories: [],
+      salaryBySubcategory: {},
     },
   });
 
-  const getCurrentStep = useMemo(() => {
-    if (!user) return 'loading';
-    if (!user.name) return 'name';
-    if (user.role === 'employer') return 'complete'; // Employers only need a name
-    if (!user.categories || user.categories.length === 0) return 'category';
-    if (!user.wages) return 'wages';
-    return 'complete';
-  }, [user]);
-
-  const [currentStep, setCurrentStep] = useState(getCurrentStep);
-  
-  useEffect(() => {
-    setCurrentStep(getCurrentStep);
-  }, [getCurrentStep]);
-  
-
   const handleNameSubmit = async (name: string) => {
+    setLoadingStep(true);
     await updateProfile({ name });
-    // The RouteGuard will handle redirection
+    setLoadingStep(false);
+    setStep('category');
   };
 
   const handleCategorySubmit = async (data: ProfileSetupFormValues) => {
-    await updateProfile({ categories: data.categories, profileComplete: true });
-    // After updating, navigate to home or next step
-    navigate('/home');
+    setLoadingStep(true);
+    await updateProfile({ categories: data.categories });
+    setLoadingStep(false);
+    // For jobseekers, show the floating wages popup after category selection
+    if (user?.role === 'jobseeker') {
+      setShowWagesPopup(true);
+    } else {
+      setStep('complete');
+      await updateProfile({ profileComplete: true });
+      navigate('/home', { replace: true });
+    }
   };
 
-  const handleWagesSubmit = async (data: ProfileSetupFormValues) => {
-    const wagesData = data.salaryBySubcategory ? Object.fromEntries(
-      Object.entries(data.salaryBySubcategory).map(([key, value]) => [
-        key,
-        { rate: value.amount, unit: value.period }
-      ])
-    ) : {};
-    await updateProfile({ wages: wagesData });
+  const handleWagesPopupClose = async (wagesData) => {
+    setShowWagesPopup(false);
+    await updateProfile({ wages: wagesData || undefined });
+    setStep('complete');
+    await updateProfile({ profileComplete: true });
+    navigate('/home', { replace: true });
   };
-  
+
   const renderStep = () => {
-    switch(currentStep) {
+    if (loadingStep) {
+      return <ProfileLoading />;
+    }
+    switch(step) {
       case 'name':
         return <ProfileNameStep onSubmit={handleNameSubmit} initialName={user?.name || ''} />;
       case 'category':
@@ -94,21 +90,6 @@ const ProfileSetup = () => {
               return Promise.resolve(true);
             }}
             userName={user?.name || ''}
-          />
-        );
-      case 'wages':
-        return (
-          <ModernMultiSalaryStep
-            form={form as UseFormReturn<ProfileSetupFormValues>}
-            onNext={async () => {
-              const isValid = await form.trigger();
-              if (isValid) {
-                await handleWagesSubmit(form.getValues());
-                return true;
-              }
-              return false;
-            }}
-            onBack={() => setCurrentStep('category')}
           />
         );
       default:
@@ -134,12 +115,18 @@ const ProfileSetup = () => {
              </div>
            </div>
          </FloatingCard>
-        
         <Form {...form}>
           <form>
             {renderStep()}
           </form>
         </Form>
+        {/* Floating WagesPopup for jobseekers after category selection */}
+        {showWagesPopup && (
+          <WagesPopup
+            categories={form.getValues('categories') || []}
+            onClose={handleWagesPopupClose}
+          />
+        )}
       </div>
     </div>
   );

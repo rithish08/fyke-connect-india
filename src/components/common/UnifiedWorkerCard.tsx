@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AestheticCard } from '@/components/ui/aesthetic-card';
+import { calculateDistance } from '@/utils/locationUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Worker {
   id: string;
@@ -35,6 +37,22 @@ const UnifiedWorkerCard: React.FC<UnifiedWorkerCardProps> = ({
   onViewProfile,
   compact = false 
 }) => {
+  const { user } = useAuth();
+  let distanceText = '';
+  if (
+    user?.location_lat && user?.location_lng &&
+    worker.location_lat && worker.location_lng
+  ) {
+    const { meters, kilometers } = calculateDistance(
+      user.location_lat,
+      user.location_lng,
+      worker.location_lat,
+      worker.location_lng
+    );
+    distanceText = kilometers < 1
+      ? `${Math.round(meters)} meters away`
+      : `${kilometers.toFixed(1)} km away`;
+  }
   return (
     <AestheticCard 
       variant="elevated" 
@@ -79,7 +97,7 @@ const UnifiedWorkerCard: React.FC<UnifiedWorkerCardProps> = ({
             <div className={`flex items-center space-x-3 text-gray-500 ${compact ? 'text-xs' : 'text-xs'}`}>
               <span className="flex items-center space-x-1">
                 <MapPin className="w-3 h-3" />
-                <span>{worker.distance}</span>
+                <span>{distanceText || worker.distance}</span>
               </span>
               <span className="flex items-center space-x-1">
                 <Clock className="w-3 h-3" />

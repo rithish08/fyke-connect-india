@@ -11,6 +11,7 @@ import { Skeleton } from './ui/skeleton';
 import UnifiedJobCard from './common/UnifiedJobCard';
 import { HomeGreeting } from './home/HomeGreeting';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import WagesPopup from '@/components/profile/setup/WagesPopup';
 
 type AvailabilityStatus = 'available' | 'busy' | 'offline';
 
@@ -20,11 +21,20 @@ const JobSeekerHome = () => {
   const { t } = useLocalization();
   const { jobs, loading: jobsLoading, error: jobsError } = useJobSeekerJobs();
   const navigate = useNavigate();
+  const [showWagesPopup, setShowWagesPopup] = React.useState(false);
 
   const appliedJobIds = applications.map(app => app.job_id);
 
   const handleAvailabilityChange = async (value: AvailabilityStatus) => {
     await updateProfile({ availability: value });
+  };
+
+  const handleSetWages = () => setShowWagesPopup(true);
+  const handleWagesPopupClose = async (wagesData) => {
+    setShowWagesPopup(false);
+    if (wagesData) {
+      await updateProfile({ wages: wagesData });
+    }
   };
 
   const statusConfig: Record<AvailabilityStatus, { label: string; icon: React.ReactNode; color: string; description: string; }> = {
@@ -42,8 +52,14 @@ const JobSeekerHome = () => {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4">
         <Card className="p-4 flex flex-col items-center justify-center">
-          <div className="text-3xl font-bold text-blue-600">{applications.length}</div>
-          <div className="text-sm text-gray-500 mt-1">{t('home.applicationsSent', 'Applications Sent')}</div>
+          <button
+            className="w-full h-16 rounded-2xl bg-gradient-to-r from-blue-500/90 to-blue-700/90 text-white font-bold text-lg shadow-xl transition-all duration-300 hover:scale-105 hover:brightness-110 focus:ring-2 focus:ring-blue-400"
+            onClick={handleSetWages}
+            aria-label="Set Wages"
+            type="button"
+          >
+            Set Wages
+          </button>
         </Card>
 
         <DropdownMenu>
@@ -75,6 +91,14 @@ const JobSeekerHome = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* WagesPopup Modal */}
+      {showWagesPopup && (
+        <WagesPopup
+          categories={user?.categories || []}
+          onClose={handleWagesPopupClose}
+        />
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">

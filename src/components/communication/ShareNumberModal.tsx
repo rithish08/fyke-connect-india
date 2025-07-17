@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Phone, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,6 +57,7 @@ const ShareNumberModal: React.FC<ShareNumberModalProps> = ({
             <Phone className="w-5 h-5 text-blue-600" />
             <span>{t('share.title', 'Share Phone Number')}</span>
           </DialogTitle>
+          <DialogDescription>{t('share.description', 'You are about to share your phone number for work coordination. Please proceed only if necessary.')}</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">

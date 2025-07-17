@@ -38,14 +38,14 @@ const BottomNavigation = () => {
     }
   }, [location.pathname, goTo]);
 
-  // Don't show navigation if flow is not complete
-  if (!isFlowComplete) {
-    return null;
-  }
-
   // Don't show on setup/onboarding screens
   const hiddenPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
   if (hiddenPaths.includes(location.pathname)) {
+    return null;
+  }
+
+  // Only show if user is authenticated and has a role
+  if (!user || !user.role) {
     return null;
   }
 

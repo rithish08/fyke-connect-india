@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BottomNavigation from '@/components/BottomNavigation';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/useTranslation';
+import { supabase } from '@/integrations/supabase/client';
 
 const WorkerProfile = () => {
   const { id } = useParams();
@@ -14,8 +15,10 @@ const WorkerProfile = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const [showContact, setShowContact] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [workerNotFound, setWorkerNotFound] = useState(false);
+  const [worker, setWorker] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Get worker data from navigation state or use default
   const workerFromState = location.state?.worker;
@@ -46,23 +49,34 @@ const WorkerProfile = () => {
     verificationLevel: 'verified' as const
   };
 
-  const worker = workerFromState || defaultWorker;
-
   useEffect(() => {
-    if (!workerFromState && !id) {
+    if (!id) {
       setWorkerNotFound(true);
+      setLoading(false);
       return;
     }
-    // Simulate loading/fetching
     setLoading(true);
-    setTimeout(() => {
-      // In a real app, fetch worker by id here and set workerNotFound if not found
-      if (!workerFromState && !defaultWorker) {
-        setWorkerNotFound(true);
+    setError(null);
+    const fetchWorker = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (fetchError || !data) {
+          setWorkerNotFound(true);
+        } else {
+          setWorker(data);
+        }
+      } catch (err: any) {
+        setError('Failed to load worker profile.');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
-  }, [workerFromState, id]);
+    };
+    fetchWorker();
+  }, [id]);
 
   const handleContact = () => {
     setShowContact(true);
@@ -100,8 +114,10 @@ const WorkerProfile = () => {
       </div>
     );
   }
-
-  if (workerNotFound) {
+  if (error) {
+    return <div className="p-8 text-center text-red-500">{error}</div>;
+  }
+  if (workerNotFound || !worker) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -139,7 +155,7 @@ const WorkerProfile = () => {
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-4">
               <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
-                <AvatarImage src="/placeholder.svg" alt={worker.name} />
+                <AvatarImage src={worker.profilePhoto || "/placeholder.svg"} alt={worker.name} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold">
                   {worker.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
@@ -192,7 +208,7 @@ const WorkerProfile = () => {
         <div className="bg-white rounded-3xl p-6 shadow-sm">
           <h3 className="font-bold text-lg text-gray-900 mb-4">{t('workerProfile.skillsTitle', 'Skills & Expertise')}</h3>
           <div className="flex flex-wrap gap-2">
-            {worker.skills.map((skill, index) => (
+            {worker.skills?.map((skill: string, index: number) => (
               <span 
                 key={index} 
                 className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"

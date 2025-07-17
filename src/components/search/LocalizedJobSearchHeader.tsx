@@ -16,6 +16,7 @@ interface LocalizedJobSearchHeaderProps {
   resultsCount: number;
   userRole?: string | undefined;
   onBackToSubcategory?: () => void;
+  onBack?: () => void;
 }
 
 const LocalizedJobSearchHeader = ({
@@ -26,7 +27,8 @@ const LocalizedJobSearchHeader = ({
   selectedCategory,
   resultsCount,
   userRole,
-  onBackToSubcategory
+  onBackToSubcategory,
+  onBack
 }: LocalizedJobSearchHeaderProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const { translateCategory, translateText } = useTranslation();
@@ -41,9 +43,14 @@ const LocalizedJobSearchHeader = ({
     <>
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-2 mb-3">
+            {/* Back Button (always visible) */}
+            <Button variant="ghost" size="sm" onClick={onBack ? onBack : () => window.history.back()} className="p-2 mr-1">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            {/* Category/Subcategory Back Button (if present) */}
             {onBackToSubcategory && (
-              <Button variant="ghost" size="sm" onClick={onBackToSubcategory} className="p-2">
+              <Button variant="ghost" size="sm" onClick={onBackToSubcategory} className="p-2 mr-1">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             )}
@@ -72,7 +79,7 @@ const LocalizedJobSearchHeader = ({
               <span>{location?.area || translateText('search.current_location', 'Current Location')}</span>
               {selectedCategory && (
                 <>
-                  <span>•</span>
+                  <span> 2</span>
                   <span className="text-blue-600">{translateCategory(selectedCategory.name)}</span>
                 </>
               )}

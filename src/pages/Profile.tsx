@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ProfileHeader from '@/components/profile/ProfileHeader';
@@ -20,6 +20,7 @@ import { useLocalization } from '@/contexts/LocalizationContext';
 import { notificationService } from '@/services/notificationService';
 import { AvailabilityWages } from '@/components/profile/AvailabilityWages';
 import { getCurrentLocationArea } from '@/utils/locationUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProfileCategoryManager = ({
   categories,
@@ -73,7 +74,36 @@ const Profile = () => {
   
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
-  
+  const [jobStats, setJobStats] = useState({ active: 0, completed: 0, pending: 0 });
+  const [recentJobs, setRecentJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user || user.role !== 'employer') return;
+    setLoading(true);
+    setError(null);
+    const fetchStats = async () => {
+      try {
+        const { data: jobs, error: jobsError } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('employer_id', user.id);
+        if (jobsError) throw jobsError;
+        const active = jobs.filter((j: any) => j.status === 'posted' || j.status === 'open').length;
+        const completed = jobs.filter((j: any) => j.status === 'completed').length;
+        const pending = jobs.filter((j: any) => j.status === 'pending' || j.status === 'applied').length;
+        setJobStats({ active, completed, pending });
+        setRecentJobs(jobs.slice(0, 5));
+      } catch (err: any) {
+        setError('Failed to load job stats.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, [user]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -151,7 +181,41 @@ const Profile = () => {
           <Briefcase className="w-5 h-5 mr-2" />
           {t('profile.employerDashboard', 'Employer Dashboard')}
         </h3>
-        <p className="text-sm text-gray-600">{t('profile.dashboardComingSoon', 'Statistics and tools to manage your job postings will appear here.')}</p>
+        {loading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div className="text-red-500">{error}</div>
+        ) : (
+          <>
+            <div className="flex gap-8 mb-4">
+              <div>
+                <div className="text-2xl font-bold">{jobStats.active}</div>
+                <div className="text-gray-600">Active Jobs</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{jobStats.completed}</div>
+                <div className="text-gray-600">Completed</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{jobStats.pending}</div>
+                <div className="text-gray-600">Pending</div>
+              </div>
+            </div>
+            <h4 className="font-semibold mb-2">Recent Job Posts</h4>
+            {recentJobs.length === 0 ? (
+              <div className="text-gray-500">No job posts yet. <a href='/post-job' className='text-blue-600 underline'>Post a job</a></div>
+            ) : (
+              <ul className="space-y-2">
+                {recentJobs.map(job => (
+                  <li key={job.id} className="border rounded p-2 flex flex-col">
+                    <span className="font-semibold">{job.title}</span>
+                    <span className="text-xs text-gray-500">{job.status}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
       </Card>
     </div>
   );

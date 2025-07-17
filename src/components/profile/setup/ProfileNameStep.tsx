@@ -32,6 +32,7 @@ const ProfileNameStep = ({ onSubmit, initialName }: ProfileNameStepProps) => {
           <button
             onClick={handleBack}
             className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 hover:scale-105"
+            aria-label="Back"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
@@ -67,6 +68,7 @@ const ProfileNameStep = ({ onSubmit, initialName }: ProfileNameStepProps) => {
                 onClick={handleNameSubmit}
                 disabled={!localName.trim()}
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
+                aria-label="Continue"
               >
                 Continue
               </Button>

@@ -65,10 +65,12 @@ export const useNotifications = () => {
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+      toast({ title: t('notifications.markedRead', 'Notification marked as read') });
     } catch (err: any) {
       console.error('Error marking notification as read:', err);
       toast({
         title: t('notifications.markReadError', 'Failed to mark as read'),
+        description: err?.message || 'Unknown error',
         variant: 'destructive'
       });
     }
@@ -245,8 +247,6 @@ export const useNotifications = () => {
           const newNotification = payload.new as Notification;
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
-          
-          // Show toast for new notification
           toast({
             title: newNotification.title,
             description: newNotification.message,

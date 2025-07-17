@@ -20,6 +20,9 @@ const RouteGuard = ({ children }: RouteGuardProps) => {
     const publicRoutes = ['/language', '/login', '/otp-verification'];
     const isPublicRoute = publicRoutes.includes(currentPath);
 
+    // Debug logging
+    console.log('[RouteGuard] currentPath:', currentPath, 'user:', user);
+
     if (!isAuthenticated) {
       if (!isPublicRoute) {
         logger.action('RouteGuard: Unauthenticated user tried to access protected route', { attempted: currentPath });
@@ -61,9 +64,12 @@ const RouteGuard = ({ children }: RouteGuardProps) => {
       if (user.role === 'employer') {
         isProfileComplete = !!user.name;
       } else if (user.role === 'jobseeker') {
-        // A job seeker's profile is complete if they have a name, at least one category, and wages defined.
-        isProfileComplete = !!user.name && !!user.categories?.length && !!user.wages;
+        // Only use computed logic, ignore backend profileComplete flag
+        isProfileComplete = !!user.name && !!user.categories?.length && user.wages !== undefined;
       }
+
+      // Debug logging
+      console.log('[RouteGuard] isProfileComplete:', isProfileComplete, 'isProfileSetupPage:', isProfileSetupPage);
 
       if (isProfileComplete) {
         // If profile is complete, don't allow access to setup pages
@@ -77,6 +83,7 @@ const RouteGuard = ({ children }: RouteGuardProps) => {
         // If profile is not complete, force user to the setup page
         if (!isProfileSetupPage) {
           logger.action('RouteGuard: Incomplete profile, redirecting to setup', { attempted: currentPath });
+          // Use navigate instead of window.location.replace for smooth navigation
           navigate('/profile-setup');
         }
         // Otherwise, they are on the correct setup page, so allow access

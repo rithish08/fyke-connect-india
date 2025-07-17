@@ -26,6 +26,8 @@ const SalaryStep = ({ salary, setSalary, onNext, onBack }: StepProps) => (
         min={0}
       />
       <select
+        title="Select wage period"
+        aria-label="Wage period"
         className="px-2 py-2 border rounded-lg"
         value={salary.period}
         onChange={e => setSalary({ ...salary, period: e.target.value as 'daily' | 'weekly' | 'monthly' })}

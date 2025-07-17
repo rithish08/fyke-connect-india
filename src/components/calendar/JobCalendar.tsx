@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedLocalization } from '@/hooks/useEnhancedLocalization';
 import { Calendar as CalendarIcon, Clock, MapPin, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CalendarEvent {
   id: string;
@@ -24,47 +25,35 @@ const JobCalendar = () => {
   const { t } = useEnhancedLocalization();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Mock calendar events
-    const mockEvents: CalendarEvent[] = [
-      {
-        id: '1',
-        title: 'Construction Interview',
-        date: new Date(2025, 0, 16),
-        time: '10:00 AM',
-        type: 'interview',
-        location: 'Mumbai Central',
-        contact: 'BuildPro Construction',
-        jobId: 'job-1'
-      },
-      {
-        id: '2',
-        title: 'Delivery Work',
-        date: new Date(2025, 0, 17),
-        time: '9:00 AM',
-        type: 'work',
-        location: 'Pune',
-        contact: 'QuickDelivery',
-        jobId: 'job-2'
-      },
-      {
-        id: '3',
-        title: 'Project Deadline',
-        date: new Date(2025, 0, 20),
-        time: '6:00 PM',
-        type: 'deadline',
-        location: 'Chennai',
-        contact: 'SecureMax',
-        jobId: 'job-3'
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    const fetchEvents = async () => {
+      try {
+        // Fetch job events for the user
+        const { data: jobEvents, error: jobError } = await supabase
+          .from('job_events')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: true });
+        if (jobError) throw jobError;
+        setEvents(jobEvents || []);
+      } catch (err: any) {
+        setError('Failed to load calendar events.');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setEvents(mockEvents);
-  }, []);
+    };
+    fetchEvents();
+  }, [user]);
 
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => 
-      event.date.toDateString() === date.toDateString()
+    return events.filter(event =>
+      new Date(event.date).toDateString() === date.toDateString()
     );
   };
 
@@ -89,6 +78,13 @@ const JobCalendar = () => {
     
     window.open(calendarUrl, '_blank');
   };
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading...</div>;
+  }
+  if (error) {
+    return <div className="p-8 text-center text-red-500">{error}</div>;
+  }
 
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
 

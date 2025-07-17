@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Phone, Shield, Info } from 'lucide-react';
 import { useLocalization } from '@/contexts/LocalizationContext';
@@ -36,6 +36,7 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
             <Phone className="w-5 h-5 text-green-600" />
             <span>{t('call.confirmTitle', 'Confirm Phone Call')}</span>
           </DialogTitle>
+          <DialogDescription>{t('call.description', 'Confirm you want to call this user for job coordination.')}</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">

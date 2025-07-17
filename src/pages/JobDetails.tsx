@@ -19,12 +19,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/hooks/useJobSeekerJobs';
 import { useApplications } from '@/hooks/useApplications';
 import { formatDistanceToNow } from 'date-fns';
+import WagesPopup from '@/components/profile/setup/WagesPopup';
 
 const JobDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { t } = useLocalization();
   const { applyToJob, hasApplied } = useApplications();
   const [job, setJob] = useState<Job | null>(null);
@@ -33,6 +34,7 @@ const JobDetails = () => {
     const bookmarks = JSON.parse(localStorage.getItem('fyke_bookmarks') || '[]');
     return bookmarks.includes(job?.id);
   });
+  const [showWagesPopup, setShowWagesPopup] = useState(false);
   
   const fetchJobDetails = useCallback(async () => {
     if (!id) {
@@ -154,6 +156,17 @@ const JobDetails = () => {
         title: t('job.linkCopiedTitle', 'Link Copied'),
         description: t('job.linkCopiedDesc', 'Job link copied to clipboard'),
       });
+    }
+  };
+
+  const handleSetWages = () => {
+    setShowWagesPopup(true);
+  };
+  const handleWagesPopupClose = async (wagesData) => {
+    setShowWagesPopup(false);
+    if (wagesData) {
+      await updateProfile({ wages: wagesData });
+      toast({ title: t('profile.wagesUpdated', 'Wages updated!') });
     }
   };
 
@@ -289,7 +302,13 @@ const JobDetails = () => {
                 </>
               ) : 'Apply Now'}
             </Button>
-            
+            <Button
+              variant="outline"
+              onClick={handleSetWages}
+              className="h-12 px-4"
+            >
+              Set Wages
+            </Button>
             <Button
               variant="outline"
               onClick={handleChat}
@@ -297,7 +316,6 @@ const JobDetails = () => {
             >
               <MessageCircle className="w-5 h-5" />
             </Button>
-            
             <Button
               variant="outline"
               onClick={handleCall}
@@ -306,6 +324,13 @@ const JobDetails = () => {
               <Phone className="w-5 h-5" />
             </Button>
           </div>
+          {/* WagesPopup Modal */}
+          {showWagesPopup && (
+            <WagesPopup
+              categories={user.categories || []}
+              onClose={handleWagesPopupClose}
+            />
+          )}
         </div>
       )}
 

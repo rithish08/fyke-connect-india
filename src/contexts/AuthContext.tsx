@@ -11,6 +11,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { geolocationService } from '@/services/geolocationService';
 import { logger } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 // Extend Window interface for recaptcha
 declare global {
@@ -69,6 +70,14 @@ export const useAuth = () => {
   return context;
 };
 
+// Utility to detect in-app browsers (e.g., Facebook, Instagram, WebView)
+function isInAppBrowser() {
+  const ua = navigator.userAgent || navigator.vendor;
+  return (
+    /FBAN|FBAV|Instagram|Line|WebView|wv|Messenger|Snapchat|MiuiBrowser|SamsungBrowser|Twitter/i.test(ua)
+  );
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
@@ -80,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     longitude: null
   });
   const hasSetUser = useRef(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     let mounted = true;
@@ -202,7 +212,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (createError) {
           logger.error('[handleFirebaseUser] Error creating profile in Supabase:', createError);
-          alert('Error creating user profile: ' + (createError.message || createError.details || 'Unknown error'));
+          toast({
+            title: 'Error creating user profile',
+            description: createError.message || createError.details || 'Unknown error',
+            variant: 'destructive'
+          });
           return;
         }
         logger.info('[handleFirebaseUser] Successfully created new profile:', createdProfile);
@@ -211,7 +225,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userData = existingProfile;
       } else {
         logger.error('[handleFirebaseUser] Error fetching profile:', fetchError);
-        alert('Error fetching user profile: ' + (fetchError?.message || fetchError?.details || 'Unknown error'));
+        toast({
+          title: 'Error fetching user profile',
+          description: fetchError?.message || fetchError?.details || 'Unknown error',
+          variant: 'destructive'
+        });
         return;
       }
 
@@ -221,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: userData.name || '',
         email: userData.email || '',
         bio: userData.bio || '',
-        role: userData.role || 'jobseeker',
+        role: userData.role ?? undefined, // Do not default to 'jobseeker' if null
         verified: !!userData.verified,
         profileComplete: !!userData.profile_complete,
         profilePhoto: userData.profile_photo,
@@ -249,13 +267,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logger.info('Set user from Firebase/Supabase:', authUser);
     } catch (error) {
       logger.error('Error in handleFirebaseUser:', error);
-      alert('Unexpected error during user profile creation: ' + (error?.message || error));
+      toast({
+        title: 'Unexpected error during user profile creation',
+        description: error?.message || String(error),
+        variant: 'destructive'
+      });
     }
   };
 
   const sendOTP = async (phone: string): Promise<{ error: unknown, testBypass?: boolean }> => {
     console.log('[sendOTP] called with phone:', phone);
     
+    // In-app browser detection
+    if (isInAppBrowser()) {
+      const error = new Error('Login is not supported in in-app browsers. Please open in Chrome, Safari, or your default browser.');
+      logger.error('In-app browser detected:', navigator.userAgent);
+      toast({
+        title: 'Login not supported',
+        description: 'Login is not supported in in-app browsers. Please open in Chrome, Safari, or your default browser.',
+        variant: 'destructive'
+      });
+      return { error };
+    }
+
     // Test mode bypass for specific test numbers
     const testPhones = ['7777777777', '8888888888', '9999999999'];
     const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
@@ -265,6 +299,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('[sendOTP] Test bypass TRIGGERED for', normalizedPhone);
       logger.warn('Test-only OTP send bypass: showing OTP input immediately for', phone);
       setConfirmationResult(null);
+      toast({
+        title: 'Test OTP Bypass',
+        description: `Test-only OTP send bypass: showing OTP input immediately for ${phone}`,
+        variant: 'default'
+      });
       return { error: null, testBypass: true };
     }
     
@@ -274,8 +313,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Format phone number for India (+91)
       const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
       
-      // Set up recaptcha for production Firebase auth
-      if (!window.recaptchaVerifier) {
+      // Always clear any existing recaptchaVerifier before creating a new one
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          // Ignore errors when clearing recaptchaVerifier
+        }
+        window.recaptchaVerifier = null;
+      }
+      try {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
           size: 'invisible',
           callback: () => {
@@ -286,6 +333,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             window.recaptchaVerifier = null;
           }
         });
+      } catch (recaptchaError) {
+        logger.error('Recaptcha failed to initialize:', recaptchaError);
+        toast({
+          title: 'Recaptcha Error',
+          description: 'Recaptcha failed to initialize. Please disable ad blockers or try a different browser.',
+          variant: 'destructive'
+        });
+        return { error: new Error('Recaptcha failed to initialize. Please disable ad blockers or try a different browser.') };
       }
 
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
@@ -300,6 +355,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = null;
       }
+      toast({
+        title: 'OTP Send Error',
+        description: error?.message || String(error),
+        variant: 'destructive'
+      });
       return { error };
     }
   };
@@ -339,12 +399,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       await handleFirebaseUser(mockFirebaseUser as User);
       logger.info('[verifyOTP] Test bypass: called handleFirebaseUser for', match.phone);
+      toast({
+        title: 'Test OTP Bypass',
+        description: `Test-only OTP bypass: accepted ${phone}, ${otp}`,
+        variant: 'default'
+      });
       return { error: null };
     }
     
     try {
       logger.info('Verifying OTP for:', phone);
       if (!confirmationResult) {
+        toast({
+          title: 'OTP Verification Error',
+          description: 'No confirmation result found. Please request OTP again.',
+          variant: 'destructive'
+        });
         return { error: new Error('No confirmation result found. Please request OTP again.') };
       }
       const result = await confirmationResult.confirm(otp);
@@ -354,6 +424,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: null };
     } catch (error) {
       logger.error('Verify OTP error:', error);
+      toast({
+        title: 'OTP Verification Error',
+        description: error?.message || String(error),
+        variant: 'destructive'
+      });
       return { error };
     }
   };
@@ -365,12 +440,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('fyke_user');
     } catch (error) {
       logger.error('Error logging out:', error);
+      toast({
+        title: 'Logout Error',
+        description: error?.message || String(error),
+        variant: 'destructive'
+      });
     }
   };
 
   const setRole = async (role: 'jobseeker' | 'employer') => {
     if (!user || !firebaseUser) {
       logger.error("SetRole Error: No user found");
+      toast({
+        title: 'Set Role Error',
+        description: 'No user found to set role.',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -384,6 +469,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         logger.error('Error updating role in Supabase:', error);
+        toast({
+          title: 'Role Update Error',
+          description: error.message || error.details || 'Unknown error',
+          variant: 'destructive'
+        });
         return;
       }
 
@@ -396,6 +486,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error) {
       logger.error('Error setting role:', error);
+      toast({
+        title: 'Role Update Error',
+        description: error?.message || String(error),
+        variant: 'destructive'
+      });
     }
   };
 
@@ -408,7 +503,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<AuthUser>) => {
     if (!user || !firebaseUser) {
       logger.error('No user or Firebase user found, cannot update profile');
-      alert('No user or Firebase user found, cannot update profile');
+      toast({
+        title: 'Profile Update Error',
+        description: 'No user or Firebase user found, cannot update profile.',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -465,17 +564,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         logger.error('[updateProfile] Error updating profile in Supabase:', error);
-        alert('Error updating profile: ' + (error.message || error.details || 'Unknown error'));
+        toast({
+          title: 'Profile Update Error',
+          description: error.message || error.details || 'Unknown error',
+          variant: 'destructive'
+        });
         return;
       }
 
-      const updatedUser: AuthUser = { ...user, ...updates };
+      // Fetch the latest profile from Supabase to ensure context is in sync
+      const { data: latestProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('firebase_uid', firebaseUser.uid)
+        .single();
+
+      if (fetchError || !latestProfile) {
+        logger.error('[updateProfile] Error fetching latest profile after update:', fetchError);
+        toast({
+          title: 'Profile Fetch Error',
+          description: fetchError?.message || fetchError?.details || 'Unknown error',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const updatedUser: AuthUser = {
+        id: latestProfile.id,
+        phone: latestProfile.phone || '',
+        name: latestProfile.name || '',
+        email: latestProfile.email || '',
+        bio: latestProfile.bio || '',
+        role: latestProfile.role ?? undefined,
+        verified: !!latestProfile.verified,
+        profileComplete: !!latestProfile.profile_complete,
+        profilePhoto: latestProfile.profile_photo,
+        location: latestProfile.location,
+        availability: latestProfile.availability || 'available',
+        skills: Array.isArray(latestProfile.skills) ? latestProfile.skills : [],
+        categories: Array.isArray(latestProfile.categories) ? latestProfile.categories : [],
+        subcategories: Array.isArray(latestProfile.subcategories) ? latestProfile.subcategories : [],
+        wages: latestProfile.wages || {},
+        salaryExpectation: latestProfile.salary_expectation,
+        category: latestProfile.primary_category,
+        vehicle: latestProfile.vehicle,
+        salaryPeriod: latestProfile.salary_period,
+        primaryCategory: latestProfile.primary_category,
+        salaryBySubcategory: latestProfile.salary_by_subcategory || {},
+        category_wages: latestProfile.category_wages || {},
+        latitude: latestProfile.latitude,
+        longitude: latestProfile.longitude,
+      };
+
       setUser(updatedUser);
       localStorage.setItem('fyke_user', JSON.stringify(updatedUser));
-      logger.info('[updateProfile] Profile updated successfully:', updatedUser);
+      logger.info('[updateProfile] Profile updated and context synced successfully:', updatedUser);
     } catch (error) {
       logger.error('[updateProfile] An error occurred during profile update:', error);
-      alert('Unexpected error during profile update: ' + (error?.message || error));
+      toast({
+        title: 'Profile Update Error',
+        description: error?.message || String(error),
+        variant: 'destructive'
+      });
     }
   };
 

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ import {
   Download, Eye, ThumbsUp, Calendar, Award 
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PortfolioItem {
   id: string;
@@ -34,65 +36,73 @@ interface Review {
 
 const EnhancedProfile = () => {
   const { user } = useAuth();
-  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([
-    {
-      id: '1',
-      title: 'House Construction Project',
-      description: 'Complete house construction with modern design',
-      image: '/placeholder.svg',
-      category: 'Construction',
-      date: '2024-01-15',
-      likes: 12,
-      views: 45
-    },
-    {
-      id: '2',
-      title: 'Kitchen Renovation',
-      description: 'Modern kitchen renovation with granite countertops',
-      image: '/placeholder.svg',
-      category: 'Renovation',
-      date: '2024-02-20',
-      likes: 8,
-      views: 32
-    }
-  ]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: '1',
-      reviewerName: 'Priya Sharma',
-      reviewerAvatar: '/placeholder.svg',
-      rating: 5,
-      comment: 'Excellent work quality and very professional. Completed the job on time and within budget.',
-      date: '2024-02-25',
-      jobTitle: 'House Construction'
-    },
-    {
-      id: '2',
-      reviewerName: 'Rajesh Kumar',
-      reviewerAvatar: '/placeholder.svg',
-      rating: 4,
-      comment: 'Good work, but took a bit longer than expected. Overall satisfied with the results.',
-      date: '2024-02-10',
-      jobTitle: 'Kitchen Renovation'
-    }
-  ]);
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    const fetchData = async () => {
+      try {
+        // Fetch portfolio items
+        const { data: portfolioData, error: portfolioError } = await supabase
+          .from('portfolio')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
+        if (portfolioError) throw portfolioError;
+        setPortfolio(portfolioData || []);
+        // Fetch reviews
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
+        if (reviewsError) throw reviewsError;
+        setReviews(reviewsData || []);
+      } catch (err: any) {
+        setError('Failed to load profile data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // In a real app, upload to cloud storage
-      const newItem: PortfolioItem = {
-        id: Date.now().toString(),
-        title: 'New Project',
-        description: 'Click to edit description',
-        image: URL.createObjectURL(file),
-        category: 'General',
-        date: new Date().toISOString().split('T')[0],
-        likes: 0,
-        views: 0
-      };
-      setPortfolio([newItem, ...portfolio]);
+    if (file && user) {
+      try {
+        // In a real app, upload to cloud storage and get the URL
+        const imageUrl = URL.createObjectURL(file); // Placeholder for demo
+        const { error: insertError } = await supabase
+          .from('portfolio')
+          .insert({
+            user_id: user.id,
+            title: 'New Project',
+            description: 'Click to edit description',
+            image: imageUrl,
+            category: 'General',
+            date: new Date().toISOString().split('T')[0],
+            likes: 0,
+            views: 0
+          });
+        if (insertError) throw insertError;
+        toast({ title: 'Portfolio item added!' });
+        // Refresh portfolio
+        const { data: portfolioData } = await supabase
+          .from('portfolio')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
+        setPortfolio(portfolioData || []);
+      } catch (err: any) {
+        toast({ title: 'Failed to add portfolio item', variant: 'destructive' });
+      }
     }
   };
 
@@ -279,6 +289,13 @@ const EnhancedProfile = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading...</div>;
+  }
+  if (error) {
+    return <div className="p-8 text-center text-red-500">{error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">

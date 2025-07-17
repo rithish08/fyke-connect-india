@@ -53,9 +53,17 @@ const LoginScreen = () => {
       const { error, testBypass } = await sendOTP(phone);
       
       if (error) {
+        let description = t('login.otpSendFailed', 'Failed to send OTP. Please try again.');
+        if (error instanceof Error) {
+          if (error.message.includes('in-app browsers')) {
+            description = 'Login is not supported in in-app browsers. Please open this page in Chrome, Safari, or your default browser.';
+          } else if (error.message.includes('Recaptcha failed to initialize')) {
+            description = 'Recaptcha failed to load. Please disable ad blockers or try a different browser.';
+          }
+        }
         toast({
           title: t('common.error', 'Error'),
-          description: t('login.otpSendFailed', 'Failed to send OTP. Please try again.'),
+          description,
           variant: 'destructive'
         });
         if (window && 'navigator' in window && 'vibrate' in window.navigator) window.navigator.vibrate(100);

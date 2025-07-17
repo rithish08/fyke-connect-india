@@ -22,7 +22,7 @@ interface JobSearchResultsViewProps {
   setSearchQuery: (query: string) => void;
   location: Location | null;
   setLocation: (location: Location | null) => void;
-  selectedCategory: { id: string, name: string } | null;
+  selectedCategory: { id: string, name: string, subcategories?: string[] } | null;
   selectedSubcategories: string[];
   results: (Job | Profile)[] | null;
   filters: FilterState;
@@ -30,6 +30,8 @@ interface JobSearchResultsViewProps {
   urgentOnly: boolean;
   setUrgentOnly: (urgent: boolean) => void;
   onBackToSubcategory: () => void;
+  subcategories?: string[];
+  onSubcategorySelect?: (subcategories: string[]) => void;
 }
 
 const JobSearchResultsView = ({
@@ -44,7 +46,9 @@ const JobSearchResultsView = ({
   setFilters,
   urgentOnly,
   setUrgentOnly,
-  onBackToSubcategory
+  onBackToSubcategory,
+  subcategories = [],
+  onSubcategorySelect
 }: JobSearchResultsViewProps) => {
   const { user } = useAuth();
   const { getLocalizedText } = useLocalization();
@@ -93,6 +97,21 @@ const JobSearchResultsView = ({
     }
   }
 
+  // Horizontal subcategory filter
+  const [activeSubs, setActiveSubs] = useState<string[]>(selectedSubcategories);
+  useEffect(() => { setActiveSubs(selectedSubcategories); }, [selectedSubcategories]);
+
+  const handleSubFilterClick = (sub: string) => {
+    let updated: string[];
+    if (activeSubs.includes(sub)) {
+      updated = activeSubs.filter(s => s !== sub);
+    } else {
+      updated = [...activeSubs, sub];
+    }
+    setActiveSubs(updated);
+    if (onSubcategorySelect) onSubcategorySelect(updated);
+  };
+
   const isLoading = !results;
 
   return (
@@ -101,8 +120,8 @@ const JobSearchResultsView = ({
         <JobSearchBreadcrumbs
           currentStep="results"
           selectedCategory={selectedCategory}
-          selectedSubcategories={selectedSubcategories}
-          onStepChange={breadcrumbStepChange}
+          selectedSubcategories={activeSubs}
+          onStepChange={() => onBackToSubcategory()}
         />
       </div>
       <JobSearchHeader
@@ -114,6 +133,23 @@ const JobSearchResultsView = ({
         userRole={user?.role}
         onBack={onBackToSubcategory}
       />
+
+      {/* Horizontal subcategory filter */}
+      {subcategories && subcategories.length > 0 && (
+        <div className="w-full overflow-x-auto py-2 px-4 mb-2">
+          <div className="flex space-x-2">
+            {subcategories.map(sub => (
+              <button
+                key={sub}
+                className={`px-4 py-2 rounded-full border text-sm whitespace-nowrap transition-all duration-150 ${activeSubs.includes(sub) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'}`}
+                onClick={() => handleSubFilterClick(sub)}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <main aria-live="polite">
         <JobSearchFilters
@@ -138,6 +174,8 @@ const JobSearchResultsView = ({
             onJobClick={handleJobClick}
             onApply={applyToJob}
             appliedJobIds={appliedJobIds}
+            selectedCategory={selectedCategory}
+            selectedSubcategories={selectedSubcategories}
           />
         )}
       </main>

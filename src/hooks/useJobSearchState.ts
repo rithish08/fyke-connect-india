@@ -66,8 +66,9 @@ export const useJobSearchState = () => {
           const availabilityMatch = filters.availability === 'all' || 
             (filters.availability === 'online' && (worker as any).isOnline) ||
             (filters.availability === 'verified' && (worker as any).verificationLevel !== 'basic');
-          
-          return ratingMatch && urgentMatch && priceMatch && availabilityMatch;
+          // Subcategory filter
+          const subcategoryMatch = selectedSubcategories.length === 0 || (worker.skills && selectedSubcategories.some(sub => worker.skills.includes(sub)));
+          return ratingMatch && urgentMatch && priceMatch && availabilityMatch && subcategoryMatch;
         });
         
         setResults(filteredWorkers.length > 0 ? filteredWorkers as any : Object.values(mockWorkers).flat().slice(0, 8) as any);
@@ -90,14 +91,15 @@ export const useJobSearchState = () => {
             job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
             job.description?.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-          
-          return urgentMatch && queryMatch;
+          // Subcategory filter
+          const subcategoryMatch = selectedSubcategories.length === 0 || (job.subcategories && selectedSubcategories.some(sub => job.subcategories.includes(sub)));
+          return urgentMatch && queryMatch && subcategoryMatch;
         });
         
         setResults(filteredJobs.length > 0 ? filteredJobs as any : Object.values(mockJobs).flat().slice(0, 8) as any);
       }
     }, 500);
-  }, [user?.role, selectedCategory, filters, urgentOnly, searchQuery]);
+  }, [user?.role, selectedCategory, filters, urgentOnly, searchQuery, selectedSubcategories]);
 
   useEffect(() => {
     if (currentView === 'results') {

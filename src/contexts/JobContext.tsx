@@ -36,63 +36,65 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [pendingRatings, setPendingRatings] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data for now - will be replaced with Supabase integration
-  const mockJobs: Job[] = [
-    {
-      id: '1',
-      title: 'Construction Worker Needed',
-      description: 'Looking for experienced construction worker for residential project.',
-      category: 'Construction',
-      employer_id: 'emp1',
-      employer_name: 'ABC Construction',
-      location: 'Mumbai, Maharashtra',
-      salary: '800',
-      salary_period: 'day',
-      status: 'posted',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      urgent: true,
-      total_positions: 5
-    },
-    {
-      id: '2',
-      title: 'Delivery Driver Required',
-      description: 'Fast delivery driver needed for food delivery service.',
-      category: 'Delivery',
-      employer_id: 'emp2',
-      employer_name: 'Quick Foods',
-      location: 'Bangalore, Karnataka',
-      salary: '600',
-      salary_period: 'day',
-      status: 'posted',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      total_positions: 3
-    }
-  ];
-
+  // Remove mockJobs and use real Supabase data
   const loadJobs = useCallback(async () => {
     try {
       setLoading(true);
-      // For now using mock data - replace with Supabase calls
-      setJobs(mockJobs);
-      
+      // Fetch all jobs
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (jobsError) throw jobsError;
+
+      // Map jobsData to Job type expected by frontend
+      const mapJob = (job: Partial<Job> & Record<string, unknown>): Job => ({
+        id: String(job.id ?? ''),
+        title: String(job.title ?? ''),
+        description: String(job.description ?? ''),
+        category: job.category ?? '',
+        employer_id: String(job.employer_id ?? ''),
+        location: String(job.location ?? ''),
+        requirements: Array.isArray(job.requirements) ? job.requirements as string[] : [],
+        salary_min: Number(job.salary_min ?? 0),
+        salary_max: Number(job.salary_max ?? 0),
+        salary_period: (['hour', 'day', 'week', 'month', 'project'].includes(String(job.salary_period))
+          ? String(job.salary_period)
+          : 'day') as 'hour' | 'day' | 'week' | 'month' | 'project',
+        urgent: Boolean(job.urgent),
+        created_at: String(job.created_at ?? ''),
+        updated_at: String(job.updated_at ?? ''),
+        status: (['posted', 'applied', 'accepted', 'in_progress', 'completed', 'cancelled', 'open'].includes(String(job.status)) ? job.status : 'open') as 'posted' | 'applied' | 'accepted' | 'in_progress' | 'completed' | 'cancelled' | 'open',
+        applicant_id: String((job as { applicant_id?: string }).applicant_id ?? ''),
+        rating_employer: (job as { rating_employer?: number | null }).rating_employer ?? null,
+        rating_worker: (job as { rating_worker?: number | null }).rating_worker ?? null,
+        // Add any other required fields with sensible defaults
+      });
+      const jobsList = (jobsData || []).map(mapJob);
+      setJobs(jobsList);
+
+      // Fetch my jobs (as employer or applicant)
       if (user?.role === 'employer') {
-        setMyJobs(mockJobs.filter(job => job.employer_id === user.id));
+        setMyJobs(jobsList.filter(job => job.employer_id === user.id));
       } else if (user) {
-        setMyJobs(mockJobs.filter(job => job.applicant_id === user.id));
+        // For jobseeker, fetch applications and match jobs
+        const { data: apps, error: appsError } = await supabase
+          .from('applications')
+          .select('job_id')
+          .eq('applicant_id', user.id);
+        if (appsError) throw appsError;
+        const appliedJobIds = (apps || []).map(a => a.job_id);
+        setMyJobs(jobsList.filter(job => appliedJobIds.includes(job.id)));
       }
-      
-      // Check for pending ratings
+
+      // Fetch pending ratings (example: jobs with status 'completed' and no rating)
       if (user) {
-        const completedJobs = mockJobs.filter(job => 
-          job.status === 'completed' && 
+        setPendingRatings(jobsList.filter(job =>
+          job.status === 'completed' &&
           (job.employer_id === user.id || job.applicant_id === user.id) &&
           (!job.rating_employer || !job.rating_worker)
-        );
-        setPendingRatings(completedJobs);
+        ));
       }
-      
     } catch (error) {
       console.error('Error loading jobs:', error);
     } finally {
@@ -106,21 +108,22 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [user, loadJobs]);
 
+  // Update applyToJob to use Supabase
   const applyToJob = async (jobId: string, message?: string): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
-    
     try {
-      // Mock implementation - replace with Supabase
-      const application: JobApplication = {
-        id: Date.now().toString(),
-        job_id: jobId,
-        applicant_id: user.id,
-        status: 'pending',
-        applied_at: new Date().toISOString(),
-        message
-      };
-      
-      setApplications(prev => [...prev, application]);
+      const { error } = await supabase
+        .from('applications')
+        .insert({
+          job_id: jobId,
+          applicant_id: user.id,
+          status: 'pending',
+          applied_at: new Date().toISOString(),
+          message
+        });
+      if (error) throw error;
+      // Optionally refresh applications/jobs
+      await loadJobs();
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to apply to job' };
