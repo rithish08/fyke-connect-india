@@ -88,7 +88,7 @@ const JobSearchSubcategoryView = ({
               className="w-full h-12 rounded-2xl border-2 border-gray-200 font-medium pointer-events-auto"
               onClick={onSearchWithSubcategories}
             >
-              View All {selectedCategory.name} Jobs
+              {t('job_search.view_all_jobs', 'View All {category} Jobs', { category: selectedCategory.name })}
             </Button>
           </div>
         </div>

@@ -171,6 +171,7 @@ const JobDetails = () => {
             size="sm"
             onClick={() => navigate(-1)}
             className="p-2"
+            aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -183,6 +184,7 @@ const JobDetails = () => {
               size="sm"
               onClick={handleBookmark}
               className="p-2"
+              aria-label={bookmarked ? 'Remove from bookmarks' : 'Add to bookmarks'}
             >
               <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current text-blue-500' : ''}`} />
             </Button>
@@ -191,6 +193,7 @@ const JobDetails = () => {
               size="sm"
               onClick={handleShare}
               className="p-2"
+              aria-label="Share job"
             >
               <Share2 className="w-5 h-5" />
             </Button>
@@ -318,6 +321,7 @@ const JobDetails = () => {
               variant="outline"
               onClick={handleChat}
               className="h-12 px-4"
+              aria-label="Chat with employer"
             >
               <MessageCircle className="w-5 h-5" />
             </Button>
@@ -326,6 +330,7 @@ const JobDetails = () => {
               variant="outline"
               onClick={handleCall}
               className="h-12 px-4"
+              aria-label="Call employer"
             >
               <Phone className="w-5 h-5" />
             </Button>

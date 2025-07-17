@@ -143,7 +143,7 @@ const PostJob = () => {
       {/* Header */}
       <div className="bg-white shadow-sm p-4 border-b border-gray-100">
         <div className="flex items-center space-x-3">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full">
+          <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full" aria-label="Go back">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -366,7 +366,7 @@ const PostJob = () => {
                     disabled={loading}
                     className="w-full h-12 bg-blue-600 hover:bg-blue-700"
                   >
-                    {loading ? 'Posting Job...' : 'Post Job'}
+                    {loading ? t('post_job.posting', 'Posting Job...') : t('post_job.post_job_btn', 'Post Job')}
                   </Button>
                 </div>
               </div>

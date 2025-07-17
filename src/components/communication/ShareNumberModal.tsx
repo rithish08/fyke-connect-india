@@ -106,7 +106,7 @@ const ShareNumberModal: React.FC<ShareNumberModalProps> = ({
               className="flex-1"
               disabled={isSharing}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button
               onClick={handleConfirm}

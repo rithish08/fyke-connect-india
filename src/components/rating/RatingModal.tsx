@@ -158,7 +158,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ job, open, onClose }) => {
             disabled={rating === 0 || review.trim().length < 10 || submitting}
             className="w-full bg-blue-600 hover:bg-blue-700"
           >
-            {submitting ? 'Submitting...' : 'Submit Rating'}
+            {submitting ? t('rating.submitting', 'Submitting...') : t('rating.submit_rating', 'Submit Rating')}
           </Button>
         </div>
       </DialogContent>

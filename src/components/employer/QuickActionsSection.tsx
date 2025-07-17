@@ -18,7 +18,7 @@ const QuickActionsSection = () => {
               <span className="text-xs">📝</span>
             </div>
             <div>
-              <h4 className="font-medium text-gray-900 text-xs">Post Job</h4>
+              <h4 className="font-medium text-gray-900 text-xs">{t('employer_home.post_job', 'Post Job')}</h4>
               <p className="text-xs text-gray-400">Quick hire</p>
             </div>
           </div>

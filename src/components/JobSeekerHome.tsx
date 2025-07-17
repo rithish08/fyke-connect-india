@@ -1,48 +1,24 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Star, TrendingUp } from 'lucide-react';
+import { Search, TrendingUp } from 'lucide-react';
 import JobCard from './JobCard';
-import { mockJobs } from '@/data/mockData';
+import { useJobs } from '@/contexts/JobContext';
 
 const JobSeekerHome = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [recommendedJobs, setRecommendedJobs] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
+  const { jobs, applications, applyToJob, loading, error } = useJobs();
 
-  useEffect(() => {
-    // Load recommended jobs based on user's categories
-    const allJobs = Object.values(mockJobs).flat();
-    const filtered = allJobs.slice(0, 5); // Show top 5 jobs
-    setRecommendedJobs(filtered);
+  if (error) {
+    return <div className="text-center py-10 text-red-500">{error}</div>;
+  }
 
-    // Load user applications from localStorage
-    const storedApplications = JSON.parse(localStorage.getItem('fyke_applications') || '[]');
-    setApplications(storedApplications);
-  }, [user]);
-
-  const handleJobApply = (jobId: string) => {
-    const job = recommendedJobs.find(j => j.id === jobId);
-    if (!job) return;
-
-    const newApplication = {
-      id: Date.now().toString(),
-      jobId,
-      jobTitle: job.title,
-      company: job.company,
-      appliedAt: new Date().toISOString(),
-      status: 'pending'
-    };
-
-    const updatedApplications = [...applications, newApplication];
-    setApplications(updatedApplications);
-    localStorage.setItem('fyke_applications', JSON.stringify(updatedApplications));
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -127,9 +103,9 @@ const JobSeekerHome = () => {
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600">
-                {applications.filter(app => app.status === 'interview').length}
+                {applications.filter(app => app.status === 'accepted').length}
               </div>
-              <div className="text-xs text-gray-500">Interview</div>
+              <div className="text-xs text-gray-500">Accepted</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-gray-600">
@@ -150,16 +126,16 @@ const JobSeekerHome = () => {
             size="sm"
             onClick={() => navigate('/search')}
           >
-            View All
+            {t('common.view_all', 'View All')}
           </Button>
         </div>
         
         <div className="space-y-4">
-          {recommendedJobs.map((job) => (
+          {jobs.slice(0, 5).map((job) => (
             <JobCard 
               key={job.id} 
               job={job} 
-              onApply={handleJobApply}
+              onApply={() => applyToJob(job.id)}
             />
           ))}
         </div>

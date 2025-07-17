@@ -87,7 +87,7 @@ const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
               onClick={onClose}
               className="flex-1"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button
               onClick={handleCall}

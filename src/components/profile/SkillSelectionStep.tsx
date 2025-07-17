@@ -174,7 +174,7 @@ const SkillSelectionStep = ({ skills, setSkills, category, onNext, onBack }: Ste
               variant="outline"
               className="w-full rounded-xl border-gray-200"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
           </div>
         )}

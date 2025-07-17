@@ -488,4 +488,7 @@ export const translations = {
     },
     settings: {
       job_notifications: 'नोकरी सूचना',
-      job_notifications_desc: 'नवीन संधीं
+      job_notifications_desc: 'नवीन संधींसाठी सूचना मिळवा',
+    },
+  },
+}

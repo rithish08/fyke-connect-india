@@ -120,7 +120,7 @@ const MyJobs = () => {
           {isEmployer && (
             <Button onClick={() => navigate('/post-job')} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              Post Job
+              {t('my_jobs.post_job_btn', 'Post Job')}
             </Button>
           )}
         </div>

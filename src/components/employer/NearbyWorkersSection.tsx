@@ -83,7 +83,7 @@ const NearbyWorkersSection = () => {
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-gray-900 text-xl">Top Workers Nearby</h3>
           <Button variant="outline" size="sm" onClick={() => navigate('/search')}>
-            View All
+            {t('common.view_all', 'View All')}
           </Button>
         </div>
         

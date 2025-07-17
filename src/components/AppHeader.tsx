@@ -48,6 +48,7 @@ const AppHeader = ({ currentTime }: { currentTime: Date }) => {
           <button 
             onClick={() => navigate('/notifications')}
             className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            aria-label="View notifications"
           >
             <Bell className="w-5 h-5 text-gray-600" />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-sm">3</span>

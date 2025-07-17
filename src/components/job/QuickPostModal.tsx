@@ -237,13 +237,13 @@ const QuickPostModal: React.FC<QuickPostModalProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="flex-1 h-12 text-base"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button
               type="submit"
               className="flex-1 h-12 text-base bg-blue-600 hover:bg-blue-700"
             >
-              Post Job
+              {t('quick_post.post_job_btn', 'Post Job')}
             </Button>
           </div>
         </form>

@@ -1,34 +1,24 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Briefcase, MessageCircle, TrendingUp } from 'lucide-react';
-import { mockJobs } from '@/data/mockData';
+import { Plus, Users, Briefcase, MessageCircle } from 'lucide-react';
+import { useJobs } from '@/contexts/JobContext';
 
 const EmployerHome = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [postedJobs, setPostedJobs] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
+  const { myJobs, applications, loading, error } = useJobs();
 
-  useEffect(() => {
-    // Load posted jobs from localStorage or mock data
-    const storedJobs = JSON.parse(localStorage.getItem('fyke_posted_jobs') || '[]');
-    if (storedJobs.length > 0) {
-      setPostedJobs(storedJobs);
-    } else {
-      // Use mock data for demo
-      const employerJobs = Object.values(mockJobs).flat().slice(0, 3);
-      setPostedJobs(employerJobs);
-    }
+  if (error) {
+    return <div className="text-center py-10 text-red-500">{error}</div>;
+  }
 
-    // Load applications for employer's jobs
-    const allApplications = JSON.parse(localStorage.getItem('fyke_applications') || '[]');
-    setApplications(allApplications);
-  }, []);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -38,13 +28,11 @@ const EmployerHome = () => {
   };
 
   const getTotalApplications = () => {
-    return applications.filter(app => 
-      postedJobs.some(job => job.id === app.jobId)
-    ).length;
+    return applications.length;
   };
 
   const getActiveJobs = () => {
-    return postedJobs.filter(job => job.status !== 'closed').length;
+    return myJobs.filter(job => job.status !== 'closed').length;
   };
 
   return (
@@ -107,7 +95,7 @@ const EmployerHome = () => {
               size="sm"
               onClick={() => navigate('/my-jobs')}
             >
-              View All
+              {t('common.view_all', 'View All')}
             </Button>
           </div>
           
@@ -115,12 +103,12 @@ const EmployerHome = () => {
             {applications.slice(0, 3).map((application) => (
               <div key={application.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="font-medium text-gray-900">{application.jobTitle}</div>
-                  <div className="text-sm text-gray-500">Applied {new Date(application.appliedAt).toLocaleDateString()}</div>
+                  <div className="font-medium text-gray-900">{myJobs.find(job => job.id === application.job_id)?.title}</div>
+                  <div className="text-sm text-gray-500">Applied {new Date(application.created_at).toLocaleDateString()}</div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline">{application.status}</Badge>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" aria-label="Open chat">
                     <MessageCircle className="w-4 h-4" />
                   </Button>
                 </div>
@@ -144,7 +132,7 @@ const EmployerHome = () => {
         </div>
         
         <div className="space-y-4">
-          {postedJobs.slice(0, 3).map((job) => (
+          {myJobs.slice(0, 3).map((job) => (
             <Card key={job.id} className="p-4">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
@@ -154,20 +142,20 @@ const EmployerHome = () => {
                       <Briefcase className="w-3 h-3" />
                       <span>{job.category || 'General'}</span>
                     </span>
-                    <span>Posted {job.postedTime || 'recently'}</span>
+                    <span>Posted {new Date(job.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant={job.urgent ? "destructive" : "secondary"} className="text-xs">
                       {job.urgent ? 'Urgent' : 'Regular'}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {applications.filter(app => app.jobId === job.id).length} applications
+                      {applications.filter(app => app.job_id === job.id).length} applications
                     </Badge>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-green-600">₹{job.salary}</div>
-                  <div className="text-xs text-gray-500">per {job.salaryPeriod || 'day'}</div>
+                  <div className="text-xs text-gray-500">per {job.salary_period || 'day'}</div>
                 </div>
               </div>
               

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Job, JobApplication, Rating } from '@/types/job';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface JobContextType {
   jobs: Job[];
@@ -10,6 +11,7 @@ interface JobContextType {
   applications: JobApplication[];
   pendingRatings: Job[];
   loading: boolean;
+  error: string | null;
   applyToJob: (jobId: string, message?: string) => Promise<{ success: boolean; error?: string }>;
   acceptApplication: (jobId: string, applicantId: string) => Promise<{ success: boolean; error?: string }>;
   finishJob: (jobId: string) => Promise<{ success: boolean; error?: string }>;
@@ -30,46 +32,13 @@ export const useJobs = () => {
 
 export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { trackEvent } = useAnalytics();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [myJobs, setMyJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [pendingRatings, setPendingRatings] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Mock data for now - will be replaced with Supabase integration
-  const mockJobs: Job[] = [
-    {
-      id: '1',
-      title: 'Construction Worker Needed',
-      description: 'Looking for experienced construction worker for residential project.',
-      category: 'Construction',
-      employer_id: 'emp1',
-      employer_name: 'ABC Construction',
-      location: 'Mumbai, Maharashtra',
-      salary: '800',
-      salary_period: 'day',
-      status: 'posted',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      urgent: true,
-      total_positions: 5
-    },
-    {
-      id: '2',
-      title: 'Delivery Driver Required',
-      description: 'Fast delivery driver needed for food delivery service.',
-      category: 'Delivery',
-      employer_id: 'emp2',
-      employer_name: 'Quick Foods',
-      location: 'Bangalore, Karnataka',
-      salary: '600',
-      salary_period: 'day',
-      status: 'posted',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      total_positions: 3
-    }
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -80,71 +49,160 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loadJobs = async () => {
     try {
       setLoading(true);
-      // For now using mock data - replace with Supabase calls
-      setJobs(mockJobs);
+      setError(null);
       
-      if (user?.role === 'employer') {
-        setMyJobs(mockJobs.filter(job => job.employer_id === user.id));
-      } else {
-        setMyJobs(mockJobs.filter(job => job.applicant_id === user.id));
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('*');
+
+      if (jobsError) {
+        console.error('Error loading jobs:', jobsError);
+        setJobs([]);
+        setError('Failed to load job data. Please check your connection.');
+        return;
       }
+
+      setJobs(jobsData as Job[] || []);
       
-      // Check for pending ratings
-      const completedJobs = mockJobs.filter(job => 
-        job.status === 'completed' && 
-        (job.employer_id === user.id || job.applicant_id === user.id) &&
-        (!job.rating_employer || !job.rating_worker)
-      );
-      setPendingRatings(completedJobs);
+      if (user) {
+        if (user.role === 'employer') {
+          const { data: myJobsData, error: myJobsError } = await supabase
+            .from('jobs')
+            .select('*')
+            .eq('employer_id', user.id);
+
+          if (myJobsError) {
+            console.error('Error loading my jobs:', myJobsError);
+            setMyJobs([]);
+          } else {
+            setMyJobs(myJobsData as Job[] || []);
+            const myJobIds = myJobsData.map(job => job.id);
+            if (myJobIds.length > 0) {
+                const { data: applicationsData, error: applicationsError } = await supabase
+                    .from('applications')
+                    .select('*')
+                    .in('job_id', myJobIds);
+
+                if (applicationsError) {
+                    console.error('Error fetching applications for employer:', applicationsError);
+                    setApplications([]);
+                } else {
+                    setApplications(applicationsData || []);
+                }
+            } else {
+                setApplications([]);
+            }
+          }
+        } else {
+          // Job seeker 'myJobs' logic to be implemented next
+          setMyJobs([]);
+          const { data: applicationsData, error: applicationsError } = await supabase
+            .from('applications')
+            .select('*')
+            .eq('applicant_id', user.id);
+
+          if (applicationsError) {
+              console.error('Error fetching applications:', applicationsError);
+              setApplications([]);
+          } else {
+              setApplications(applicationsData || []);
+          }
+        }
+      }
+
+      // Temporarily disable pending ratings
+      // setPendingRatings([]);
       
     } catch (error) {
-      console.error('Error loading jobs:', error);
+      console.error('Error in loadJobs:', error);
+      setJobs([]);
+      setMyJobs([]);
+      setError('Failed to load job data. Please check your connection.');
     } finally {
       setLoading(false);
     }
   };
 
   const applyToJob = async (jobId: string, message?: string): Promise<{ success: boolean; error?: string }> => {
-    if (!user) return { success: false, error: 'Not authenticated' };
+    if (!user) {
+      console.error('Apply to job failed: User not authenticated');
+      return { success: false, error: 'Not authenticated' };
+    }
+    if (user.role !== 'jobseeker') {
+      console.error('Apply to job failed: Only job seekers can apply');
+      return { success: false, error: 'Only job seekers can apply for jobs.' };
+    }
     
     try {
-      // Mock implementation - replace with Supabase
-      const application: JobApplication = {
-        id: Date.now().toString(),
-        job_id: jobId,
-        applicant_id: user.id,
-        status: 'pending',
-        applied_at: new Date().toISOString(),
-        message
-      };
-      
-      setApplications(prev => [...prev, application]);
+      const { error } = await supabase
+        .from('applications')
+        .insert({
+          job_id: jobId,
+          applicant_id: user.id,
+          status: 'pending', // default status
+          cover_letter: message,
+        });
+
+      if (error) {
+        console.error('Error applying to job:', error);
+        return { success: false, error: error.message };
+      }
+
+      // Refresh the jobs list to include the new application in "My Jobs"
+      trackEvent('job_application_sent', { jobId: jobId });
+      await loadJobs();
+
       return { success: true };
+
     } catch (error) {
-      return { success: false, error: 'Failed to apply to job' };
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error('Exception when applying to job:', errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
   const acceptApplication = async (jobId: string, applicantId: string): Promise<{ success: boolean; error?: string }> => {
-    if (!user) return { success: false, error: 'Not authenticated' };
+    if (!user || user.role !== 'employer') {
+      return { success: false, error: 'Only employers can accept applications.' };
+    }
     
     try {
-      // Update job status to accepted
-      setJobs(prev => prev.map(job => 
-        job.id === jobId 
-          ? { ...job, status: 'accepted' as const, applicant_id: applicantId, accepted_at: new Date().toISOString() }
-          : job
-      ));
+      // Step 1: Update the application status
+      const { error: applicationError } = await supabase
+        .from('applications')
+        .update({ status: 'accepted' })
+        .eq('job_id', jobId)
+        .eq('applicant_id', applicantId);
+
+      if (applicationError) {
+        console.error('Error accepting application:', applicationError);
+        return { success: false, error: applicationError.message };
+      }
+
+      // Step 2: Update the job status to 'filled'
+      const { error: jobError } = await supabase
+        .from('jobs')
+        .update({ status: 'filled', filled_at: new Date().toISOString() })
+        .eq('id', jobId);
+
+      if (jobError) {
+        // Note: At this point, the application is accepted but the job status failed to update.
+        // This might require a more complex transaction or cleanup logic in a real-world scenario.
+        // For now, we'll report the error and proceed.
+        console.error('Error updating job status to filled:', jobError);
+        return { success: false, error: jobError.message };
+      }
       
-      setMyJobs(prev => prev.map(job => 
-        job.id === jobId 
-          ? { ...job, status: 'accepted' as const, applicant_id: applicantId, accepted_at: new Date().toISOString() }
-          : job
-      ));
-      
+      // Refresh data to reflect the changes
+      trackEvent('job_application_accepted', { jobId: jobId, applicantId: applicantId });
+      await loadJobs();
+
       return { success: true };
+
     } catch (error) {
-      return { success: false, error: 'Failed to accept application' };
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error('Exception when accepting application:', errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -233,6 +291,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       applications,
       pendingRatings,
       loading,
+      error,
       applyToJob,
       acceptApplication,
       finishJob,

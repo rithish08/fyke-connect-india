@@ -139,6 +139,7 @@ const OTPVerification = () => {
                   value={otp}
                   onChange={setOtp}
                   onComplete={handleOTPComplete}
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -163,7 +164,8 @@ const OTPVerification = () => {
               ) : (
                 <button
                   onClick={handleResend}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
+                  disabled={loading || resendTimer > 0}
                 >
                   {t('auth.resend_otp', 'Resend OTP')}
                 </button>

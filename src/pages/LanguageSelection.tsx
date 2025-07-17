@@ -17,16 +17,15 @@ const LanguageSelection = () => {
 
   const handleLanguageSelect = (langCode: string) => {
     setSelectedLanguage(langCode);
+    setLanguage(langCode); // Apply the language immediately
     const selectedLang = supportedLanguages.find(lang => lang.code === langCode);
     if (selectedLang) {
       announceMessage(`Selected ${selectedLang.nativeName}`);
     }
-  };
-
-  const handleContinue = () => {
-    setLanguage(selectedLanguage);
-    announceMessage(t('language.continuing', 'Continuing with selected language'));
-    navigate('/login');
+    // Navigate after a short delay to allow UI to show feedback
+    setTimeout(() => {
+        navigate('/login');
+    }, 300);
   };
 
   return (
@@ -83,15 +82,6 @@ const LanguageSelection = () => {
             ))}
           </div>
 
-          {/* Continue Button */}
-          <Button 
-            onClick={handleContinue}
-            className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg"
-            aria-label={t('language.continue', 'Continue with selected language')}
-          >
-            <span>{t('language.continue', 'Continue')}</span>
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
 
           {/* Accessibility Notice */}
           <div className="text-center">
