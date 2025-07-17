@@ -254,36 +254,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const sendOTP = async (phone: string): Promise<{ error: unknown, testBypass?: boolean }> => {
-    console.log('[sendOTP] called with phone:', phone, 'REACT_APP_TEST_MODE:', process.env.REACT_APP_TEST_MODE);
-    if (process.env.REACT_APP_TEST_MODE === 'true') {
-      const testPhones = ['7777777777', '8888888888', '9999999999'];
-      const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
-      console.log('[sendOTP] normalizedPhone:', normalizedPhone, 'testPhones:', testPhones);
-      if (testPhones.includes(normalizedPhone)) {
-        console.log('[sendOTP] Test bypass TRIGGERED for', normalizedPhone);
-        logger.warn('Test-only OTP send bypass: showing OTP input immediately for', phone);
-        setConfirmationResult(null);
-        return { error: null, testBypass: true };
-      } else {
-        console.log('[sendOTP] Test bypass NOT triggered for', normalizedPhone);
-      }
+    console.log('[sendOTP] called with phone:', phone);
+    
+    // Test mode bypass for specific test numbers
+    const testPhones = ['7777777777', '8888888888', '9999999999'];
+    const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
+    console.log('[sendOTP] normalizedPhone:', normalizedPhone, 'testPhones:', testPhones);
+    
+    if (testPhones.includes(normalizedPhone)) {
+      console.log('[sendOTP] Test bypass TRIGGERED for', normalizedPhone);
+      logger.warn('Test-only OTP send bypass: showing OTP input immediately for', phone);
+      setConfirmationResult(null);
+      return { error: null, testBypass: true };
     }
+    
     try {
       logger.info('Sending OTP to:', phone);
       
       // Format phone number for India (+91)
       const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
       
-      // In web environment, we need to set up recaptcha
-      if (process.env.REACT_APP_TEST_MODE !== 'true') {
-        if (!window.recaptchaVerifier) {
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-            callback: () => {
-              logger.info('Recaptcha resolved');
-            }
-          });
-        }
+      // Set up recaptcha for production Firebase auth
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'invisible',
+          callback: () => {
+            logger.info('Recaptcha resolved');
+          },
+          'expired-callback': () => {
+            logger.warn('Recaptcha expired');
+            window.recaptchaVerifier = null;
+          }
+        });
       }
 
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
@@ -303,43 +305,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyOTP = async (phone: string, otp: string): Promise<{ error: unknown }> => {
-    if (process.env.REACT_APP_TEST_MODE === 'true') {
-      const testPairs = [
-        { phone: '+917777777777', otp: '333333', uid: 'test-uid-77777' },
-        { phone: '+918888888888', otp: '111111', uid: 'test-uid-88888' },
-        { phone: '+919999999999', otp: '222222', uid: 'test-uid-99999' }
-      ];
-      const match = testPairs.find(pair => phone.replace(/\s+/g, '') === pair.phone && otp === pair.otp);
-      if (match) {
-        logger.warn('Test-only OTP bypass: accepted', phone, otp);
-        setConfirmationResult(null);
-        // Simulate Firebase login
-        const mockFirebaseUser = {
-          uid: match.uid,
-          phoneNumber: match.phone,
-          email: '',
-          displayName: '',
-          photoURL: '',
-          emailVerified: true,
-          isAnonymous: false,
-          providerData: [],
-          getIdToken: async () => 'test-token',
-          getIdTokenResult: async () => ({ token: 'test-token' }),
-          reload: async () => {},
-          delete: async () => {},
-          toJSON: () => ({}),
-          metadata: {},
-          providerId: 'firebase',
-          refreshToken: '',
-        };
-        await handleFirebaseUser(mockFirebaseUser as User);
-        logger.info('[verifyOTP] Test bypass: called handleFirebaseUser for', match.phone);
-        if (process.env.REACT_APP_TEST_MODE === 'true' && typeof window !== 'undefined') {
-          window.location.assign('/role-selection');
-        }
-        return { error: null };
-      }
+    // Test mode bypass for specific test numbers
+    const testPairs = [
+      { phone: '+917777777777', otp: '333333', uid: 'test-uid-77777' },
+      { phone: '+918888888888', otp: '111111', uid: 'test-uid-88888' },
+      { phone: '+919999999999', otp: '222222', uid: 'test-uid-99999' }
+    ];
+    
+    const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
+    const match = testPairs.find(pair => formattedPhone === pair.phone && otp === pair.otp);
+    
+    if (match) {
+      logger.warn('Test-only OTP bypass: accepted', phone, otp);
+      setConfirmationResult(null);
+      // Simulate Firebase login
+      const mockFirebaseUser = {
+        uid: match.uid,
+        phoneNumber: match.phone,
+        email: '',
+        displayName: '',
+        photoURL: '',
+        emailVerified: true,
+        isAnonymous: false,
+        providerData: [],
+        getIdToken: async () => 'test-token',
+        getIdTokenResult: async () => ({ token: 'test-token' }),
+        reload: async () => {},
+        delete: async () => {},
+        toJSON: () => ({}),
+        metadata: {},
+        providerId: 'firebase',
+        refreshToken: '',
+      };
+      await handleFirebaseUser(mockFirebaseUser as User);
+      logger.info('[verifyOTP] Test bypass: called handleFirebaseUser for', match.phone);
+      return { error: null };
     }
+    
     try {
       logger.info('Verifying OTP for:', phone);
       if (!confirmationResult) {

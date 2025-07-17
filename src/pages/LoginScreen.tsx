@@ -51,9 +51,6 @@ const LoginScreen = () => {
     setLoading(true);
     try {
       const { error, testBypass } = await sendOTP(phone);
-      if (testBypass) {
-        setShowOTP(true);
-      }
       
       if (error) {
         toast({
@@ -66,11 +63,21 @@ const LoginScreen = () => {
         return;
       }
 
+      // Show OTP input for both test bypass and successful OTP send
+      setShowOTP(true);
       setResendTimer(60);
-      toast({
-        title: t('login.otpSentTitle', 'OTP Sent'),
-        description: t('login.otpSentDesc', 'Verification code sent to +91 {0}', [phone])
-      });
+      
+      if (testBypass) {
+        toast({
+          title: t('login.testModeTitle', 'Test Mode'),
+          description: t('login.testModeDesc', 'Test number detected. Use test OTP to continue.')
+        });
+      } else {
+        toast({
+          title: t('login.otpSentTitle', 'OTP Sent'),
+          description: t('login.otpSentDesc', 'Verification code sent to +91 {0}', [phone])
+        });
+      }
       try { await Haptics.notification({ type: NotificationType.Success }); } catch (e) { /* ignore */ }
     } catch (error) {
       toast({
@@ -99,7 +106,8 @@ const LoginScreen = () => {
     
     setLoading(true);
     try {
-      const { error } = await verifyOTP(phone, otpCode);
+      const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
+      const { error } = await verifyOTP(formattedPhone, otpCode);
       
       if (error) {
         toast({
@@ -179,6 +187,12 @@ const LoginScreen = () => {
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <p className="text-sm text-gray-500">Code will be verified automatically</p>
                 </div>
+                {/* Test mode hint */}
+                {['7777777777', '8888888888', '9999999999'].includes(phone) && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    Test Mode: Use OTP {phone === '7777777777' ? '333333' : phone === '8888888888' ? '111111' : '222222'}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-between items-center">
@@ -240,6 +254,7 @@ const LoginScreen = () => {
                 value={phone} 
                 onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
                 className="pl-12 h-14 text-lg border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                maxLength={10}
               />
             </div>
             
@@ -251,6 +266,15 @@ const LoginScreen = () => {
             >
               {loading ? t('login.sending', 'Sending...') : t('login.sendOtp', 'Send OTP')}
             </Button>
+            
+            {/* Test mode hint */}
+            {['7777777777', '8888888888', '9999999999'].includes(phone) && (
+              <div className="text-center">
+                <p className="text-xs text-blue-600">
+                  🧪 Test Mode: This number will use test OTP
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="text-center">
@@ -260,6 +284,9 @@ const LoginScreen = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Recaptcha container for Firebase Auth */}
+      <div id="recaptcha-container"></div>
     </div>
   );
 };
