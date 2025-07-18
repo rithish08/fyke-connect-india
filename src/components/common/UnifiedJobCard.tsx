@@ -70,10 +70,10 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({
           const areaName = await getAreaFromCoordinates(coords.lat, coords.lng);
           setLocationDisplay(areaName);
           // Calculate distance if user has coordinates
-          if (user?.location_lat && user?.location_lng) {
+          if (user?.latitude && user?.longitude) {
             const { meters, kilometers } = calculateDistance(
-              user.location_lat,
-              user.location_lng,
+              user.latitude,
+              user.longitude,
               coords.lat,
               coords.lng
             );

@@ -40,14 +40,14 @@ const UnifiedWorkerCard: React.FC<UnifiedWorkerCardProps> = ({
   const { user } = useAuth();
   let distanceText = '';
   if (
-    user?.location_lat && user?.location_lng &&
-    worker.location_lat && worker.location_lng
+    user?.latitude && user?.longitude &&
+    worker.latitude && worker.longitude
   ) {
     const { meters, kilometers } = calculateDistance(
-      user.location_lat,
-      user.location_lng,
-      worker.location_lat,
-      worker.location_lng
+      user.latitude,
+      user.longitude,
+      worker.latitude,
+      worker.longitude
     );
     distanceText = kilometers < 1
       ? `${Math.round(meters)} meters away`

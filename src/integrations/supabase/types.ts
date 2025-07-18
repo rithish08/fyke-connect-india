@@ -204,6 +204,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          active: boolean | null
           category_id: string | null
           created_at: string | null
           description: string | null
@@ -221,6 +222,7 @@ export type Database = {
           urgent: boolean | null
         }
         Insert: {
+          active?: boolean | null
           category_id?: string | null
           created_at?: string | null
           description?: string | null
@@ -238,6 +240,7 @@ export type Database = {
           urgent?: boolean | null
         }
         Update: {
+          active?: boolean | null
           category_id?: string | null
           created_at?: string | null
           description?: string | null
@@ -649,6 +652,30 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       verification_requests: {
         Row: {
           admin_notes: string | null
@@ -737,11 +764,77 @@ export type Database = {
           },
         ]
       }
+      workers: {
+        Row: {
+          active: boolean | null
+          category_id: string
+          created_at: string | null
+          experience_years: number | null
+          hourly_rate: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          skills: string[] | null
+          subcategory_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          category_id: string
+          created_at?: string | null
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          skills?: string[] | null
+          subcategory_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          category_id?: string
+          created_at?: string | null
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          skills?: string[] | null
+          subcategory_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      create_system_notification: {
+        Args: {
+          target_user_id: string
+          notification_type: string
+          notification_title: string
+          notification_message: string
+          notification_data?: Json
+        }
+        Returns: string
+      }
       get_recommended_jobs: {
         Args: { p_user_id: string }
         Returns: {
