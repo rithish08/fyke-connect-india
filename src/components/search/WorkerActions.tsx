@@ -44,7 +44,7 @@ const WorkerActions: React.FC<WorkerActionsProps> = ({
 
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate('/messages', {
+    navigate('/requests', {
       state: {
         workerId: id,
         workerName: name,

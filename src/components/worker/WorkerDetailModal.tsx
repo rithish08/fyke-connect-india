@@ -59,7 +59,7 @@ const WorkerDetailModal: React.FC<WorkerDetailModalProps> = ({
 
   const handleMessage = () => {
     onClose();
-    navigate('/messages', { state: { workerId: worker.id, workerName: worker.name } });
+    navigate('/requests', { state: { workerId: worker.id, workerName: worker.name } });
   };
 
   const getVerificationBadge = () => {

@@ -17,7 +17,7 @@ import HomePage from '@/pages/HomePage';
 import JobSearch from '@/pages/JobSearch';
 import MyJobs from '@/pages/MyJobs';
 import Profile from '@/pages/Profile';
-import Messaging from '@/pages/Messaging';
+import RequestsPage from './pages/Requests';
 import Notifications from '@/pages/Notifications';
 import PostJob from '@/pages/PostJob';
 import JobDetails from '@/pages/JobDetails';
@@ -28,6 +28,7 @@ import { useState } from 'react';
 import { CommunicationProvider } from '@/contexts/CommunicationContext';
 import { ServiceInitializer } from '@/services/ServiceInitializer';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import BottomNavigation from '@/components/BottomNavigation';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,109 +56,112 @@ function App() {
                     {showSplash ? (
                       <SplashScreen onComplete={() => setShowSplash(false)} />
                     ) : (
-                    <Routes>
-                      <Route path="/language" element={<LanguageSelection />} />
-                      <Route path="/login" element={<LoginScreen />} />
-                      <Route path="/otp-verification" element={<OTPVerification />} />
-                      <Route
-                        path="/role-selection"
-                        element={
-                          <RouteGuard>
-                            <RoleSelection />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/profile-setup"
-                        element={
-                          <RouteGuard>
-                            <ProfileSetup />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/home"
-                        element={
-                          <RouteGuard>
-                            <HomePage />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/search"
-                        element={
-                          <RouteGuard>
-                            <JobSearch />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/my-jobs"
-                        element={
-                          <RouteGuard>
-                            <MyJobs />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/profile"
-                        element={
-                          <RouteGuard>
-                            <Profile />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/messages"
-                        element={
-                          <RouteGuard>
-                            <Messaging />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/notifications"
-                        element={
-                          <RouteGuard>
-                            <Notifications />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/post-job"
-                        element={
-                          <RouteGuard>
-                            <PostJob />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/job/:id"
-                        element={
-                          <RouteGuard>
-                            <JobDetails />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/worker/:id"
-                        element={
-                          <RouteGuard>
-                            <WorkerProfile />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route
-                        path="/edit-job/:id"
-                        element={
-                          <RouteGuard>
-                            <EditJob />
-                          </RouteGuard>
-                        }
-                      />
-                      <Route path="/" element={<LanguageSelection />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <>
+                      <Routes>
+                        <Route path="/language" element={<LanguageSelection />} />
+                        <Route path="/login" element={<LoginScreen />} />
+                        <Route path="/otp-verification" element={<OTPVerification />} />
+                        <Route
+                          path="/role-selection"
+                          element={
+                            <RouteGuard>
+                              <RoleSelection />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/profile-setup"
+                          element={
+                            <RouteGuard>
+                              <ProfileSetup />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/home"
+                          element={
+                            <RouteGuard>
+                              <HomePage />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/search"
+                          element={
+                            <RouteGuard>
+                              <JobSearch />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/my-jobs"
+                          element={
+                            <RouteGuard>
+                              <MyJobs />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/profile"
+                          element={
+                            <RouteGuard>
+                              <Profile />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/requests"
+                          element={
+                            <RouteGuard>
+                              <RequestsPage />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/notifications"
+                          element={
+                            <RouteGuard>
+                              <Notifications />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/post-job"
+                          element={
+                            <RouteGuard>
+                              <PostJob />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/job/:id"
+                          element={
+                            <RouteGuard>
+                              <JobDetails />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/worker/:id"
+                          element={
+                            <RouteGuard>
+                              <WorkerProfile />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route
+                          path="/edit-job/:id"
+                          element={
+                            <RouteGuard>
+                              <EditJob />
+                            </RouteGuard>
+                          }
+                        />
+                        <Route path="/" element={<LanguageSelection />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                      <BottomNavigation />
+                    </>
                     )}
                     <Toaster />
                     <RatingBlocker />

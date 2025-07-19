@@ -12,7 +12,7 @@ const EMPLOYER_NAV = [
   { path: '/home', icon: Home, labelKey: 'nav.home', label: 'Home' },
   { path: '/search', icon: Users, labelKey: 'nav.workers', label: 'Workers' },
   { path: '/my-jobs', icon: ClipboardList, labelKey: 'nav.posts', label: 'My Posts' },
-  { path: '/messages', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
+  { path: '/requests', icon: Mail, labelKey: 'nav.requests', label: 'Requests' },
   { path: '/profile', icon: UserIcon, labelKey: 'nav.profile', label: 'Profile' }
 ];
 
@@ -20,7 +20,7 @@ const JOBSEEKER_NAV = [
   { path: '/home', icon: Home, labelKey: 'nav.home', label: 'Home' },
   { path: '/search', icon: Search, labelKey: 'nav.jobs', label: 'Jobs' },
   { path: '/my-jobs', icon: ClipboardList, labelKey: 'nav.myjobs', label: 'My Jobs' },
-  { path: '/messages', icon: Mail, labelKey: 'nav.messages', label: 'Messages' },
+  { path: '/requests', icon: Mail, labelKey: 'nav.requests', label: 'Requests' },
   { path: '/profile', icon: UserIcon, labelKey: 'nav.profile', label: 'Profile' }
 ];
 
@@ -40,8 +40,14 @@ const BottomNavigation = () => {
 
   // Don't show on setup/onboarding screens
   const hiddenPaths = ['/', '/login', '/otp-verification', '/role-selection', '/profile-setup'];
-  if (hiddenPaths.includes(location.pathname)) {
+  if (hiddenPaths.some(path => location.pathname === path || location.pathname.startsWith(path + '/'))) {
     return null;
+  }
+
+  // Debug log for user/role
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[BottomNavigation] user:', user, 'role:', user?.role, 'pathname:', location.pathname);
   }
 
   // Only show if user is authenticated and has a role

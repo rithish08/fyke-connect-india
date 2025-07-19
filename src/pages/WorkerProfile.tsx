@@ -90,7 +90,7 @@ const WorkerProfile = () => {
   };
 
   const handleMessage = () => {
-    navigate('/messages', { state: { workerId: worker.id, workerName: worker.name } });
+    navigate('/requests', { state: { workerId: worker.id, workerName: worker.name } });
   };
 
   const handleCall = () => {

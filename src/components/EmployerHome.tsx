@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Briefcase, MessageCircle, TrendingUp, AlertCircle } from 'lucide-react';
 import { useLocalization } from '@/contexts/LocalizationContext';
-import { NearbyWorkersSection } from './employer/NearbyWorkersSection';
+import { RequestedProfilesSection } from './employer/NearbyWorkersSection';
 import { useEmployerJobs } from '@/hooks/useEmployerJobs';
 import { useEmployerApplications } from '@/hooks/useEmployerApplications';
 import { Skeleton } from './ui/skeleton';
@@ -14,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { AdCarousel } from './home/AdCarousel';
 import { HomeGreeting } from './home/HomeGreeting';
 import UnifiedJobCard from './common/UnifiedJobCard';
+import { useRequests } from '@/hooks/useRequests';
 
 const EmployerHome = () => {
   const { user } = useAuth();
@@ -21,6 +22,8 @@ const EmployerHome = () => {
   const { t } = useLocalization();
   const { postedJobs, loading: jobsLoading, error: jobsError } = useEmployerJobs();
   const { applications, loading: appsLoading, error: appsError } = useEmployerApplications();
+  const { sentPending, receivedPending, accepted, rejected } = useRequests();
+  const requestsCount = sentPending.length + receivedPending.length + accepted.length + rejected.length;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -82,13 +85,12 @@ const EmployerHome = () => {
           <div className="text-2xl font-bold text-green-600">{getTotalApplicationsCount()}</div>
           <div className="text-sm text-gray-500">{t('home.applications', 'Applications')}</div>
         </Card>
-        <Card className="p-5 text-center rounded-xl">
-          <div className="text-2xl font-bold text-orange-600">{getInterviewCount()}</div>
-          <div className="text-sm text-gray-500">{t('home.interviews', 'Interviews')}</div>
+        <Card className="p-5 text-center rounded-md flex flex-col items-center justify-center">
+          <div className="text-2xl font-bold text-orange-600">{requestsCount}</div>
+          <div className="text-sm text-gray-500 mb-2">Requests</div>
+          <Button onClick={() => navigate('/requests')} className="w-full mt-2 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-900">View</Button>
         </Card>
       </div>
-
-      <NearbyWorkersSection />
 
       {/* Recent Applications */}
       <Card className="p-5 rounded-xl">
