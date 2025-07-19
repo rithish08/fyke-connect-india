@@ -85,7 +85,7 @@ const JobSeekerJobCard: React.FC<JobSeekerJobCardProps> = ({ job }) => {
 
   const handleCommunication = (type: 'chat' | 'call') => {
     if (type === 'chat') {
-      goTo('/messages');
+      goTo('/requests');
     } else if (type === 'call') {
       if (job.phone) {
         window.location.href = `tel:${job.phone}`;

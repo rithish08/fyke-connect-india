@@ -24,12 +24,13 @@ export const useWorkers = (categoryId?: string, subcategoryName?: string) => {
         .eq('role', 'jobseeker')
         .neq('id', user.id); // Exclude the employer themselves
 
-      if (categoryId) {
-        query = query.contains('categories', [categoryId]);
-      }
-      if (subcategoryName) {
-        query = query.contains('skills', [subcategoryName]);
-      }
+      // TEMP: Relax filters for debugging
+      // if (categoryId) {
+      //   query = query.contains('categories', [categoryId]);
+      // }
+      // if (subcategoryName) {
+      //   query = query.contains('skills', [subcategoryName]);
+      // }
       query = query.limit(20); // Limit for performance
 
       const { data, error: fetchError } = await query;
@@ -38,6 +39,7 @@ export const useWorkers = (categoryId?: string, subcategoryName?: string) => {
         throw fetchError;
       }
 
+      console.log('Fetched workers:', data);
       setWorkers(data || []);
     } catch (err: any) {
       console.error('Error fetching workers:', err);

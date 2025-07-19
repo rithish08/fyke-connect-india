@@ -12,6 +12,7 @@ import UnifiedJobCard from './common/UnifiedJobCard';
 import { HomeGreeting } from './home/HomeGreeting';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import WagesPopup from '@/components/profile/setup/WagesPopup';
+import { useRequests } from '@/hooks/useRequests';
 
 type AvailabilityStatus = 'available' | 'busy' | 'offline';
 
@@ -22,6 +23,8 @@ const JobSeekerHome = () => {
   const { jobs, loading: jobsLoading, error: jobsError } = useJobSeekerJobs();
   const navigate = useNavigate();
   const [showWagesPopup, setShowWagesPopup] = React.useState(false);
+  const { sentPending, receivedPending, accepted, rejected } = useRequests();
+  const requestsCount = sentPending.length + receivedPending.length + accepted.length + rejected.length;
 
   const appliedJobIds = applications.map(app => app.job_id);
 
@@ -145,6 +148,15 @@ const JobSeekerHome = () => {
               <p className="text-sm text-gray-500 mt-2">{t('home.noJobsHint', 'Try broadening your search criteria or check back later.')}</p>
             </Card>
           )}
+        </div>
+      </div>
+
+      {/* Requests Box */}
+      <div className="flex justify-center mt-2 mb-4">
+        <div className="w-[320px] bg-white border-2 border-blue-100 rounded-md shadow p-4 flex flex-col items-center">
+          <div className="text-lg font-bold text-blue-600">{requestsCount}</div>
+          <div className="text-sm text-gray-500 mb-2">Requests</div>
+          <Button onClick={() => navigate('/requests')} className="w-full mt-2 bg-black text-white px-4 py-2 rounded-md font-bold hover:bg-gray-900">View</Button>
         </div>
       </div>
     </div>

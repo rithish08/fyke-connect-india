@@ -114,7 +114,7 @@ const JobDetails = () => {
 
   const handleChat = () => {
     if (!job) return;
-    navigate(`/messages?conversationId=new&participantId=${job.employer_id}`);
+    navigate(`/requests?conversationId=new&participantId=${job.employer_id}`);
   };
 
   const handleBookmark = () => {

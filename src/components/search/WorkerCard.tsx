@@ -1,116 +1,75 @@
-import React, { useState } from 'react';
-import { ModernCard } from '@/components/ui/modern-card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Shield, Briefcase } from 'lucide-react';
-import WorkerProfileModal from '@/components/modals/WorkerProfileModal';
-import { Profile } from '@/hooks/useWorkers';
-import { useLocalization } from '@/contexts/LocalizationContext';
+import React, { useState } from "react";
 
 interface WorkerCardProps {
-  worker: Profile;
+  worker: {
+    id: string;
+    name: string;
+    profile_photo?: string;
+    category?: string;
+    subcategory?: string;
+    rating?: number;
+    hourly_rate?: number;
+    distance?: string;
+    availability?: string;
+  };
+  onRequest?: () => void;
+  onMessage?: () => void;
+  requestState?: "none" | "requested";
 }
 
-const WorkerCard = ({ worker }: WorkerCardProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { t } = useLocalization();
-
-  const availabilityColor: { [key: string]: string } = {
-    available: 'bg-green-400',
-    busy: 'bg-yellow-400',
-    offline: 'bg-gray-300',
-  };
-
-  const availabilityText: { [key: string]: string } = {
-    available: t('worker.available', 'Available'),
-    busy: t('worker.busy', 'Busy'),
-    offline: t('worker.offline', 'Offline'),
-  };
+const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onRequest, onMessage, requestState = "none" }) => {
+  const [isRequested, setIsRequested] = useState(requestState === "requested");
 
   return (
-    <>
-      <ModernCard 
-        className="p-4 hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 bg-white rounded-2xl"
-        onClick={() => setIsModalOpen(true)}
-      >
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-start space-x-4">
-            <div className="relative">
-              <Avatar className="w-16 h-16 border-2 border-white shadow-md">
-                <AvatarImage src={worker.profile_photo || undefined} alt={worker.name || 'Worker'} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-xl">
-                  {worker.name?.split(' ').map((n) => n[0]).join('') || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              {worker.verified && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
-                  <Shield className="w-3 h-3 text-white" fill="currentColor" />
-                </div>
-              )}
+    <div className="bg-white border-2 border-black shadow-lg rounded-lg p-4 max-w-md mx-auto transition-all duration-300 hover:shadow-xl flex items-center" style={{ minWidth: 350 }}>
+      {/* Profile Image */}
+      <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 mr-4 flex-shrink-0 flex items-center justify-center">
+        {worker.profile_photo ? (
+          <img src={worker.profile_photo} alt="Profile" className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-xs text-gray-400">200 × 200</span>
+        )}
+      </div>
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-gray-800">{worker.name}</h2>
+            <div className="flex items-center space-x-2 mt-0.5">
+              <span className="text-sm text-gray-600">{worker.category || "Construction"}</span>
+              <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs">{worker.subcategory || "Mason"}</div>
             </div>
-            
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-gray-900 truncate text-lg">{worker.name}</h3>
-              
-              <div className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
-                <Briefcase className="w-4 h-4 text-gray-400"/>
-                {t('worker.generalWorker', 'General Worker')}
+            <div className="flex items-center text-xs text-gray-500 space-x-2 mt-2">
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-yellow-500">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+                <span className="ml-1">{worker.rating || 4.8}</span>
               </div>
-
-              {worker.location && (
-                <div className="text-sm text-gray-500 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span>{worker.location}</span>
-                </div>
-              )}
+              <span className="text-green-500 font-bold">₹{worker.hourly_rate || 350}/hr</span>
+              <span className="text-xs text-gray-500">{worker.distance || "1.2km"}</span>
             </div>
           </div>
-
-          {/* Skills - Using placeholder since skills field doesn't exist in DB */}
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-            <Badge 
-              variant="secondary" 
-              className="text-sm px-3 py-1 bg-blue-50 text-blue-800 border-blue-100 font-normal"
-            >
-              {t('skill.general', 'General Skills')}
-            </Badge>
-            <Badge 
-              variant="secondary" 
-              className="text-sm px-3 py-1 bg-green-50 text-green-800 border-green-100 font-normal"
-            >
-              {t('skill.available', 'Available')}
-            </Badge>
-          </div>
-
-          {/* Status */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${availabilityColor[worker.availability || 'offline']}`}></div>
-              <span className={`text-sm font-semibold text-gray-700`}>
-                {availabilityText[worker.availability || 'offline']}
-              </span>
+          {/* Right Section: Availability + Request Button */}
+          <div className="flex flex-col items-end space-y-2 ml-4">
+            <div className="flex items-center space-x-1 text-xs text-gray-600 self-end mb-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span>Available</span>
             </div>
-            <Button
-              size="sm"
-              className="h-9 px-4 text-sm bg-blue-600 hover:bg-blue-700"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsModalOpen(true);
+            <button
+              className={`bg-green-500 text-white px-4 py-2 rounded-full font-bold transition-colors duration-300 ${isRequested ? "opacity-50 cursor-not-allowed" : "hover:bg-green-600"}`}
+              onClick={() => {
+                setIsRequested(true);
+                onRequest && onRequest();
               }}
+              disabled={isRequested}
             >
-              {t('worker.viewProfile', 'View Profile')}
-            </Button>
+              {isRequested ? "Requested" : "Request"}
+            </button>
           </div>
         </div>
-      </ModernCard>
-      <WorkerProfileModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        workerId={worker.id}
-      />
-    </>
+      </div>
+    </div>
   );
 };
 

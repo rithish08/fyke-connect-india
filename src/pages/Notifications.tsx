@@ -69,9 +69,9 @@ const Notifications = () => {
       case 'message':
       case 'new_message':
         if (notification.data?.conversation_id) {
-          navigate(`/messages?conversationId=${notification.data.conversation_id}`);
+          navigate(`/requests?conversationId=${notification.data.conversation_id}`);
         } else {
-          navigate('/messages');
+          navigate('/requests');
         }
         break;
       case 'profile_verified':

@@ -119,10 +119,12 @@ const QuickPostModal: React.FC<QuickPostModalProps> = ({ isOpen, onClose }) => {
       status: 'open',
     };
 
+    console.log('Posting new job:', newJob);
     try {
       const { error } = await supabase.from('jobs').insert(newJob);
 
       if (error) {
+        console.error('Error posting job:', error);
         throw error;
       }
 
@@ -130,7 +132,7 @@ const QuickPostModal: React.FC<QuickPostModalProps> = ({ isOpen, onClose }) => {
       setShowFindWorker(true);
     } catch (error) {
       const err = error as Error;
-      console.error("Error posting job:", err);
+      console.error('Error posting job (catch):', err);
       showError(t('job.postError', 'Failed to post job. Please try again.'));
     } finally {
       setIsSubmitting(false);

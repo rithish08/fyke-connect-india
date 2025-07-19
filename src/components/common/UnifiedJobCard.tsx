@@ -1,213 +1,95 @@
-import React, { useEffect, useState } from 'react';
-import { Clock, MapPin, DollarSign, User, Eye, CheckCircle, Briefcase, Edit } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useLocalization } from '@/contexts/LocalizationContext';
-import { Job } from '@/types/job';
-import { formatDistanceToNow } from 'date-fns';
-import { getAreaFromCoordinates, parsePointString, calculateDistance } from '@/utils/locationUtils';
-import { useAuth } from '@/contexts/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import React from 'react';
+// import { StarIcon, CallButton, ChatButton } from './UnifiedWorkerCard'; // If exported, otherwise copy logic
+import { Star } from 'lucide-react';
 
-interface UnifiedJobCardProps {
-  job: Job;
-  onApply?: (jobId: string) => void;
-  onViewDetails?: (jobId: string) => void;
-  onEdit?: (jobId: string) => void;
-  onWithdraw?: (jobId: string) => void;
-  hasApplied?: boolean;
-  compact?: boolean;
+function CallButton({ phone, allowCall }: { phone?: string; allowCall?: boolean }) {
+  return (
+    <button
+      className="bg-white text-black rounded-full flex items-center justify-center border border-gray-400 shadow-sm hover:bg-gray-100 transition-colors duration-200 text-sm disabled:opacity-40"
+      style={{ width: '76.54px', height: '38px', padding: '0 12px' }}
+      onClick={() => phone && allowCall && window.open(`tel:${phone}`, '_self')}
+      disabled={!allowCall || !phone}
+      aria-label="Call"
+      type="button"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 01-2.18 2A19.72 19.72 0 013 5.18 2 2 0 015 3h3a2 2 0 012 1.72c.13 1.13.37 2.23.72 3.28a2 2 0 01-.45 2.11l-1.27 1.27a16 16 0 006.6 6.6l1.27-1.27a2 2 0 012.11-.45c1.05.35 2.15.59 3.28.72A2 2 0 0122 16.92z" />
+      </svg>
+      <span>Call</span>
+    </button>
+  );
 }
 
-// Helper function to format salary
-const formatSalary = (job: Job, t: (key: string, defaultVal: string) => string) => {
-  if (job.salary_min && job.salary_max) {
-    return `₹${job.salary_min} - ₹${job.salary_max} / ${job.salary_period || 'day'}`;
-  }
-  if (job.salary_max) {
-    return `Up to ₹${job.salary_max} / ${job.salary_period || 'day'}`;
-  }
-  if (job.salary_min) {
-    return `From ₹${job.salary_min} / ${job.salary_period || 'day'}`;
-  }
-  return t('job.salaryNotDisclosed', 'Salary not disclosed');
-};
-
-// Helper function to format time
-const formatTimePosted = (postedAt: string) => {
-  try {
-    return `${formatDistanceToNow(new Date(postedAt))} ago`;
-  } catch (error) {
-    console.error("Invalid time format for job posting:", postedAt);
-    return "Recently";
-  }
-};
-
-const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({ 
-  job, 
-  onApply, 
-  onViewDetails,
-  onEdit,
-  onWithdraw,
-  hasApplied = false,
-  compact = false
-}) => {
-  const { toast } = useToast();
-  const { t } = useLocalization();
-  const { user } = useAuth();
-  const [locationDisplay, setLocationDisplay] = useState(job.location);
-  const [distanceDisplay, setDistanceDisplay] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
-  const [withdrawLoading, setWithdrawLoading] = useState(false);
-
-  useEffect(() => {
-    const processLocation = async () => {
-      const coords = parsePointString(job.location);
-      if (coords) {
-        try {
-          const areaName = await getAreaFromCoordinates(coords.lat, coords.lng);
-          setLocationDisplay(areaName);
-          // Calculate distance if user has coordinates
-          if (user?.latitude && user?.longitude) {
-            const { meters, kilometers } = calculateDistance(
-              user.latitude,
-              user.longitude,
-              coords.lat,
-              coords.lng
-            );
-            const distanceText = kilometers < 1
-              ? `${Math.round(meters)} meters away`
-              : `${kilometers.toFixed(1)} km away`;
-            setDistanceDisplay(distanceText);
-          } else {
-            setDistanceDisplay(null);
-          }
-        } catch (error) {
-          console.error("Failed to convert coordinates to area name", error);
-          setLocationDisplay(`${coords.lat.toFixed(3)}, ${coords.lng.toFixed(3)}`);
-          setDistanceDisplay(null);
+function ChatButton({ phone }: { phone?: string }) {
+  return (
+    <button
+      className="bg-white text-black rounded-full flex items-center justify-center border border-gray-400 shadow-sm hover:bg-gray-100 transition-colors duration-200 text-sm"
+      style={{ width: '76.54px', height: '38px', padding: '0 12px' }}
+      onClick={() => {
+        if (!phone) {
+          alert('Phone number not available for WhatsApp chat.');
+          return;
         }
-      }
-    };
-    if (job.location) {
-        processLocation();
-    }
-  }, [job.location, user?.location_lat, user?.location_lng]);
+        const cleaned = phone.replace(/\D/g, '').replace(/^91/, '');
+        if (cleaned.length !== 10) {
+          alert('Invalid phone number for WhatsApp chat.');
+          return;
+        }
+        const msg = encodeURIComponent('Hi, I found your job post on Fyke Connect and would like to apply.');
+        window.open(`https://wa.me/91${cleaned}?text=${msg}`, '_blank');
+      }}
+      aria-label="Chat"
+      type="button"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
+        <circle cx="12" cy="12" r="10" /><path d="M8 12h.01M12 12h.01M16 12h.01" />
+      </svg>
+      <span>Chat</span>
+    </button>
+  );
+        }
 
-  const handleApply = async () => {
-    if (hasApplied || !onApply) return;
-    setLoading(true);
-    try {
-      await onApply(job.id);
-      toast({
-        title: t('toast.applicationSubmittedTitle', 'Application Submitted!'),
-        description: t('toast.applicationSubmittedDesc', `Your application for ${job.title} has been submitted.`),
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleWithdraw = async () => {
-    if (!onWithdraw) return;
-    setWithdrawLoading(true);
-    try {
-      await onWithdraw(job.id);
-      toast({
-        title: t('job.withdrawSuccess', 'Application withdrawn.'),
-      });
-    } catch {
-      toast({
-        title: t('job.withdrawError', 'Failed to withdraw application.'),
-        variant: 'destructive',
-      });
-    } finally {
-      setWithdrawLoading(false);
-      setWithdrawDialogOpen(false);
-    }
-  };
-
-  const isOwner = user?.id === job.employer_id;
+const UnifiedJobCard = ({ job, onApply, onViewDetails, hasApplied }: any) => {
+  // Determine if subcategory should be below main category (if name is long)
+  const mainCategory = job.category || 'General';
+  const subCategory = job.subcategory || '';
+  const isSubBelow = mainCategory.length > 12 || subCategory.length > 12;
 
   return (
-    <div className={`rounded-lg shadow-sm border border-gray-100 bg-white p-4 mb-4 flex flex-col items-start gap-4 w-full max-w-full ${compact ? 'py-2 px-3' : ''}`}>
-      <div className="w-full">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className={`font-bold text-gray-900 ${compact ? 'text-base' : 'text-lg'}`}>{job.title}</h3>
-              {job.urgent && <Badge variant="destructive" className="text-xs animate-pulse">{t('job.urgent', 'Urgent')}</Badge>}
-            </div>
-            <p className="text-gray-600 flex items-center gap-1.5 text-sm">
-              <User className="w-4 h-4 text-gray-500" />
-              {job.employer?.name || job.company || 'A Reputed Company'}
-            </p>
-          </div>
+    <div className="bg-white border-2 border-black shadow-lg rounded-lg p-4 max-w-md mx-auto transition-all duration-300 hover:shadow-xl flex flex-row w-full items-center" style={{ minWidth: 320 }}>
+      {/* Left Section: Job info */}
+      <div className="flex-1 min-w-0">
+        <h2 className="text-lg font-bold text-gray-800 truncate">{job.title}</h2>
+        <div className="text-sm text-gray-600 truncate mb-1">{job.company}</div>
+        <div className={isSubBelow ? "flex flex-col items-start space-y-1 mt-0.5" : "flex items-center space-x-2 mt-0.5"}>
+          <span className="text-sm text-gray-600 truncate">{mainCategory}</span>
+          {subCategory && <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs truncate mt-0.5">{subCategory}</div>}
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1.5">
-            <Briefcase className="w-4 h-4 text-gray-500" />
-            <span>{typeof job.category === 'object' && job.category?.name ? job.category.name : t('job.uncategorized', 'Uncategorized')}</span>
+        <div className="flex items-center text-xs text-gray-500 space-x-2 mt-2">
+          {job.rating && (
+            <div className="flex items-center">
+              <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+              <span className="ml-1">{job.rating}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="w-4 h-4 text-gray-500" />
-            <span>{locationDisplay}</span>
-            {distanceDisplay && (
-              <span className="ml-2 text-xs text-blue-500 font-medium">{distanceDisplay}</span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 col-span-2 sm:col-span-1">
-            <DollarSign className="w-4 h-4 text-gray-500" />
-            <span className="font-medium text-gray-800">{formatSalary(job, t)}</span>
-          </div>
-          <div className="flex items-center gap-1.5 col-span-2 sm:col-span-1">
-            <Clock className="w-4 h-4 text-gray-500" />
-            <span>{formatTimePosted(job.posted_at || job.created_at)}</span>
-          </div>
-        </div>
-
-        {job.description && !compact && (
-          <p className="text-gray-600 text-sm line-clamp-2 mb-4">{job.description}</p>
-        )}
-
-        <div className="flex gap-3 pt-3 border-t border-gray-100 w-full">
-          {isOwner ? (
-            <Button onClick={() => onEdit?.(job.id)} className="flex-1">
-              <Edit className="w-5 h-5 mr-2" />
-              {t('job.editJob', 'Edit Job')}
-            </Button>
-          ) : hasApplied ? (
-            <>
-              <Button onClick={() => setWithdrawDialogOpen(true)} disabled={withdrawLoading} className="flex-1 bg-gray-400 text-white">
-                {withdrawLoading ? t('job.withdrawing', 'Withdrawing...') : <><CheckCircle className="w-5 h-5 mr-2" />{t('job.applied', 'Applied')}</>}
-              </Button>
-              <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{t('job.withdrawConfirmTitle', 'Withdraw Application?')}</DialogTitle>
-                    <DialogDescription>{t('job.withdrawConfirmDesc', 'Are you sure you want to withdraw your application?')}</DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                    <Button variant="destructive" onClick={handleWithdraw} disabled={withdrawLoading}>
-                      {withdrawLoading ? t('job.withdrawing', 'Withdrawing...') : t('job.withdraw', 'Withdraw')}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </>
-          ) : (
-            <Button onClick={handleApply} disabled={loading} className="flex-1">
-              {loading ? t('job.applying', 'Applying...') : t('job.applyNow', 'Apply Now')}
-            </Button>
           )}
-          <Button variant="outline" size="icon" className="w-11 h-11" onClick={() => onViewDetails?.(job.id)}>
-            <Eye className="w-5 h-5" />
-          </Button>
+          {job.salary_min && (
+            <span className="text-green-500 font-bold">₹{job.salary_min}{job.salary_max ? ` - ₹${job.salary_max}` : ''}/{job.salary_period || 'hr'}</span>
+          )}
+          {job.location && <span className="text-xs text-gray-500">{job.location}</span>}
         </div>
+      </div>
+      {/* Right Section: Actions */}
+      <div className="flex flex-col items-end justify-center space-y-2 ml-2 min-w-[7rem] pr-2">
+        <button
+          className={`bg-blue-600 text-white px-4 py-2 rounded-full font-bold transition-colors duration-300 hover:bg-blue-700 min-w-fit ${hasApplied ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={onApply}
+          disabled={hasApplied}
+          type="button"
+        >
+          {hasApplied ? 'Applied' : 'Apply'}
+        </button>
+        <ChatButton phone={job.phone} />
+        <CallButton phone={job.phone} allowCall={job.allow_call} />
       </div>
     </div>
   );
