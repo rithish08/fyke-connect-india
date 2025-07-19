@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocalizationProvider } from '@/contexts/LocalizationContext';
@@ -29,6 +30,8 @@ import { CommunicationProvider } from '@/contexts/CommunicationContext';
 import { ServiceInitializer } from '@/services/ServiceInitializer';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import BottomNavigation from '@/components/BottomNavigation';
+import SEOHead from '@/components/SEOHead';
+import PWAManifest from '@/components/PWAManifest';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,15 +46,18 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AccessibilityProvider>
-        <LocalizationProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AccessibilityProvider>
+          <LocalizationProvider>
           <AuthProvider>
             <JobProvider>
               <CommunicationProvider>
                 <ServiceInitializer>
                   <Router>
                   <ErrorBoundary>
+                  <SEOHead />
+                  <PWAManifest />
                   <div className="App min-h-screen">
                     {showSplash ? (
                       <SplashScreen onComplete={() => setShowSplash(false)} />
@@ -172,9 +178,10 @@ function App() {
               </CommunicationProvider>
             </JobProvider>
           </AuthProvider>
-        </LocalizationProvider>
-      </AccessibilityProvider>
-    </QueryClientProvider>
+          </LocalizationProvider>
+        </AccessibilityProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

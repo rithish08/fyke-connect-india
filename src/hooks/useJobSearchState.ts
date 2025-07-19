@@ -19,6 +19,7 @@ export interface FilterState {
   location: string;
   urgent: boolean;
   category: string;
+  sortBy: 'relevance' | 'distance' | 'rating' | 'price' | 'date';
 }
 
 export type ViewState = 'category' | 'subcategory' | 'results';

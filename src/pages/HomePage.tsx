@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import BottomNavigation from '@/components/BottomNavigation';
+import SEOHead from '@/components/SEOHead';
 import JobSeekerHome from '@/components/JobSeekerHome';
 import EmployerHome from '@/components/EmployerHome';
 import StickyHeader from '@/components/layout/StickyHeader';
@@ -35,6 +36,10 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead 
+        title={`Home - ${user?.role === 'employer' ? 'Find Workers' : 'Find Jobs'}`}
+        description={`Welcome back! ${user?.role === 'employer' ? 'Find skilled workers for your projects' : 'Discover job opportunities in your area'}.`}
+      />
       <StickyHeader />
       {/* Dynamic Role Switcher */}
       <div className="px-4 py-2 bg-gray-50 border-b">

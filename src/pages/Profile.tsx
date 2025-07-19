@@ -10,6 +10,7 @@ import ProfileSettings from '@/components/profile/ProfileSettings';
 import BannerAd from '@/components/BannerAd';
 import ProfileProgress from '@/components/ProfileProgress';
 import BottomNavigation from '@/components/BottomNavigation';
+import ProfilePhotoUpload from '@/components/profile/ProfilePhotoUpload';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -249,6 +250,13 @@ const Profile = () => {
             <TabsTrigger value="settings">{t('profile.settings', 'Settings')}</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <ProfilePhotoUpload 
+                currentPhoto={user.profilePhoto || undefined}
+                userName={user.name || undefined}
+                onPhotoUpdate={(photoUrl) => updateProfile({ profilePhoto: photoUrl })}
+              />
+            </div>
             <EnhancedProfileInfo 
               profileData={{
                 name: user.name || '',

@@ -1,5 +1,7 @@
 import React from 'react';
-// import { StarIcon, CallButton, ChatButton } from './UnifiedWorkerCard'; // If exported, otherwise copy logic
+import { AccessibleCard, CardContent } from '@/components/common/AccessibleCard';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
 
 function CallButton({ phone, allowCall }: { phone?: string; allowCall?: boolean }) {
@@ -49,49 +51,81 @@ function ChatButton({ phone }: { phone?: string }) {
   );
         }
 
-const UnifiedJobCard = ({ job, onApply, onViewDetails, hasApplied }: any) => {
-  // Determine if subcategory should be below main category (if name is long)
+interface UnifiedJobCardProps {
+  job: any;
+  onApply?: () => void;
+  onViewDetails?: () => void;
+  onEdit?: () => void;
+  hasApplied?: boolean;
+  className?: string;
+  isApplied?: boolean;
+}
+
+const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({ job, onApply, onViewDetails, hasApplied, className = '', isApplied = false }) => {
   const mainCategory = job.category || 'General';
   const subCategory = job.subcategory || '';
   const isSubBelow = mainCategory.length > 12 || subCategory.length > 12;
 
   return (
-    <div className="bg-white border-2 border-black shadow-lg rounded-lg p-4 max-w-md mx-auto transition-all duration-300 hover:shadow-xl flex flex-row w-full items-center" style={{ minWidth: 320 }}>
-      {/* Left Section: Job info */}
-      <div className="flex-1 min-w-0">
-        <h2 className="text-lg font-bold text-gray-800 truncate">{job.title}</h2>
-        <div className="text-sm text-gray-600 truncate mb-1">{job.company}</div>
-        <div className={isSubBelow ? "flex flex-col items-start space-y-1 mt-0.5" : "flex items-center space-x-2 mt-0.5"}>
-          <span className="text-sm text-gray-600 truncate">{mainCategory}</span>
-          {subCategory && <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs truncate mt-0.5">{subCategory}</div>}
-        </div>
-        <div className="flex items-center text-xs text-gray-500 space-x-2 mt-2">
-          {job.rating && (
-            <div className="flex items-center">
-              <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-              <span className="ml-1">{job.rating}</span>
+    <AccessibleCard 
+      className={`transition-all duration-200 ${isApplied ? 'bg-green-50 border-green-200' : 'hover:shadow-md'} ${className}`}
+      ariaLabel={`Job: ${job.title} at ${job.company_name || 'Unknown Company'}`}
+      onClick={onViewDetails}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center w-full">
+          {/* Left Section: Job info */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-gray-800 truncate">{job.title}</h2>
+            <div className="text-sm text-gray-600 truncate mb-1">{job.company}</div>
+            <div className={isSubBelow ? "flex flex-col items-start space-y-1 mt-0.5" : "flex items-center space-x-2 mt-0.5"}>
+              <span className="text-sm text-gray-600 truncate">{mainCategory}</span>
+              {subCategory && <Badge variant="secondary" className="text-xs">{subCategory}</Badge>}
+            </div>
+            <div className="flex items-center text-xs text-gray-500 space-x-2 mt-2">
+              {job.rating && (
+                <div className="flex items-center">
+                  <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                  <span className="ml-1">{job.rating}</span>
+                </div>
+              )}
+              {job.salary_min && (
+                <span className="text-green-500 font-bold">₹{job.salary_min}{job.salary_max ? ` - ₹${job.salary_max}` : ''}/{job.salary_period || 'hr'}</span>
+              )}
+              {job.location && <span className="text-xs text-gray-500">{job.location}</span>}
+            </div>
           </div>
-          )}
-          {job.salary_min && (
-            <span className="text-green-500 font-bold">₹{job.salary_min}{job.salary_max ? ` - ₹${job.salary_max}` : ''}/{job.salary_period || 'hr'}</span>
-          )}
-          {job.location && <span className="text-xs text-gray-500">{job.location}</span>}
+          
+          {/* Right Section: Actions */}
+          <div className="flex flex-col items-end justify-center space-y-2 ml-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails?.();
+              }}
+              aria-label={`View details for ${job.title} job`}
+            >
+              View Details
+            </Button>
+            {onApply && (
+              <Button 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApply();
+                }}
+                disabled={hasApplied}
+                aria-label={hasApplied ? 'Already applied' : `Apply for ${job.title}`}
+              >
+                {hasApplied ? 'Applied' : 'Apply'}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-      {/* Right Section: Actions */}
-      <div className="flex flex-col items-end justify-center space-y-2 ml-2 min-w-[7rem] pr-2">
-        <button
-          className={`bg-blue-600 text-white px-4 py-2 rounded-full font-bold transition-colors duration-300 hover:bg-blue-700 min-w-fit ${hasApplied ? 'opacity-50 cursor-not-allowed' : ''}`}
-          onClick={onApply}
-          disabled={hasApplied}
-          type="button"
-        >
-          {hasApplied ? 'Applied' : 'Apply'}
-        </button>
-        <ChatButton phone={job.phone} />
-        <CallButton phone={job.phone} allowCall={job.allow_call} />
-      </div>
-    </div>
+      </CardContent>
+    </AccessibleCard>
   );
 };
 

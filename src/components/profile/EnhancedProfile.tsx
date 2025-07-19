@@ -48,22 +48,10 @@ const EnhancedProfile = () => {
     setError(null);
     const fetchData = async () => {
       try {
-        // Fetch portfolio items
-        const { data: portfolioData, error: portfolioError } = await supabase
-          .from('portfolio')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false });
-        if (portfolioError) throw portfolioError;
-        setPortfolio(portfolioData || []);
-        // Fetch reviews
-        const { data: reviewsData, error: reviewsError } = await supabase
-          .from('reviews')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false });
-        if (reviewsError) throw reviewsError;
-        setReviews(reviewsData || []);
+        // For now, use mock data since portfolio and reviews tables don't exist
+        // TODO: Create portfolio and reviews tables in Supabase
+        setPortfolio([]);
+        setReviews([]);
       } catch (err: any) {
         setError('Failed to load profile data.');
       } finally {
@@ -79,27 +67,8 @@ const EnhancedProfile = () => {
       try {
         // In a real app, upload to cloud storage and get the URL
         const imageUrl = URL.createObjectURL(file); // Placeholder for demo
-        const { error: insertError } = await supabase
-          .from('portfolio')
-          .insert({
-            user_id: user.id,
-            title: 'New Project',
-            description: 'Click to edit description',
-            image: imageUrl,
-            category: 'General',
-            date: new Date().toISOString().split('T')[0],
-            likes: 0,
-            views: 0
-          });
-        if (insertError) throw insertError;
-        toast({ title: 'Portfolio item added!' });
-        // Refresh portfolio
-        const { data: portfolioData } = await supabase
-          .from('portfolio')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false });
-        setPortfolio(portfolioData || []);
+        // TODO: Implement portfolio upload when portfolio table is created
+        toast({ title: 'Portfolio feature coming soon!' });
       } catch (err: any) {
         toast({ title: 'Failed to add portfolio item', variant: 'destructive' });
       }

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import CompactAdvancedFilters from '@/components/search/CompactAdvancedFilters';
+import AdvancedJobFilters from '@/components/search/AdvancedJobFilters';
 import { Filter, Zap, Plus } from 'lucide-react';
 
 interface FilterState {
@@ -13,6 +14,7 @@ interface FilterState {
   location: string;
   urgent: boolean;
   category: string;
+  sortBy: 'relevance' | 'distance' | 'rating' | 'price' | 'date';
 }
 
 interface JobSearchFiltersProps {
@@ -101,10 +103,10 @@ const JobSearchFilters = ({
 
       {/* Advanced Filters */}
       {showAdvancedFilters && (
-        <CompactAdvancedFilters
+        <AdvancedJobFilters
           filters={filters}
           onFiltersChange={onFiltersChange}
-          resultCount={resultsCount}
+          resultsCount={resultsCount}
           userRole={userRole}
           onClose={() => setShowAdvancedFilters(false)}
         />

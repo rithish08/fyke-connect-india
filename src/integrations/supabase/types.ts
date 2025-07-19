@@ -508,6 +508,58 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          from_user_id: string | null
+          id: string
+          rating: number
+          request_id: string | null
+          to_user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          from_user_id?: string | null
+          id?: string
+          rating: number
+          request_id?: string | null
+          to_user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          from_user_id?: string | null
+          id?: string
+          rating?: number
+          request_id?: string | null
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           admin_notes: string | null
