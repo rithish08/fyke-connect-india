@@ -49,7 +49,7 @@ function ChatButton({ phone }: { phone?: string }) {
       <span>Chat</span>
     </button>
   );
-        }
+}
 
 interface UnifiedJobCardProps {
   job: any;
@@ -68,7 +68,7 @@ const UnifiedJobCard: React.FC<UnifiedJobCardProps> = ({ job, onApply, onViewDet
 
   return (
     <AccessibleCard 
-      className={`transition-all duration-200 ${isApplied ? 'bg-green-50 border-green-200' : 'hover:shadow-md'} ${className}`}
+      className={`transition-all duration-200 border-black ${isApplied ? 'bg-green-50 border-green-200' : 'hover:shadow-md'} ${className}`}
       ariaLabel={`Job: ${job.title} at ${job.company_name || 'Unknown Company'}`}
       onClick={onViewDetails}
     >

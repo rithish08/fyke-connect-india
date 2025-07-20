@@ -63,7 +63,6 @@ interface UnifiedWorkerCardProps {
   isRequested?: boolean;
   onRequest?: (workerId: string) => void;
   onRevoke?: (workerId: string) => void;
-  onViewProfile?: () => void;
   className?: string;
 }
 
@@ -164,39 +163,38 @@ const UnifiedWorkerCard: React.FC<UnifiedWorkerCardProps> = ({
   isRequested: requestedProp, 
   onRequest, 
   onRevoke, 
-  onViewProfile,
   className = ''
 }) => {
   const [isRequested, setIsRequested] = useState(!!requestedProp);
 
-  const mainCategory = worker.category || worker.primaryCategory || "Construction";
-  const subCategory = worker.subcategory || "Mason";
-  const isSubBelow = mainCategory.length > 12 || subCategory.length > 12;
+  // Remove mainCategory and subCategory variables, and their fallbacks
+  const isSubBelow = (worker.category || worker.primaryCategory || '').length > 12 || (worker.subcategory || '').length > 12;
 
   const availabilityColor = worker.availability === 'available' ? 'bg-green-500' : worker.availability === 'busy' ? 'bg-yellow-400' : 'bg-gray-400';
   const availabilityText = worker.availability === 'available' ? 'Available' : worker.availability === 'busy' ? 'Busy' : 'Offline';
 
   return (
     <AccessibleCard 
-      className={`transition-all duration-200 ${isRequested ? 'bg-blue-50 border-blue-200' : 'hover:shadow-md'} ${className}`}
-      ariaLabel={`Worker: ${worker.name}, ${mainCategory}`}
-      onClick={onViewProfile}
+      className={`transition-all duration-200 border-black ${isRequested ? 'bg-blue-50' : 'hover:shadow-md'} ${className}`}
+      ariaLabel={`Worker: ${worker.name}, ${worker.category || worker.primaryCategory}`}
     >
       <CardContent className="p-4">
         <div className="flex items-center w-full">
           {/* Left Section: Profile image and text */}
           <div className="flex items-center min-w-0 flex-1">
-            <Avatar className="w-20 h-20 mr-4 flex-shrink-0">
-              <AvatarImage src={worker.profile_photo} alt={`${worker.name}'s profile`} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
+            <Avatar className="w-20 h-20 mr-4 flex-shrink-0 border border-gray-300 rounded-md overflow-hidden">
+              <AvatarImage className="w-full h-full object-cover rounded-md" src={worker.profile_photo} alt={`${worker.name}'s profile`} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold rounded-md">
                 {worker.name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex flex-col">
               <h2 className="text-lg font-bold text-gray-800 truncate">{worker.name}</h2>
               <div className={isSubBelow ? "flex flex-col items-start space-y-1 mt-0.5" : "flex items-center space-x-2 mt-0.5"}>
-                <span className="text-sm text-gray-600 truncate">{mainCategory}</span>
-                {subCategory && <Badge variant="secondary" className="text-xs">{subCategory}</Badge>}
+                {worker.category || worker.primaryCategory ? (
+                  <span className="text-sm text-gray-600 truncate">{worker.category || worker.primaryCategory}</span>
+                ) : null}
+                {worker.subcategory && <Badge variant="secondary" className="text-xs">{worker.subcategory}</Badge>}
               </div>
               <div className="flex items-center text-xs text-gray-500 space-x-2 mt-2">
                 <div className="flex items-center">
@@ -211,17 +209,6 @@ const UnifiedWorkerCard: React.FC<UnifiedWorkerCardProps> = ({
           
           {/* Right Section: Actions */}
           <div className="flex flex-col items-end justify-center space-y-2 ml-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewProfile?.();
-              }}
-              aria-label={`View profile for ${worker.name}`}
-            >
-              View Profile
-            </Button>
             <RequestButton isRequested={isRequested} setIsRequested={setIsRequested} onRequest={onRequest} onRevoke={onRevoke} workerId={worker.id} />
             {isRequested && <CallChatButtons phone={worker.phone} allowCall={worker.allow_call} />}
           </div>
